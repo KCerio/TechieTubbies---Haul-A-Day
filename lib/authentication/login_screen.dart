@@ -10,11 +10,19 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   String adminusername = "";
   String adminpassword = "";
-  
+  var _isObscured = true;
+  var _isUser = false;
+  final myController = TextEditingController();
+
+  void disposer(){
+    myController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-
+    
     return Padding(
       padding: EdgeInsets.all(size.height > 770 ? 64 : size.height > 670 ? 32 : 16),
       child: Center(
@@ -63,13 +71,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 32,
                       ),
 
-                      TextField(
+                      TextFormField(
+                        controller: myController,
                         decoration: InputDecoration(
-                          hintText: 'Email',
-                          labelText: 'Email',
-                          suffixIcon: Icon(
-                            Icons.mail_outline,
-                          ),
+                          //hintText: 'Username or Staff ID',
+                          labelText: 'Username or Staff ID',
+                          suffixIcon: Icon(Icons.check)
                         ),
                       ),
 
@@ -78,12 +85,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
 
                       TextField(
+                        obscureText: _isObscured,
                         decoration: InputDecoration(
-                          hintText: 'Password',
+                          //hintText: 'Password',
                           labelText: 'Password',
-                          suffixIcon: Icon(
-                            Icons.lock_outline,
-                          ),
+                          suffixIcon: GestureDetector(
+                            onTap: (){
+                              setState(() {
+                                _isObscured = !_isObscured;
+                              });
+                            }, 
+                            child: _isObscured ? const Icon(Icons.visibility_off) : const Icon(Icons.visibility), 
+                          )
                         ),
                       ),
 
@@ -94,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       //actionButton("Log In"),
 
                       SizedBox(
-                        height: 32,
+                        height: 30,
                       ),
 
                       Row(
@@ -136,14 +149,32 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Icon(
                                   Icons.arrow_forward,
                                   color: Colors.amber,
-                                ),
-                                
+                                ), 
                               ],
                             ),
                           ),
-
                         ],
                       ),
+
+                    SizedBox(
+                        width: 8,
+                    ),
+                    ElevatedButton(
+                            onPressed: (){
+
+                            },
+                            style: ButtonStyle(
+                              padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 100, vertical: 20)),
+                              backgroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 102, 179, 101)),
+                              foregroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 255, 255, 255)),
+                            ), 
+                            child: const Text("Log in",
+                            style: TextStyle(
+                              color: Colors.white, 
+                              letterSpacing:2, 
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),  
+                            ))
 
                     ],
                   ),
@@ -154,5 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
       )
     )
     );
-        
+
+    
+
     }}
