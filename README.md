@@ -27,5 +27,5 @@ For Git:
     Things to do after coding:
         1. **git add .** -> logs changes made sa code
         2. **git status** -> to check if sakto ang na add sa log
-        3. ** git commit -m "message" ** -> message: any phrase that summarizes the things added/changed in the code
-        4. ** git push origin <branch_name>** -> pushes or saves changes to the repository branch
+        3. **git commit -m "message" ** -> message: any phrase that summarizes the things added/changed in the code
+        4. **git push origin <branch_name>** -> pushes or saves changes to the repository branch
