@@ -1,9 +1,15 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:haul_a_day_web/controllers/menuController.dart';
+import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
+import 'package:haul_a_day_web/newUI/homescreen.dart';
+import 'package:haul_a_day_web/newUI/orderdashboard.dart';
+import 'package:haul_a_day_web/newUI/orderdashboard.dart';
 //import 'package:haul_a_day_web/trial_pages/homepagetrial.dart';
-import 'package:haul_a_day_web/page/menupage2.dart';
+//import 'package:haul_a_day_web/page/menupage2.dart';
 import 'package:haul_a_day_web/page/orderpage.dart';
 import 'package:haul_a_day_web/page/staffList.dart';
 import 'package:haul_a_day_web/page/truck_list.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/authentication/login_screen.dart';
@@ -13,7 +19,10 @@ Future <void> main() async{
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   ); 
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+      create: (_) => SideMenuSelection(),
+      child: MyApp(),
+    ),);
 }
 
 class MyApp extends StatelessWidget {
@@ -29,7 +38,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const OrderPage()
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) => MenuAppController(),
+          ),
+        ],
+        child: Homepage(),
+      ),
     );
   }
 }

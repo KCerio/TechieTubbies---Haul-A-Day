@@ -40,6 +40,9 @@ dependencies:
   cloud_firestore: ^4.15.6
   get: ^4.3.8
   intl: ^0.19.0
+  fl_chart: ^0.67.0
+  provider: ^6.1.2
+  carousel_slider: ^4.2.1
 
 dev_dependencies:
   flutter_test:
@@ -80,17 +83,23 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
+  fonts:
+     - family: Itim
+       fonts:
+         - asset: assets/fonts/Itim-Regular.ttf
+     - family: Inter
+       fonts:
+         - asset: assets/fonts/Inter-V.ttf
+         - asset: assets/fonts/Inter/Inter-Bold.otf
+     - family: InriaSans
+       fonts:
+         - asset: assets/fonts/InriaSans/TTF/InriaSans-Bold.ttf
+         - asset: assets/fonts/InriaSans/TTF/InriaSans-Italic.ttf
+         - asset: assets/fonts/InriaSans/TTF/InriaSans-BoldItalic.ttf
+         - asset: assets/fonts/InriaSans/TTF/InriaSans-Light.ttf
+         - asset: assets/fonts/InriaSans/TTF/InriaSans-LightItalic.ttf
+         - asset: assets/fonts/InriaSans/TTF/InriaSans-Regular.ttf
+         
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

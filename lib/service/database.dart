@@ -410,51 +410,94 @@ class DatabaseService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchUnloadingSchedules(String orderID, String loadID) async {
+  Future<List<Map<String, dynamic>>> fetchUnloadingSchedules(String orderID) async {
     try {
-      QuerySnapshot unloadingSnapshots =
-          await _firestore
+      List<Map<String, dynamic>> allUnloading = [];
+      final snapshot = await _firestore
           .collection('Order')
           .doc(orderID)
-          .collection('LoadingShedule')
-          .doc(loadID)
-          .collection('UnloadingSchedule')
+          .collection('LoadingSchedule')
+          .limit(1)
           .get();
 
-      List<Map<String, dynamic>> allUnloading = [];
-      unloadingSnapshots.docs.forEach((DocumentSnapshot unloadingSnapshot) {
-        if (unloadingSnapshot.exists) {
-          Map<String, dynamic> unloadingData = unloadingSnapshot.data() as Map<String, dynamic>;
-          unloadingData['id'] = unloadingSnapshot.id; // Include the document ID
-          allUnloading.add(unloadingData);
-        }
-      });
+      if (snapshot.docs.isNotEmpty) {
+        final firstDocument = snapshot.docs.first;
+        //final loadData = firstDocument.data();
+        //final cargoType = loadData['cargoType'];
 
+        final loadingScheduleCollection =
+            firstDocument.reference.collection('UnloadingSchedule');
+        
+        final loadingScheduleSnapshot = await loadingScheduleCollection.get();
+        loadingScheduleSnapshot.docs.forEach((document) {
+          final Map<String, dynamic> unloadData =
+              document.data() as Map<String, dynamic>;
+          unloadData['unloadId'] = document.id;
+          allUnloading.add(unloadData);
+        });
+      }
+      
       return allUnloading;
     } catch (e) {
       throw Exception('Failed to fetch unloadings: $e');
     }
   }
 
+
+  
+  
   Future<List<Map<String, dynamic>>> fetchAllOrderList() async {
     try {
-      QuerySnapshot orderSnapshots =
-          await _firestore.collection('Orders').get();
+      QuerySnapshot orderSnapshots = await _firestore.collection('Order').get();
 
       List<Map<String, dynamic>> allOrders = [];
-      orderSnapshots.docs.forEach((DocumentSnapshot orderSnapshot) {
+      for (DocumentSnapshot orderSnapshot in orderSnapshots.docs) {
         if (orderSnapshot.exists) {
-          Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
+          Map<String, dynamic> orderData =
+              orderSnapshot.data() as Map<String, dynamic>;
           orderData['id'] = orderSnapshot.id; // Include the document ID
+          var filedTimeStamp = orderData['date_filed'].toDate();
+          var date_filed = DateFormat('MMM dd, yyyy').format(filedTimeStamp);
+          var time_filed = DateFormat('HH:mm a').format(filedTimeStamp);
+          orderData['filed_date'] = date_filed; // Include
+          orderData['filed_time'] = time_filed; //
+
+          bool assignStatus = await getDeliveryStatus(orderSnapshot.id);
+          if (assignStatus == true) {
+            orderData['assignedStatus'] = 'true';
+          } else if (assignStatus == false) {
+            orderData['assignedStatus'] = 'false';
+          }
+
+          Map<String, dynamic> loadingData = await fetchLoadingSchedule(orderSnapshot.id);
+          orderData['cargoType'] = loadingData['cargoType'];
+          orderData['loadingStatus'] = loadingData['deliveryStatus'];
+          orderData['loadingLocation'] = loadingData['loadingLocation'];
+          orderData['loadingTime'] = loadingData['time'];
+          orderData['loadingDate']=loadingData['date'];
+          orderData['route'] = loadingData['route'];
+          orderData['totalCartons'] = loadingData['totalCartons'];
+          orderData['warehouse'] = loadingData['warehouse'];
+
+          double weight = 0;
+          List<Map<String, dynamic>> unloadingList = await fetchUnloadingSchedules(orderSnapshot.id);
+          for (Map<String, dynamic> unloadData in unloadingList){
+            weight += unloadData['weight'];
+          }
+          orderData['totalWeight'] = weight;
+
+
           allOrders.add(orderData);
         }
-      });
+      }
 
       return allOrders;
     } catch (e) {
-      throw Exception('Failed to fetch trucks: $e');
+      throw Exception('Failed to fetch users: $e');
     }
   }
+
+  
 
 
 }

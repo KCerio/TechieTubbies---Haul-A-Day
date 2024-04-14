@@ -7,3 +7,9 @@ enum Option{
 enum OrderOption{
   OrderContent, OrderDetails
 }
+
+enum TabSelection{
+  Home, Order, StaffList, TruckList, Delivery, Payroll, OrderDetails
+}
+
+var orderSelected;
