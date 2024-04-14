@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "335492309326",
+    "project_id": "cuc-haul-a-day",
+    "storage_bucket": "cuc-haul-a-day.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:335492309326:android:dde3ca93f636dafaf17e1f",
+        "android_client_info": {
+          "package_name": "com.example.haul_a_day"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7-ub-JU1WHaKTmes_A2RBlHOmQI_Co6s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:335492309326:android:d114e9117ee88fb9f17e1f",
+        "android_client_info": {
+          "package_name": "com.example.haul_a_day_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7-ub-JU1WHaKTmes_A2RBlHOmQI_Co6s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:335492309326:android:5a1c929dcf7f2b37f17e1f",
+        "android_client_info": {
+          "package_name": "com.example.haul_a_day_web"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7-ub-JU1WHaKTmes_A2RBlHOmQI_Co6s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
