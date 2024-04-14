@@ -333,7 +333,7 @@ class _TruckTeamState extends State<TruckTeam> {
                       margin: EdgeInsets.symmetric(vertical: 10.0),
                       height: 30,
                       width: 125,
-                      padding: EdgeInsets.symmetric(vertical: 5),
+                      padding: EdgeInsets.symmetric(horizontal: 5),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border.all(
