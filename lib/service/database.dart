@@ -202,10 +202,11 @@ class DatabaseService {
   Future<List<String>> getAvailableCrewIds() async{
     try {
       QuerySnapshot snapshot = await _firestore
-          .collection('Users')
-          .where('position', isEqualTo: 'Helper')
-          .where('assignedSchedule', isEqualTo: 'none')
-          .get();
+        .collection('Users')
+        .where('position', isEqualTo: 'Helper')
+        .where('assignedSchedule', whereIn: ['None', 'none'])
+        .get();
+
 
       List<String> helpers = [];
       for (var doc in snapshot.docs) {
@@ -265,6 +266,29 @@ class DatabaseService {
         },
         SetOptions(merge: true), // Merge with existing fields
       );
+
+      DocumentSnapshot truckDoc = await _firestore.collection('Trucks').doc(truck).get();
+      if(truckDoc.exists){
+        var truckData = truckDoc.data() as Map<String, dynamic>; // Explicit cast to Map<String, dynamic>
+        var driver = truckData['driver']; 
+        DocumentSnapshot driverDoc = await _firestore
+            .collection('Users')
+            .where('staffId', isEqualTo: driver)
+            .limit(1)
+            .get()
+            .then((querySnapshot) => querySnapshot.docs.first);
+        
+        // Check if driverDoc exists before proceeding
+        if (driverDoc.exists) {
+          // create assignedSchedule in users 
+          await _firestore.collection('Users').doc(driverDoc.id).set(
+            {
+              'assignedSchedule': orderId,
+            },
+            SetOptions(merge: true), // Merge with existing fields
+          );
+        }
+      }
 
       // Update assignedTruck and deliveryStatus in LoadingSchedule collection
       QuerySnapshot loadingSnapshot = await _firestore
@@ -443,8 +467,6 @@ class DatabaseService {
     }
   }
 
-
-  
   
   Future<List<Map<String, dynamic>>> fetchAllOrderList() async {
     try {
@@ -498,6 +520,149 @@ class DatabaseService {
   }
 
   
+  // updating confirmation status
+  void updateConfirmValue(bool _confirm, String orderId) async {
+    try {
+      // Update the value of a document in Firestore
+      // ignore: avoid_single_cascade_in_expression_statements
+      _firestore..collection('Order').doc(orderId).update({
+        'confirmed_status': _confirm,
+      });
 
+      print('Document successfully updated');
+    } catch (error) {
+      print('Error updating document: $error');
+    }
+  }
+
+  Future<List<String>> fetchTruckTeam(String orderId) async {
+    try {
+      QuerySnapshot crewSnapshots = await _firestore
+      .collection('Order')
+      .doc(orderId)
+      .collection('truckTeam')
+      .get();
+
+      List<String> crewIDs = [];
+      for (DocumentSnapshot crewSnapshot in crewSnapshots.docs) {
+        if (crewSnapshot.exists) {
+          String crewId = crewSnapshot.id;
+
+          crewIDs.add(crewId);
+        }
+      }
+      return crewIDs;
+    } catch (e) {
+      throw Exception('Failed to fetch users: $e');
+    }
+  }
+
+  void cancelSchedule(String orderId, String truck)async{
+    try{
+      //Update AssignedTruck
+      await _firestore.collection('Order').doc(orderId).set(
+        {
+          'assignedTruck': 'None',
+        },
+        SetOptions(merge: true), // Merge with existing fields
+      );
+
+      //Update Truck Status
+      await _firestore.collection('Trucks').doc(truck).set(
+        {
+          'truckStatus': "Available",
+        },
+        SetOptions(merge: true), // Merge with existing fields
+      );
+
+      DocumentSnapshot truckDoc = await _firestore.collection('Trucks').doc(truck).get();
+      if(truckDoc.exists){
+        var truckData = truckDoc.data() as Map<String, dynamic>; // Explicit cast to Map<String, dynamic>
+        var driver = truckData['driver']; 
+        DocumentSnapshot driverDoc = await _firestore
+            .collection('Users')
+            .where('staffId', isEqualTo: driver)
+            .limit(1)
+            .get()
+            .then((querySnapshot) => querySnapshot.docs.first);
+        
+        // Check if driverDoc exists before proceeding
+        if (driverDoc.exists) {
+          // create assignedSchedule in users 
+          await _firestore.collection('Users').doc(driverDoc.id).set(
+            {
+              'assignedSchedule': 'None',
+            },
+            SetOptions(merge: true), // Merge with existing fields
+          );
+        }
+      }
+
+      // Update assignedTruck and deliveryStatus in LoadingSchedule collection
+      QuerySnapshot loadingSnapshot = await _firestore
+          .collection('Order')
+          .doc(orderId)
+          .collection('LoadingSchedule')
+          .get();
+
+      for (DocumentSnapshot doc in loadingSnapshot.docs) {
+        await doc.reference.update({
+          'deliveryStatus': '',
+        });
+      }
+
+      // Update deliveryStatus in UnloadingSchedule collection
+      QuerySnapshot unloadingSnapshot = await _firestore
+          .collection('Order')
+          .doc(orderId)
+          .collection('LoadingSchedule')
+          .doc(orderId)
+          .collection('UnloadingSchedule')
+          .get();
+
+      for (QueryDocumentSnapshot doc in unloadingSnapshot.docs) {
+        await doc.reference.update({'deliveryStatus': ''});
+      }
+
+      List<String> crews = await fetchTruckTeam(orderId);
+      for(String crew in crews){
+        QuerySnapshot querySnapshot = await _firestore.collection('Users').where('staffId', isEqualTo: crew).get();
+
+        // Loop through the documents returned by the query
+        querySnapshot.docs.forEach((doc) {
+          // Get the document reference
+          DocumentReference docRef = _firestore.collection('Users').doc(doc.id);
+
+          // Update the document
+          docRef.set(
+            {
+              'assignedSchedule': 'None',
+            },
+            SetOptions(merge: true), // Merge with existing fields
+          );
+        });
+      }
+
+        final CollectionReference collectionReference =
+        _firestore.collection('Order').doc(orderId).collection('truckTeam');
+
+        // Query for documents in the collection
+        final QuerySnapshot snapshot = await collectionReference.get();
+
+        // Create a new batch
+        WriteBatch batch = FirebaseFirestore.instance.batch();
+
+        // Add delete operations for each document to the batch
+        snapshot.docs.forEach((doc) {
+          batch.delete(doc.reference);
+        });
+
+        // Commit the batched delete operations
+        await batch.commit();     
+      
+    }catch (error) {
+      print('Error updating document: $error');
+    }
+  }
 
 }

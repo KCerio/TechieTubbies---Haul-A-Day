@@ -11,5 +11,3 @@ enum OrderOption{
 enum TabSelection{
   Home, Order, StaffList, TruckList, Delivery, Payroll, OrderDetails
 }
-
-var orderSelected;

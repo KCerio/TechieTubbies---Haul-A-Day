@@ -4,6 +4,7 @@ import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:haul_a_day_web/newUI/homescreen.dart';
 import 'package:haul_a_day_web/newUI/orderdashboard.dart';
 import 'package:haul_a_day_web/newUI/orderdashboard.dart';
+import 'package:haul_a_day_web/page/order.dart';
 //import 'package:haul_a_day_web/trial_pages/homepagetrial.dart';
 //import 'package:haul_a_day_web/page/menupage2.dart';
 import 'package:haul_a_day_web/page/orderpage.dart';
@@ -44,7 +45,7 @@ class MyApp extends StatelessWidget {
             create: (context) => MenuAppController(),
           ),
         ],
-        child: Homepage(),
+        child: Orderpage(),
       ),
     );
   }

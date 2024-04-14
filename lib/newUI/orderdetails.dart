@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
+import 'package:haul_a_day_web/newUI/components/assignDialog.dart';
 import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
+import 'package:haul_a_day_web/page/orderscreen.dart';
+import 'package:haul_a_day_web/service/database.dart';
 import 'package:provider/provider.dart';
 
 class OrderDetailsPage extends StatefulWidget {
@@ -72,7 +77,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             child: Column(
                               children: [
                                 Container(
-                                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 100),
+                                  padding: EdgeInsets.fromLTRB(70, 16, 16, 16),
                                   margin: EdgeInsets.all(16),
                                   height: 125,
                                   decoration: BoxDecoration(
@@ -87,24 +92,14 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       ),
                                     ],
                                   ),
-                                  child: orderTitle(
-                                    _order['route'], 
-                                    _order['id'], 
-                                    _order['filed_date'], 
-                                    _order['filed_time'],
-                                    _order['confirmed_status'],
-                                    _order['assignedStatus']
-                                  )
+                                  child: orderTitle(_order)
                                 ),
                                 SizedBox(height:16),
                                 Container(
+                                  padding:EdgeInsets.all(16),
                                   height: 450,
                                   color: Colors.white,
-                                  child: Center(
-                                    child: Text(
-                                      'Unloading'
-                                      ),
-                                    ), 
+                                  child: orderInfo(_order)
                                 ),
                                 SizedBox(height:16),
                                 Container(
@@ -147,9 +142,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     );
   }
 
-  Widget orderTitle(String route,String orderID, String filedDate, String filedTime, bool confirm, String assignStatus){
-    ColorFilter colorFilter = ColorFilter.mode(Colors.white, BlendMode.modulate);
-    
+  Widget orderTitle(Map<String, dynamic> order){
+    DatabaseService databaseService = DatabaseService();
+    bool confirm = order['confirmed_status'];
+    print('${order['id']}: $confirm ${order['assignedStatus']}');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -160,19 +156,19 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '$route - $orderID',
+              '${order['route']} - ${order['id']}',
               style: TextStyle(
                 fontFamily: 'Itim',
-                fontSize: 26,
+                fontSize: 35,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
             Text(
-              '$filedDate at $filedTime',
+              '${order['filed_date']} at ${order['filed_time']}',
               style: TextStyle(
                 fontFamily: 'Iter',
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.normal,
                 color: Colors.white,
               ),
@@ -187,7 +183,48 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             Row(
               children: [
                 ElevatedButton(
-                  onPressed: (){}, 
+                  onPressed: confirm
+                    ? (){
+                      // Button is disabled if order is already confirmed
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Error"),
+                            content: const Text("Order Already Confirmed!"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      
+                    } 
+                    : () {
+                        setState(() {
+                          confirm = true;
+                          order['confirmed_status'] = true; // Set the flag to true when the button is clicked
+                        });
+                        databaseService.updateConfirmValue(confirm, order['id']);
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Confirmation"),
+                            content: const Text("Order confirmed!"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );                                         
+                  }, 
                   child: Row(
                     children: [
                       Icon(Icons.check_circle, color: Colors.white,),
@@ -199,12 +236,63 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
                     backgroundColor: confirm
                         ? MaterialStateProperty.all<Color>(Colors.grey) // Gray out the button if confirmed
-                        : MaterialStateProperty.all<Color>(const Color.fromARGB(255, 255, 235, 59)),
+                        : MaterialStateProperty.all<Color>(Colors.amber),
                     foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
                   ),
                 ),
+                SizedBox(width: 10,),
                 ElevatedButton(
-                  onPressed: (){}, 
+                  onPressed: confirm
+                    ? (){
+                      // Button is disabled if order is already confirmed
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text("Alert"),
+                          content: const Text("Do you wish to cancel confirmation or remove the order completely?"),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  confirm = !confirm;
+                                  order['confirmed_status'] = confirm;
+                                  order['assignedStatus'] = 'false'; 
+                                });
+                                databaseService.updateConfirmValue(confirm, order['id']);
+                                if(order['assignedStatus'] == 'true'){
+                                  databaseService.cancelSchedule(order['id'], order['assignedTruck']);
+                                }
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Cancel Confirmation'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Remove Order'),
+                            ),
+                          ],
+                        ),
+                      );                      
+                    } 
+                    : (){                   
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Alert"),
+                        content: const Text("Do you wish to cancel confirmation or remove the order completely?"),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Remove Order'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }, 
                   child: Row(
                     children: [
                       Icon(Icons.cancel, color: Colors.white,),
@@ -218,24 +306,68 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     //foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
                   ),
                 ),
+                SizedBox(width: 10,),
                 ElevatedButton(
-                  onPressed: (){}, 
+                  onPressed: (){
+                    if(order['assignedStatus'] == 'true' && order['confirmed_status'] == true){
+                      showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Error"),
+                            content: const Text("Order Already Assigned!"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                    } else if(order['assignedStatus'] == 'false' && order['confirmed_status'] == true){
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            contentPadding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                            content: AssignDialog(order: order,),
+                          );
+                        },
+                      );
+                    } else if(order['assignedStatus'] == 'false' && order['confirmed_status'] == false){
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text("Error"),
+                            content: const Text("Order Not Confirmed!"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  }, 
                   child: Row(
                     children: [
-                      SizedBox(
-                        height:20,
-                        child: ColorFiltered(
-                        colorFilter: colorFilter,
-                        child: Image.asset('images/logistic_add.png', fit: BoxFit.scaleDown,), // Replace 'assets/image.png' with your image path
-                      ),
-                      ),
+                      Icon(Icons.local_shipping_rounded, color: Colors.white,),
                       SizedBox(width: 5,),
                       Text('Assign', style: TextStyle(color: Colors.white))
                     ],
                   ),
                   style: ButtonStyle(
                     padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
-                    backgroundColor: MaterialStateProperty.all(Colors.green),
+                    backgroundColor: MaterialStateProperty.all(Color.fromRGBO(98, 123, 247, 1)),
                     //foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
                   ),
                 )
@@ -245,5 +377,14 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         )
       ],
     );
+  }
+
+  Widget orderInfo(Map<String, dynamic> order){
+    return Column(
+      children: [
+        Expanded(child: UnloadingSchedule(orderId: order['id']))
+      ],
+    );
+
   }
 }

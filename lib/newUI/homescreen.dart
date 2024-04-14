@@ -78,6 +78,7 @@ class _HomepageState extends State<Homepage> {
                         builder: (context, sideMenuSelection, _) {
                           TabSelection _tabSelection = sideMenuSelection.selectedTab;
                           Map<String, dynamic> orderSelected = sideMenuSelection.orderSelected;
+                          //List<Map<String, dynamic>> updatedOrders = sideMenuSelection.updatedOrders;
                           Widget selectedWidget;
                           switch (_tabSelection) {
                             case TabSelection.Home:

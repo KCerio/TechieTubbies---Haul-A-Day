@@ -1,17 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/authentication/login_screen.dart';
+import 'package:haul_a_day_web/service/database.dart';
 import 'package:provider/provider.dart';
 
 
 // Create a ChangeNotifier class to manage the selected tab
 class SideMenuSelection extends ChangeNotifier {
+  DatabaseService databaseService = DatabaseService();
   TabSelection _selectedTab = TabSelection.Home;
   Map<String, dynamic> _orderSelected = {};
+  List<Map<String, dynamic>> _updatedOrders= [];
 
   TabSelection get selectedTab => _selectedTab;
   Map<String, dynamic> get orderSelected => _orderSelected;
+  List<Map<String, dynamic>> get updatedOrders => _updatedOrders;
 
+  SideMenuSelection() {
+    // Initialize _updatedOrders asynchronously inside the constructor
+    fetchUpdatedOrders();
+  }
+
+  Future<void> fetchUpdatedOrders() async {
+    _updatedOrders = await databaseService.fetchAllOrderList();
+    notifyListeners();
+  }
+  
   void setSelectedTab(TabSelection tab) {
     _selectedTab = tab;
     notifyListeners();
@@ -20,7 +34,12 @@ class SideMenuSelection extends ChangeNotifier {
   void setSelectedOrder(Map<String, dynamic> orderSelected) {
     _orderSelected = orderSelected;
     notifyListeners();
-  }  
+  }
+
+  void setUpdatedOrders(List<Map<String, dynamic>> orderDetails) {
+    _updatedOrders = orderDetails;
+    notifyListeners();
+  }   
 }
 
 class SideMenu extends StatelessWidget {

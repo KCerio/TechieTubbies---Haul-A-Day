@@ -19,6 +19,7 @@ class _AllOrdersState extends State<AllOrders> {
 
   @override
   void initState() {
+    super.initState();
     // TODO: implement initState
     setState(() {
       _orderDetails = widget.orderDetails;

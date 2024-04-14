@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:haul_a_day_web/authentication/constant.dart';
+import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:haul_a_day_web/newUI/orderdashboard.dart';
 import 'package:haul_a_day_web/service/database.dart';
+import 'package:provider/provider.dart';
 
 class AssignDialog extends StatefulWidget {
   final Map<String,dynamic> order;
@@ -517,7 +520,7 @@ class _AssignDialogState extends State<AssignDialog> {
                   width: double.infinity,
                   alignment: Alignment.center,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: ()async {
                       // Handle button press
                       if(_selectedTruck == null ||
                           _selectedCrew1 == null ||
@@ -546,9 +549,17 @@ class _AssignDialogState extends State<AssignDialog> {
                         String crew1 = _selectedCrew1!;
                         String  crew2 = _selectedCrew2!;
 
+                        setState(() {
+                          _order['assignedStatus'] = 'true';
+                        });
                         print('Assign Schedule to: $orderId, $truck, $crew1, $crew2');
                         databaseService.assignSchedule(_order['id'], truck,crew1,crew2);
-
+                        
+                        /*//updates orders                        
+                        List<Map<String, dynamic>> orderDetails = await databaseService.fetchAllOrderList();
+                        Provider.of<SideMenuSelection>(context, listen: false)
+                          .setUpdatedOrders(orderDetails);
+                        */
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
@@ -558,6 +569,9 @@ class _AssignDialogState extends State<AssignDialog> {
                               actions: <Widget>[
                                 TextButton(
                                   onPressed: () {
+                                    Provider.of<SideMenuSelection>(context, listen: false)
+                                      .setSelectedTab(TabSelection.Order);
+                                    Navigator.pop(context);
                                     Navigator.pop(context);
                                   },
                                   child: const Text('OK'),
