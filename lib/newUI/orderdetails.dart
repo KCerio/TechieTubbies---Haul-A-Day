@@ -72,7 +72,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             child: Column(
                               children: [
                                 Container(
-                                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 100),
+                                  padding: EdgeInsets.fromLTRB(100,16,16,16),
                                   margin: EdgeInsets.all(16),
                                   height: 125,
                                   decoration: BoxDecoration(
@@ -148,10 +148,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget orderTitle(String route,String orderID, String filedDate, String filedTime, bool confirm, String assignStatus){
-    ColorFilter colorFilter = ColorFilter.mode(Colors.white, BlendMode.modulate);
+    ColorFilter colorFilter = ColorFilter.mode(Colors.white, BlendMode.color);
     
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Order title and filed date & time
@@ -179,6 +179,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             ),
           ],
         ),
+        
+        Spacer(),
 
         // Confirm & cancel and Assign buttons
         Column(
@@ -218,29 +220,31 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     //foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: (){}, 
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        height:20,
-                        child: ColorFiltered(
-                        colorFilter: colorFilter,
-                        child: Image.asset('images/logistic_add.png', fit: BoxFit.scaleDown,), // Replace 'assets/image.png' with your image path
-                      ),
-                      ),
-                      SizedBox(width: 5,),
-                      Text('Assign', style: TextStyle(color: Colors.white))
-                    ],
-                  ),
-                  style: ButtonStyle(
-                    padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
-                    backgroundColor: MaterialStateProperty.all(Colors.green),
-                    //foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
-                  ),
-                )
+                
               ],
-            )
+            ),
+            Spacer(),
+            ElevatedButton(
+                onPressed: (){}, 
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height:20,
+                      child: ColorFiltered(
+                      colorFilter: colorFilter,
+                      child: Image.asset('images/logistic_add.png', fit: BoxFit.scaleDown,), // Replace 'assets/image.png' with your image path
+                    ),
+                    ),
+                    SizedBox(width: 5,),
+                    Text('Assign', style: TextStyle(color: Colors.white))
+                  ],
+                ),
+                style: ButtonStyle(
+                  padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                  backgroundColor: MaterialStateProperty.all(Colors.green),
+                  //foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
+                ),
+              )
           ],
         )
       ],
