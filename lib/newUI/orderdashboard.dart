@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
+import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
 import 'package:haul_a_day_web/newUI/components/allOrdersWidget.dart';
 import 'package:haul_a_day_web/newUI/components/assignedWidget.dart';
@@ -25,6 +26,8 @@ class _OrderDashboardState extends State<OrderDashboard> {
   @override
   void initState() {
     super.initState();
+    Provider.of<SideMenuSelection>(context, listen: false)
+                    .setPreviousTab(TabSelection.Order);
     _filteredOrderDetails = widget.orderDetails;
   }
 
@@ -47,7 +50,7 @@ class _OrderDashboardState extends State<OrderDashboard> {
     Size size = MediaQuery.of(context).size;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 200, vertical:10),
+        padding: const EdgeInsets.symmetric(horizontal: 50, vertical:10),
         child: Column(
           children: [
             Expanded(

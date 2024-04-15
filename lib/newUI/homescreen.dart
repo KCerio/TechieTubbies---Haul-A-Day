@@ -28,7 +28,7 @@ class _HomepageState extends State<Homepage> {
 
   List<Map<String, dynamic>> _orderDetails = [];
   bool fetchingStatus = false; // if fecthing data is finished
-
+  //TabSelection _previousTab = TabSelection.Home;
   //Map<String, dynamic> _loadingDetails = {};
   @override
   void initState() {
@@ -70,14 +70,15 @@ class _HomepageState extends State<Homepage> {
                     child: Container(color: Color.fromARGB(255, 236, 234, 234),child: NavigationTopBar()),
                   ),
                   Expanded(
-                    flex: 8,
+                    flex: 7,
                     child: Container(
-                      //height: double.infinity,
+                      height: 1500,
                       //color: Color.fromARGB(255, 236, 234, 234),
                       child: Consumer<SideMenuSelection>(
                         builder: (context, sideMenuSelection, _) {
                           TabSelection _tabSelection = sideMenuSelection.selectedTab;
                           Map<String, dynamic> orderSelected = sideMenuSelection.orderSelected;
+                          TabSelection _previousTab = sideMenuSelection.previousTab;
                           //List<Map<String, dynamic>> updatedOrders = sideMenuSelection.updatedOrders;
                           Widget selectedWidget;
                           switch (_tabSelection) {
@@ -91,13 +92,15 @@ class _HomepageState extends State<Homepage> {
                               selectedWidget = TruckList();
                               break;
                             case TabSelection.Order:
+                              
                               selectedWidget = OrderDashboard(orderDetails: _orderDetails, fetchOrderDetails: fetchingStatus,);
                               break;
                             case TabSelection.OrderDetails:
 
-                              selectedWidget = OrderDetailsPage(order: orderSelected,);
+                              selectedWidget = OrderDetailsPage(order: orderSelected,previousTab: _previousTab,);
                               break;
                             case TabSelection.Delivery:
+                              
                               selectedWidget = DeliveryDashboard(orderDetails: _orderDetails, fetchOrderDetails: fetchingStatus,);
                               break;
                             case TabSelection.Payroll:

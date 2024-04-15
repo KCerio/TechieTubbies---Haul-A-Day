@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/newUI/components/allDeliveriesWidget.dart';
+import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:haul_a_day_web/newUI/orderdashboard.dart';
+import 'package:provider/provider.dart';
 
 class DeliveryDashboard extends StatefulWidget {
   final List<Map<String, dynamic>> orderDetails;
@@ -13,6 +16,15 @@ class DeliveryDashboard extends StatefulWidget {
 }
 
 class _DeliveryDashboardState extends State<DeliveryDashboard> {
+  
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Provider.of<SideMenuSelection>(context, listen: false)
+                    .setPreviousTab(TabSelection.Delivery);
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;

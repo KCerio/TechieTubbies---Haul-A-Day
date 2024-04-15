@@ -9,12 +9,14 @@ import 'package:provider/provider.dart';
 class SideMenuSelection extends ChangeNotifier {
   DatabaseService databaseService = DatabaseService();
   TabSelection _selectedTab = TabSelection.Home;
+  TabSelection _previousTab = TabSelection.Home;
   Map<String, dynamic> _orderSelected = {};
   List<Map<String, dynamic>> _updatedOrders= [];
 
   TabSelection get selectedTab => _selectedTab;
   Map<String, dynamic> get orderSelected => _orderSelected;
   List<Map<String, dynamic>> get updatedOrders => _updatedOrders;
+  TabSelection get previousTab => _previousTab;
 
   SideMenuSelection() {
     // Initialize _updatedOrders asynchronously inside the constructor
@@ -33,6 +35,11 @@ class SideMenuSelection extends ChangeNotifier {
 
   void setSelectedOrder(Map<String, dynamic> orderSelected) {
     _orderSelected = orderSelected;
+    notifyListeners();
+  }
+
+  void setPreviousTab(TabSelection tab){
+    _previousTab = tab;
     notifyListeners();
   }
 

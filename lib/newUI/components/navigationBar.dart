@@ -11,7 +11,7 @@ class NavigationTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 21, 24, 0),
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
       child: Column(
         children: [
           Row(

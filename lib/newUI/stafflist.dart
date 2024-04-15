@@ -47,7 +47,7 @@ class _StaffListState extends State<StaffList> {
               Expanded(
                 flex: 6,
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(50, 16, 16, 20),
+                  padding: EdgeInsets.fromLTRB(50, 16, 16, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -127,7 +127,7 @@ class _StaffListState extends State<StaffList> {
                       ),
                       const SizedBox(height: 20),
                       Container(
-                        height: size.height*0.7,
+                        height: size.height*0.68,
                         child: _staffs.isEmpty 
                           ? Container(
                             alignment: Alignment.center,

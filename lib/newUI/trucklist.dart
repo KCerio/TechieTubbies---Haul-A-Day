@@ -111,7 +111,7 @@ class _TruckListState extends State<TruckList> {
                       ),
                       //const SizedBox(height: 20),
                       Container(
-                        height: size.height*0.7,
+                        height: size.height*0.68,
                         child: _trucks.isEmpty 
                           ? Container(
                             alignment: Alignment.center,

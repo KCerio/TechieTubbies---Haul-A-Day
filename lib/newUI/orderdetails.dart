@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/newUI/components/assignDialog.dart';
+import 'package:haul_a_day_web/newUI/components/deliveryReports.dart';
 import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:haul_a_day_web/page/orderscreen.dart';
 import 'package:haul_a_day_web/service/database.dart';
@@ -12,7 +13,8 @@ import 'package:provider/provider.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final Map<String,dynamic> order;
-  OrderDetailsPage({super.key, required this.order});
+  final TabSelection previousTab;
+  OrderDetailsPage({super.key, required this.order, required this.previousTab});
 
   @override
   State<OrderDetailsPage> createState() => _OrderDetailsPageState();
@@ -32,7 +34,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 200),
+      padding: EdgeInsets.symmetric(horizontal: 50),
       width: double.infinity,
       
       child: Column(
@@ -43,8 +45,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 children: [
                   IconButton(
                   onPressed: (){
+                    if(widget.previousTab == TabSelection.Order){
                     Provider.of<SideMenuSelection>(context, listen: false)
                       .setSelectedTab(TabSelection.Order); // Assuming the order tab index is 3
+                    }else if(widget.previousTab == TabSelection.Delivery){
+                      Provider.of<SideMenuSelection>(context, listen: false)
+                      .setSelectedTab(TabSelection.Delivery);
+                    }
                   },
                   icon: Icon(Icons.arrow_back, size: 30)
                 ),
@@ -70,56 +77,98 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                       return Container(
                         //height: 1060,
                         padding:EdgeInsets.fromLTRB(16, 16, 16, 0),
-                        color: Colors.blue[200],
+                        //color: Color.fromARGB(109, 223, 222, 222),
                         child: SingleChildScrollView(
                           child: SizedBox(
                             height: 1300, // Limit the height of SingleChildScrollView
                             child: Column(
                               children: [
                                 Container(
-                                  padding: EdgeInsets.fromLTRB(70, 16, 16, 16),
-                                  margin: EdgeInsets.all(16),
-                                  height: 125,
+                                  //padding:EdgeInsets.all(16),
+                                  height: 600,
                                   decoration: BoxDecoration(
-                                    color: Colors.green[300],
+                                    color: Colors.white,
                                     borderRadius: BorderRadius.all(Radius.circular(20)),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5), // Shadow color
-                                        spreadRadius: 5, // Spread radius
-                                        blurRadius: 5, // Blur radius
-                                        offset: Offset(0, 3), // Offset from the container
+                                    border: Border.all(
+                                      color: Colors.grey,
+                                      width: 1.0,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.fromLTRB(50, 16, 16, 16),
+                                        margin: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          color: Colors.green[300],
+                                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.grey.withOpacity(0.5), // Shadow color
+                                              spreadRadius: 5, // Spread radius
+                                              blurRadius: 5, // Blur radius
+                                              offset: Offset(0, 3), // Offset from the container
+                                            ),
+                                          ],
+                                        ),
+                                        child: orderTitle(_order)
+                                      ),
+                                      SizedBox(height:16),
+                                      Container(
+                                        padding:EdgeInsets.all(16),
+                                        height: 400,
+                                        //color: Colors.white,
+                                        child: orderInfo(_order)
                                       ),
                                     ],
-                                  ),
-                                  child: orderTitle(_order)
-                                ),
-                                SizedBox(height:16),
-                                Container(
-                                  padding:EdgeInsets.all(16),
-                                  height: 450,
-                                  color: Colors.white,
-                                  child: orderInfo(_order)
+                                  )
                                 ),
                                 SizedBox(height:16),
                                 Container(
                                   height: 115,
-                                  color: Colors.white,
-                                  child: Center(
-                                    child: Text(
-                                      'Customer'
-                                      ),
-                                    ), 
+                                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                                    border: Border.all(
+                                      color: Colors.grey,
+                                      width: 1.0,
+                                    ),
+                                  ),
+                                  child: customerDetails(widget.order)
                                 ),
                                 SizedBox(height:16),
                                 Container(
+                                  padding: EdgeInsets.all(16),
                                   height: 500,
                                   color: Colors.white,
-                                  child: Center(
-                                    child: Text(
-                                      'Reports'
-                                      ),
-                                    ), 
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                      padding: const EdgeInsets.only(bottom: 10),
+                                       alignment: Alignment.centerLeft,
+                                       child: const Text(
+                                         'Delivery Reports',
+                                         style: TextStyle(
+                                           fontFamily: 'Inter',
+                                           fontSize: 26,
+                                           fontWeight: FontWeight.bold
+                                         ),
+                                       ),
+                                     ),
+                                     
+                               
+                                      const Divider(color: Colors.blue,),
+                            
+                                      Container(
+                                        //padding: const EdgeInsets.only(top: 10),
+                                        width: double.infinity,
+                                        height: 400,
+                                        child:  DeliveryReports(order: widget.order,)
+                                      )
+                                    ],
+                                  )
                                 ),
                               ],
                             ),
@@ -156,10 +205,10 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${order['route']} - ${order['id']}',
+              '${order['id']} - ${order['route']}',
               style: TextStyle(
                 fontFamily: 'Itim',
-                fontSize: 35,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -386,5 +435,53 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       ],
     );
 
+  }
+
+  Widget customerDetails(Map<String, dynamic> order){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Customer Details:',
+            ),
+            Text(
+              '${order['point_person']}',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16
+              ),
+            ),
+            Text(
+              '${order['company_name']}',
+            ),
+          ],
+        ),
+        SizedBox(width: 50,),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${order['phone']}',
+            ),
+            Text(
+              '${order['customer_email']}',
+              style: TextStyle(
+                decoration: TextDecoration.underline,
+                decorationColor: Colors.green,
+                color: Colors.green,
+              ),
+            ),
+            Text(
+              '${order['filed_date']} at ${order['filed_time']}',
+            ),
+          ],
+        )
+      ],
+    );
   }
 }
