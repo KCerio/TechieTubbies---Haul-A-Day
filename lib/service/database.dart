@@ -5,6 +5,21 @@ import 'package:intl/intl.dart';
 class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<Map<String, dynamic>> fetchUserDetails(String staffId) async {
+    try {
+      DocumentSnapshot userSnapshot =
+          await _firestore.collection('Users').doc(staffId).get();
+
+      if (userSnapshot.exists) {
+        return userSnapshot.data() as Map<String, dynamic>;
+      } else {
+        throw Exception('user with ID $staffId not found');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch user details: $e');
+    }
+  }
+  
   Future<Map<String, dynamic>> fetchOrderDetails(String orderId) async {
     try {
       DocumentSnapshot orderSnapshot =
@@ -662,6 +677,30 @@ class DatabaseService {
       
     }catch (error) {
       print('Error updating document: $error');
+    }
+  }
+
+  Future<List<Map<String,dynamic>>> fetchDeliveryReports(String orderId) async {
+    try {
+      QuerySnapshot reportSnapshots= await _firestore
+      .collection('Order')
+      .doc(orderId)
+      .collection('Delivery Reports')
+      .get();
+
+      List<Map<String, dynamic>> allReports = [];
+      reportSnapshots.docs.forEach((DocumentSnapshot reportSnapshot) {
+        if (reportSnapshot.exists) {
+          Map<String, dynamic> reportData = reportSnapshot.data() as Map<String, dynamic>;
+          reportData['id'] = reportSnapshot.id; // Include the document ID
+          allReports.add(reportData);
+        }
+        
+      });
+
+      return allReports;
+    } catch (e) {
+      throw Exception('Failed to fetch users: $e');
     }
   }
 

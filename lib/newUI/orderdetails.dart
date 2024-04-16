@@ -194,6 +194,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   Widget orderTitle(Map<String, dynamic> order){
     DatabaseService databaseService = DatabaseService();
     bool confirm = order['confirmed_status'];
+    BuildContext dialogContext;
     print('${order['id']}: $confirm ${order['assignedStatus']}');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -233,46 +234,51 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               children: [
                 ElevatedButton(
                   onPressed: confirm
-                    ? (){
-                      // Button is disabled if order is already confirmed
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text("Error"),
-                            content: const Text("Order Already Confirmed!"),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          ),
+                  ? (){
+                    // Button is disabled if order is already confirmed
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        dialogContext = context; // Store the context
+                        return AlertDialog(
+                          title: const Text("Error"),
+                          content: const Text("Order Already Confirmed!"),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(dialogContext).pop(); // Use the stored context to pop the dialog
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
                         );
-                      
-                    } 
-                    : () {
-                        setState(() {
-                          confirm = true;
-                          order['confirmed_status'] = true; // Set the flag to true when the button is clicked
-                        });
-                        databaseService.updateConfirmValue(confirm, order['id']);
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text("Confirmation"),
-                            content: const Text("Order confirmed!"),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          ),
-                        );                                         
+                      }
+                    );
+                  } 
+                  : () {
+                    setState(() {
+                      confirm = true;
+                      order['confirmed_status'] = true; // Set the flag to true when the button is clicked
+                    });
+                    databaseService.updateConfirmValue(confirm, order['id']);
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        dialogContext = context; // Store the context
+                          return AlertDialog(
+                          title: const Text("Confirmation"),
+                          content: const Text("Order confirmed!"),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        );
+                      }
+                    );                                         
                   }, 
                   child: Row(
                     children: [
@@ -296,39 +302,46 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                       // Button is disabled if order is already confirmed
                       showDialog(
                         context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text("Alert"),
-                          content: const Text("Do you wish to cancel confirmation or remove the order completely?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  confirm = !confirm;
-                                  order['confirmed_status'] = confirm;
-                                  order['assignedStatus'] = 'false'; 
-                                });
-                                databaseService.updateConfirmValue(confirm, order['id']);
-                                if(order['assignedStatus'] == 'true'){
-                                  databaseService.cancelSchedule(order['id'], order['assignedTruck']);
-                                }
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Cancel Confirmation'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Remove Order'),
-                            ),
-                          ],
-                        ),
+                        builder: (BuildContext context) {
+                        dialogContext = context; // Store the context
+                          return AlertDialog(
+                            title: const Text("Alert"),
+                            content: const Text("Do you wish to cancel confirmation or remove the order completely?"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    confirm = !confirm;
+                                    order['confirmed_status'] = confirm;
+                                  });
+                                  databaseService.updateConfirmValue(confirm, order['id']);
+                                  if(order['assignedStatus'] == 'true'){
+                                    databaseService.cancelSchedule(order['id'], order['assignedTruck']);
+                                    setState(() {    
+                                      order['assignedStatus'] = 'false'; 
+                                    });
+                                  }
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Cancel Confirmation'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Remove Order'),
+                              ),
+                            ],
+                          );
+                        },
                       );                      
                     } 
                     : (){                   
                     showDialog(
                       context: context,
-                      builder: (_) => AlertDialog(
+                      builder: (BuildContext context) {
+                        dialogContext = context; // Store the context
+                        return AlertDialog(
                         title: const Text("Alert"),
                         content: const Text("Do you wish to cancel confirmation or remove the order completely?"),
                         actions: <Widget>[
@@ -339,7 +352,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             child: const Text('Remove Order'),
                           ),
                         ],
-                      ),
+                      );
+                      }
                     );
                   }, 
                   child: Row(
@@ -361,7 +375,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     if(order['assignedStatus'] == 'true' && order['confirmed_status'] == true){
                       showDialog(
                           context: context,
-                          builder: (_) => AlertDialog(
+                          builder: (BuildContext context) {
+                        dialogContext = context; // Store the context
+                        return AlertDialog(
                             title: const Text("Error"),
                             content: const Text("Order Already Assigned!"),
                             actions: <Widget>[
@@ -372,7 +388,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 child: const Text('OK'),
                               ),
                             ],
-                          ),
+                          );
+                          }
                         );
                     } else if(order['assignedStatus'] == 'false' && order['confirmed_status'] == true){
                       showDialog(

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/newUI/components/assignDialog.dart';
 
 class AssignedWidget extends StatefulWidget {
   final List<Map<String, dynamic>> orderDetails;
-  const AssignedWidget({Key? key, required this.orderDetails}) : super(key: key);
+  
+  const AssignedWidget({Key? key, required this.orderDetails, }) : super(key: key);
 
   @override
   State<AssignedWidget> createState() => _AssignedWidgetState();
@@ -66,7 +68,7 @@ class _AssignedWidgetState extends State<AssignedWidget> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
-                content: AssignDialog(order: order,),
+                content: AssignDialog(order: order,)
               );
             },
           );

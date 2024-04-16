@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class NavigationTopBar extends StatelessWidget {
-  const NavigationTopBar({super.key});
+  final Map<String, dynamic> userInfo;
+  const NavigationTopBar({super.key,required this.userInfo});
 
   @override
   Widget build(BuildContext context) {
+    //print('Nav $userInfo');
     Size size = MediaQuery.of(context).size;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),

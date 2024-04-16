@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:haul_a_day_web/page/menupage2.dart';
+import 'package:haul_a_day_web/controllers/menuController.dart';
+//import 'package:haul_a_day_web/page/menupage2.dart';
+import 'package:haul_a_day_web/newUI/homescreen.dart';
+import 'package:haul_a_day_web/service/database.dart';
+import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
   final Function onSignUpSelected;
@@ -32,6 +36,8 @@ class _LoginState extends State<Login> {
 }
 
   _checkIfUser(String username, String password) async {
+  DatabaseService databaseService = DatabaseService();
+  
   QuerySnapshot usernameQuerySnapshot = await _db
    .collection('Users')
    .where('userName', isEqualTo: username)
@@ -39,10 +45,10 @@ class _LoginState extends State<Login> {
    .get();
 
    QuerySnapshot staffIdQuerySnapshot = await _db
-   .collection('Users')
-   .where('staffId', isEqualTo: username)
-   .where('password', isEqualTo: password)
-   .get();
+    .collection('Users')
+    .where(FieldPath.documentId, isEqualTo: username)
+    .where('password', isEqualTo: password)
+    .get();
 
   
    if(usernameQuerySnapshot.docs.isNotEmpty){
@@ -52,23 +58,26 @@ class _LoginState extends State<Login> {
     // Access the document ID
     String userId = user.id;
 
-    Navigator.push( 
+    Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
+
+      Navigator.push( 
        context, 
        MaterialPageRoute( 
            builder: (context) => 
-               const Homepage())); 
+              homepage(context, userInfo))); 
 
    }else if(staffIdQuerySnapshot.docs.isNotEmpty){
     QueryDocumentSnapshot user = staffIdQuerySnapshot.docs.first;
     
     // Access the document ID
     String userId = user.id;
+    Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
 
       Navigator.push( 
        context, 
        MaterialPageRoute( 
            builder: (context) => 
-               const Homepage())); 
+              homepage(context, userInfo))); 
    }
    else{
      showDialog(context: context, builder: 
@@ -76,6 +85,24 @@ class _LoginState extends State<Login> {
    }
 }
  
+ Widget homepage(BuildContext context, Map<String, dynamic> userInfo) {
+    return MaterialApp(
+      title: 'Haul-A-Day Website',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) => MenuAppController(),
+          ),
+        ],
+        child: Homepage(userInfo: userInfo,),
+      ),
+    );
+  } 
 
   @override
   Widget build(BuildContext context) {

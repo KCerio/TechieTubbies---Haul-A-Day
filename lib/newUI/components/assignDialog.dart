@@ -7,7 +7,8 @@ import 'package:provider/provider.dart';
 
 class AssignDialog extends StatefulWidget {
   final Map<String,dynamic> order;
-  const AssignDialog({super.key, required this.order});
+  //final TabSelection currentTab;
+  const AssignDialog({super.key, required this.order,});
 
   @override
   State<AssignDialog> createState() => _AssignDialogState();
@@ -569,8 +570,7 @@ class _AssignDialogState extends State<AssignDialog> {
                               actions: <Widget>[
                                 TextButton(
                                   onPressed: () {
-                                    Provider.of<SideMenuSelection>(context, listen: false)
-                                      .setSelectedTab(TabSelection.Order);
+                                    
                                     Navigator.pop(context);
                                     Navigator.pop(context);
                                   },

@@ -17,7 +17,8 @@ import 'package:provider/provider.dart';
 import 'package:provider/provider.dart';
 
 class Homepage extends StatefulWidget {
-  Homepage({Key? key}) : super(key: key);
+  final Map<String, dynamic> userInfo;
+  Homepage({Key? key, required this.userInfo}) : super(key: key);
 
   @override
   State<Homepage> createState() => _HomepageState();
@@ -51,9 +52,10 @@ class _HomepageState extends State<Homepage> {
 
   @override
   Widget build(BuildContext context) {
+    //print('Home ${widget.userInfo}');
     return Scaffold(
       key: context.read<MenuAppController>().scaffoldKey,
-      drawer: const SideMenu(),
+      drawer: SideMenu(userInfo: widget.userInfo),
       body: SafeArea(
         child: Row(
           children: [
@@ -67,7 +69,7 @@ class _HomepageState extends State<Homepage> {
                 children: [
                   Expanded(
                     flex:1,
-                    child: Container(color: Color.fromARGB(255, 236, 234, 234),child: NavigationTopBar()),
+                    child: Container(color: Color.fromARGB(255, 236, 234, 234),child: NavigationTopBar(userInfo: widget.userInfo,)),
                   ),
                   Expanded(
                     flex: 7,
@@ -83,7 +85,7 @@ class _HomepageState extends State<Homepage> {
                           Widget selectedWidget;
                           switch (_tabSelection) {
                             case TabSelection.Home:
-                              selectedWidget = Home();
+                              selectedWidget = Home(userFirstName: widget.userInfo['firstname'],);
                               break;
                             case TabSelection.StaffList:
                               selectedWidget = StaffList();
@@ -127,8 +129,8 @@ class _HomepageState extends State<Homepage> {
 
 
 class Home extends StatefulWidget {
-  //final Function onTabSelection;
-  const Home({super.key,});
+  final String userFirstName;
+  const Home({super.key, required this.userFirstName});
 
   @override
   State<Home> createState() => _HomeState();
@@ -191,12 +193,12 @@ class _HomeState extends State<Home> {
                         crossAxisAlignment:
                             CrossAxisAlignment.start,
                         children: [
-                          const Padding(
+                          Padding(
                             padding:
                                 EdgeInsets.fromLTRB(
                                     90, 0, 10, 0),
                             child: Text(
-                              'Hello, John Doe!',
+                              'Hello, ${widget.userFirstName}',
                               style: TextStyle(
                                   fontSize: 50,
                                   fontWeight: FontWeight.bold,

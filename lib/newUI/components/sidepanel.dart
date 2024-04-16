@@ -3,6 +3,7 @@ import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/authentication/login_screen.dart';
 import 'package:haul_a_day_web/service/database.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 
 // Create a ChangeNotifier class to manage the selected tab
@@ -50,10 +51,16 @@ class SideMenuSelection extends ChangeNotifier {
 }
 
 class SideMenu extends StatelessWidget {
-  const SideMenu({Key? key}) : super(key: key);
+  final Map<String, dynamic> userInfo;
+  const SideMenu({Key? key, required this.userInfo}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String imagePath = userInfo['pictureUrl'];
+    //String name = userInfo['firstname'] + ;
+    //String email = userInfo['email'];
+    //print("Side $userInfo");
+    print("User pic: $imagePath");
     return Drawer(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       child: SingleChildScrollView(
@@ -72,17 +79,15 @@ class SideMenu extends StatelessWidget {
               height: 100,
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 28, // Adjust the size of the circle
-                    backgroundImage:Image.asset('images/user_pic.png', ).image
-                  ),
+                  
+                  userPic(imagePath), //User Pic
                   SizedBox(width: 10,),
-                  const Column(
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "User's Name",
+                        "${userInfo['firstname']} ${userInfo['lastname']}",
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 20,
@@ -90,7 +95,7 @@ class SideMenu extends StatelessWidget {
                         ),  
                       ), // User's Fullname
                       Text(
-                        "User's email",
+                        userInfo['position'],
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 16,
@@ -210,4 +215,19 @@ class DrawerListTile extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget userPic(String imagePath){
+  try {
+    return CircleAvatar(
+        radius: 28,
+        backgroundImage: NetworkImage(imagePath),
+    );
+  } catch (e) {
+      // Handle the error, e.g., show a placeholder image
+      print('Error loading image: $e');
+      // Show a placeholder image or some default avatar
+      return Container();
+  }
+  
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:haul_a_day_web/newUI/components/addTruckDialog.dart';
 import 'package:haul_a_day_web/service/database.dart';
 
 class TruckList extends StatefulWidget {
@@ -106,7 +107,20 @@ class _TruckListState extends State<TruckList> {
                             size: 30,
                             color: Color.fromRGBO(33, 150, 243, 0.8),
                           ),
-                          onPressed: (){},
+                          onPressed: (){
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  contentPadding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                  ),
+                                  content: AddTruckDialog(),
+                                );
+                              },
+                            );
+                          },
                         )
                       ),
                       //const SizedBox(height: 20),
