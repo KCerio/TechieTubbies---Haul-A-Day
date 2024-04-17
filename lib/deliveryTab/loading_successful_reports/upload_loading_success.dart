@@ -25,6 +25,7 @@ class UploadLoadingSucc extends StatefulWidget {
   final Timestamp arrivalTimeAndDate;
   final bool completeCartons;
   final String reasonIncomplete;
+  final int numberCartons;
   final String recipientName;
   final XFile signatory;
   final XFile documentation;
@@ -40,7 +41,7 @@ class UploadLoadingSucc extends StatefulWidget {
     required this.recipientName,
     required this.signatory,
     required this.documentation,
-    required this.departureTimeAndDate}) : super(key: key);
+    required this.departureTimeAndDate, required this.numberCartons}) : super(key: key);
 
   @override
   _UploadLoadingSuccState createState() =>
@@ -258,14 +259,14 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
 
     uploadFileToStorage().then((urls) {
       // Once the file is uploaded, use the URL to store the incident report information in Firestore
-      FirebaseFirestore.instance.collection('Order/${widget.orderId}/LoadingSchedule/${widget.loadingDelivery.loadingId}/Delivery Report')
-          .doc('${widget.loadingDelivery.loadingId}_Report').set({
+      FirebaseFirestore.instance.collection('Order/${widget.orderId}/Delivery Reports')
+          .doc('${widget.loadingDelivery.loadingId}').set({
 
         'arrivalTimeDate': widget.arrivalTimeAndDate,
         'departureTimeDate': widget.departureTimeAndDate,
-        'completerCartons': widget.completeCartons,
-        if(!widget.completeCartons)
-          'reasonIncomplete' :widget.reasonIncomplete,
+        'completeCartons': widget.completeCartons,
+        'reasonIncomplete' :widget.reasonIncomplete,
+        'numberCartons' :widget.numberCartons,
         'signatory': urls[0],
         'documentation': urls[1],
         'recipientName': widget.recipientName,
@@ -291,7 +292,7 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
   }
 
   void uploadTeam(){
-    String firestorePath = 'Order/${widget.orderId}/LoadingSchedule/${widget.loadingDelivery.loadingId}/Delivery Report/${widget.loadingDelivery.loadingId}_Report/Attendance';
+    String firestorePath = 'Order/${widget.orderId}/Delivery Reports/${widget.loadingDelivery.loadingId}/Attendance';
 
     widget.team.forEach((member) {
       String staffId = member.staffId;

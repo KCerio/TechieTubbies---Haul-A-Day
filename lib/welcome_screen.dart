@@ -1,8 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:haul_a_day_mobile/staffIDController.dart';
-import 'truckTeamTab/truckteam_tab.dart'; // Importing the SecondScreen widget
+import 'truckTeamTab/truckteam_tab.dart';
 
 class WelcomeScreen extends StatelessWidget {
 

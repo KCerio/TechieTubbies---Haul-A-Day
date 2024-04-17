@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:intl/intl.dart';
 import '../bottomTab.dart';
@@ -48,221 +49,430 @@ class _LoadingInformationState extends State<LoadingInformation> {
           },
         ),
       ),
-      backgroundColor: Colors.blue[100],
-      body:ListView(
-        shrinkWrap: true,
-        physics: ClampingScrollPhysics(),
+      backgroundColor: Colors.blue[700],
+      body:Stack(
         children: [
-          Center(
-              child: Column(
+          //white
+          Positioned(
+            bottom: 0,
+            top:MediaQuery.of(context).size.height * 0.15,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(50.0),
+                  bottom: Radius.zero,
+                ),
+                color: Colors.white,
+              ),
+              //
+              width: MediaQuery.of(context).size.width,
+              child: SingleChildScrollView(
+                child: Column(
                   children: [
+                    SizedBox(height: 50),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                              30), // Adjust the padding values as needed
+                          child: Text(
+                            'Cargo Details',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                    Stack(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 30.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(10.0),
+                              topRight: Radius.circular(10.0),
+                            ),
+                          ),
+                          padding: EdgeInsets.fromLTRB(0, 15, 20, 15),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(width: 10),
+                                  Icon(Icons.content_paste_search,
+                                      size: 30, color: Colors.blue[700]),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'cargo type',
+                                    style: TextStyle(
+                                        color: Colors.grey[400], fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                              Spacer(),
+                              Text(
+                                widget.loadingDelivery.cargoType,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          left: 80,
+                          right: 80,
+                          bottom: 0,
+                          child: Container(
+                            height: 1.0,
+                            color: Colors.grey[300],
+                          ),
+                        ),
+                      ],
+                    ),
                     Container(
-                      height: 90,
-                      width: double.infinity, // Fill the width of its parent
+                      margin: EdgeInsets.symmetric(horizontal: 30.0),
                       decoration: BoxDecoration(
-                        color: Colors.blue[100],
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2), // Shadow color
-                            spreadRadius: 2, // Spread radius
-                            blurRadius: 3, // Blur radius
-                            offset: Offset(0, 2), // Shadow offset
-                          ),
-                        ],
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(10.0),
+                          bottomRight: Radius.circular(10.0),
+                        ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                      padding: EdgeInsets.fromLTRB(0, 15, 20, 15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            widget.deliveryId,
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
+                          Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Icon(FontAwesomeIcons.boxOpen,
+                                  size: 30, color: Colors.blue[700]),
+                              SizedBox(width: 10),
+                              Text(
+                                'total cartons',
+                                style: TextStyle(
+                                    color: Colors.grey[400], fontSize: 16),
+                              ),
+                            ],
                           ),
+                          Spacer(),
                           Text(
-                            widget.loadingDelivery.loadingId,
+                            '${widget.loadingDelivery.totalCartons}',
                             style: TextStyle(
-                              fontSize: 26,
+                              color: Colors.black,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: 20,
-                      width: 350,
-                      child: Container(
-                        color: Colors.white,
-                      ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                              30), // Adjust the padding values as needed
+                          child: Text(
+                            'Time and Date',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
                     ),
-                    SingleChildScrollView(
-                      child: Column(
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 30.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          //loading time
-                          Container(
-                            width: 350,
-                            color: Colors.grey[300],
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Loading Time:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  intoTime(widget.loadingDelivery.loadingTimeDate),
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                          Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Icon(Icons.date_range_outlined,
+                                  size: 30, color: Colors.blue[700]),
+                              SizedBox(width: 10),
+                            ],
                           ),
-
-                          //loading date
-                          Container(
-                            width: 350,
-                            color: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Loading Date:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  intoDate(widget.loadingDelivery.loadingTimeDate),
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          //loading type
-                          Container(
-                            width: 350,
-                            color: Colors.grey[300],
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Cargo Type:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  widget.loadingDelivery.cargoType,
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          //loading warehouse
-                          Container(
-                            width: 350,
-                            color: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Warehouse:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Flexible(child: Text(
-                                  widget.loadingDelivery.warehouse,
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                  textAlign: TextAlign.right,
-                                ),)
-                              ],
-                            ),
-                          ),
-
-                          //loading location
-                          Container(
-                            width: 350,
-                            color: Colors.grey[300],
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Loading Location:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Flexible(child: Text(
-                                  widget.loadingDelivery.loadingLocation,
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                  textAlign: TextAlign.right,
-                                ),)
-                              ],
-                            ),
-                          ),
-
-                          //loading cartons
-                          Container(
-                            width: 350,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(20),
-                                bottomRight: Radius.circular(20),
+                          Padding(
+                            padding: EdgeInsets.only(right: 10.0),
+                            child: Text(
+                              intoTime(widget.loadingDelivery.loadingTimeDate),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Total Cartons:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  widget.loadingDelivery.totalCartons.toString(),
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
+                          ),
+                          Text(
+                            'at',
+                            style: TextStyle(
+                                color: Colors.grey[400], fontSize: 16),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(right: 10.0),
+                            child: Text(
+                              intoDate(widget.loadingDelivery.loadingTimeDate),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-
-
-
+                          SizedBox(width: 10),
                         ],
                       ),
                     ),
-                  ]
-              )
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                              30), // Adjust the padding values as needed
+                          child: Text(
+                            'Location',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                    Stack(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 30.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(10.0),
+                              topRight: Radius.circular(10.0),
+                            ),
+                          ),
+                          padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(width: 10),
+                                  Icon(Icons.warehouse_outlined,
+                                      size: 30, color: Colors.blue[700]),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'warehouse',
+                                        style: TextStyle(
+                                            color: Colors.grey[400],
+                                            fontSize: 16),
+                                      ),
+                                      Container(
+                                        width:
+                                        250, // Set the width of the container
+                                        child: Text(
+                                          widget.loadingDelivery.warehouse,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines:
+                                          null, // Allow unlimited number of lines
+                                          overflow: TextOverflow
+                                              .clip, // Clip overflowed text
+                                          softWrap:
+                                          true, // Enable text wrapping
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: 10),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          left: 80, // Adjust this value to position the border
+                          right: 80, // Adjust this value to position the border
+                          bottom: 0,
+                          child: Container(
+                            height: 1.0, // Height of the border
+                            color: Colors.grey[300], // Color of the border
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 30.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(10.0),
+                          bottomRight: Radius.circular(10.0),
+                        ),
+                      ),
+                      padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Icon(Icons.location_on_outlined,
+                                  size: 30, color: Colors.blue[700]),
+                              SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'location',
+                                    style: TextStyle(
+                                        color: Colors.grey[400], fontSize: 16),
+                                  ),
+                                  Container(
+                                    width:
+                                    250, // Set the width of the container
+                                    child: Text(
+                                      widget.loadingDelivery.loadingLocation,
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      softWrap: true, // Enable text wrapping
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(width: 10),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
 
+
+          //delivery id and loading cube
+          Positioned(
+            top: 0,
+            left: 30,
+            right: 30,
+            child: Expanded(
+              child: Container(
+                height: 150.0, // Adjust the height as needed
+                decoration: BoxDecoration(
+                  color: Colors.blue[100],
+                  borderRadius: BorderRadius.circular(10.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1), // Shadow color
+                      spreadRadius: 2, // Spread radius
+                      blurRadius: 2, // Blur radius
+                      offset: Offset(0, 3), // Offset
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(width: 10),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          (widget.loadingDelivery.deliveryStatus=='Loaded!')
+                              ?Icons.check_circle_rounded
+                              :Icons.timer,
+                          size: 100,
+                          color: (widget.loadingDelivery.deliveryStatus=='Loaded!')?
+                          Colors.blue[700]:Colors.grey[400], // Adjust the size of the icon as needed
+                          // Adjust the color of the icon
+                        ),
+                        Text(
+                          widget.loadingDelivery.deliveryStatus,
+                          style: TextStyle(
+                            color: (widget.loadingDelivery.deliveryStatus=='Loaded!')?
+                          Colors.blue[700]:Colors.grey[400],
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(width: 10),
+                    Container(
+                      //width: 150,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+
+                          Text(
+                            'ORDER ${widget.deliveryId}',
+                            style: TextStyle(
+                              color: Colors.blue[700],
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Container(
+                            child: Text(
+                              'Loading ${widget.loadingDelivery.loadingId}',
+                              style: TextStyle(
+                                color: Colors.blue[700],
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),

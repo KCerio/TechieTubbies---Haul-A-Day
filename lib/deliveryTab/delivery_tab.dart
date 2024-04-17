@@ -9,9 +9,7 @@ import 'package:unicons/unicons.dart';
 import '../bottomTab.dart';
 import 'delivery_tab_loading_info.dart';
 import 'delivery_tab_unloading_info.dart';
-import 'finished_deliveries_page.dart';
-import '../truckTeamTab/truckteam_tab.dart';
-import '../accountTab/account_tab.dart';
+
 import 'package:intl/intl.dart';
 
 
@@ -516,20 +514,18 @@ class _DeliveryTabState extends State<DeliveryTab> {
                   ),
                   Text(
                     intoDate(loadingDelivery.loadingTimeDate),
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     intoTime(loadingDelivery.loadingTimeDate),
-                    style: TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     '${loadingDelivery.warehouse}, ${loadingDelivery.loadingLocation}',
-                    style: TextStyle(fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 14),
                     softWrap: true,
-                    maxLines: 2,
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -651,17 +647,17 @@ class _DeliveryTabState extends State<DeliveryTab> {
                     ),
                     Text(
                       intoDate(unloadingDelivery.unloadingTimeDate),
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: 14),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       intoTime(unloadingDelivery.unloadingTimeDate),
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: 14),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       '${unloadingDelivery.recipient}, ${unloadingDelivery.unloadingLocation}',
-                      style: TextStyle(fontSize: 12),
+                      style: TextStyle(fontSize: 14),
                       overflow: TextOverflow.ellipsis,
                       softWrap: true,
                       maxLines: 2,

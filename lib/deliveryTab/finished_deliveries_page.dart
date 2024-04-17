@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:haul_a_day_mobile/accountTab/account_tab.dart';
 import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
 
 import '../bottomTab.dart';

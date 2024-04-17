@@ -24,6 +24,7 @@ class SendUnloadingSuccess extends StatefulWidget {
   final Timestamp arrivalTimeAndDate;
   final bool completeCartons;
   final String reasonIncomplete;
+  final int numberCartons;
   final String recipientName;
   final XFile signatory;
   final XFile documentation;
@@ -40,7 +41,7 @@ class SendUnloadingSuccess extends StatefulWidget {
     required this.recipientName,
     required this.signatory,
     required this.documentation,
-    required this.departureTimeAndDate, required this.loadingDeliveryId}) : super(key: key);
+    required this.departureTimeAndDate, required this.loadingDeliveryId, required this.numberCartons}) : super(key: key);
 
   @override
   _SendUnloadingSuccessState createState() =>
@@ -139,7 +140,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
 
                   informationContainer('Truck Team', teamNames(widget.team)),
 
-                  informationContainer('Cartons', '${widget.unloadingDelivery.quantity} cartons delivered'),
+                  informationContainer('Cartons', '${widget.numberCartons} cartons delivered'),
 
                   if(!widget.completeCartons)
                     informationContainer('Reason for Incomplete Cartons',
@@ -207,7 +208,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                               signatory: widget.signatory,
                               documentation: widget.documentation,
                               departureTimeAndDate: widget.departureTimeAndDate,
-                              loadingDeliveryId: widget.loadingDeliveryId)));
+                              loadingDeliveryId: widget.loadingDeliveryId, numberCartons: widget.numberCartons,)));
 
 
 

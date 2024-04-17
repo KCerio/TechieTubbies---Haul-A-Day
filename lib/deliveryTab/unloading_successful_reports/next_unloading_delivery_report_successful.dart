@@ -27,6 +27,7 @@ class NextUnloadingDeliveryReportSuccessful extends StatefulWidget {
   final Timestamp arrivalTimeAndDate;
   final bool completeCartons;
   final String reasonIncomplete;
+  final int numberCartons;
 
   const NextUnloadingDeliveryReportSuccessful({Key? key,
     required this.unloadingDelivery,
@@ -35,7 +36,7 @@ class NextUnloadingDeliveryReportSuccessful extends StatefulWidget {
     required this.team,
     required this.arrivalTimeAndDate,
     required this.completeCartons,
-    required this.reasonIncomplete, required this.loadingDeliveryId }) : super(key: key);
+    required this.reasonIncomplete, required this.loadingDeliveryId, required this.numberCartons }) : super(key: key);
 
   @override
   _NextUnloadingDeliveryReportSuccessfulState createState() =>
@@ -1019,7 +1020,7 @@ class _NextUnloadingDeliveryReportSuccessfulState extends State<NextUnloadingDel
           recipientName: recipientName.text.trim(),
           signatory: _signatory?? XFile(''),
           documentation: _documentation?? XFile(''),
-          departureTimeAndDate: departureDateAndTime, loadingDeliveryId: widget.loadingDeliveryId,) ));
+          departureTimeAndDate: departureDateAndTime, loadingDeliveryId: widget.loadingDeliveryId, numberCartons: widget.numberCartons,) ));
 
 
     }

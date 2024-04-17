@@ -1,7 +1,6 @@
 
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/truckteam_tab.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/uploading_report.dart';

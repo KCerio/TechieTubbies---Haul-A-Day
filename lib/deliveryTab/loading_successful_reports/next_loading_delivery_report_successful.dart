@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
-import 'package:get/get.dart';
 
 import 'package:haul_a_day_mobile/bottomTab.dart';
 import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
@@ -23,6 +22,7 @@ final List<teamMember> team;
 final Timestamp arrivalTimeAndDate;
 final bool completeCartons;
 final String reasonIncomplete;
+final int numberCartons;
 
 const NextLoadingDeliveryReportSuccessful({Key? key,
   required this.loadingDelivery,
@@ -30,7 +30,8 @@ const NextLoadingDeliveryReportSuccessful({Key? key,
   required this.team,
   required this.arrivalTimeAndDate,
   required this.completeCartons,
-  required this.reasonIncomplete}) : super(key: key);
+  required this.reasonIncomplete,
+  required this.numberCartons}) : super(key: key);
 
 @override
 _NextLoadingDeliveryReportSuccessfulState createState() =>
@@ -1012,7 +1013,7 @@ class _NextLoadingDeliveryReportSuccessfulState extends State<NextLoadingDeliver
           recipientName: recipientName.text.trim(),
           signatory: _signatory?? XFile(''),
           documentation: _documentation?? XFile(''),
-          departureTimeAndDate: departureDateAndTime)));
+          departureTimeAndDate: departureDateAndTime, numberCartons: widget.numberCartons,)));
 
 
     }

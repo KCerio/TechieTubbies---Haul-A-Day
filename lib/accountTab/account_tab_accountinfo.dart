@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../truckTeamTab/truckteam_tab.dart';
 
-import 'package:flutter/material.dart';
 
 class AccountInformation extends StatelessWidget {
   final String pictureUrl;

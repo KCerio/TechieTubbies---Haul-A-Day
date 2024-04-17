@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:haul_a_day_mobile/bottomTab.dart';
 import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
 import 'package:haul_a_day_mobile/deliveryTab/unloading_successful_reports/next_unloading_delivery_report_successful.dart';
@@ -53,6 +54,7 @@ class _UnloadingDeliveryReportSuccessfulState extends State<UnloadingDeliveryRep
 
   String completeCargo='';
   TextEditingController _missingCartonsController = TextEditingController();
+  TextEditingController _numberCartonsController = TextEditingController();
 
 
   @override
@@ -76,7 +78,10 @@ class _UnloadingDeliveryReportSuccessfulState extends State<UnloadingDeliveryRep
     if(completeCargo=='No'){
       newProgress+=5;
       if(_missingCartonsController.text.trim().isNotEmpty){
-        newProgress+=5;
+        newProgress+=3;
+      }
+      if(_numberCartonsController.text.trim().isNotEmpty){
+        newProgress+=2;
       }
     }else if(completeCargo=='Yes'){
       newProgress += 10;
@@ -684,70 +689,144 @@ class _UnloadingDeliveryReportSuccessfulState extends State<UnloadingDeliveryRep
           ),
         ),
         if (completeCargo=='No') // Show text field if showTextField is true
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              children: [
-                SizedBox(height: 20),
-                Row(
-                  children: [
-                    SizedBox(width: 20),
+          incompleteCargo(),
+        SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget incompleteCargo(){
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  SizedBox(width: 20),
+                  Text(
+                    'Cartons Loaded',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic),
+                  ),
+                  if(_numberCartonsController.text.trim().isEmpty)
                     Text(
-                      'Why is the number of cartons incomplete?',
+                      '*',
                       style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic),
+                        color: Colors.red,
+                        fontSize: 12,
+                      ),
                     ),
-                    if(_missingCartonsController.text.trim().isEmpty)
-                      Text(
-                        '*',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
+                ],
+              ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 20.0, right: 20.0),
+                  child: TextField(
+                    controller: _numberCartonsController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // Only numbers allowed
+                    ],
+                    maxLines:1, // Allow text to wrap to the next line
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter actual number of cartons loaded',
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 1.0),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(5.0),
+                          // Adjust the top border radius
+                          bottom: Radius.circular(0),
                         ),
-                      ),
-                  ],
-                ),
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 20.0, right: 20.0),
-                    child: TextField(
-                      controller: _missingCartonsController,
-                      maxLines:
-                      null, // Allow text to wrap to the next line
-                      textInputAction: TextInputAction
-                          .newline, // Enable Return key to insert a newline
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue, width: 1.0),
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(5.0),
-                            // Adjust the top border radius
-                            bottom: Radius.circular(0),
-                          ),
-                        ),// Add border
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: EdgeInsets.symmetric(
-                            vertical: 12.0,
-                            horizontal: 12.0),
-                        // Adjust padding
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          updateProgress();
-                        });
-                      },
+                      ),// Add border
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 12.0,
+                          horizontal: 12.0),
+                      // Adjust padding
                     ),
+                    onChanged: (value) {
+                      setState(() {
+                        updateProgress();
+                      });
+                    },
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        SizedBox(height: 20),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  SizedBox(width: 20),
+                  Text(
+                    'Why is the number of cartons incomplete?',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic),
+                  ),
+                  if(_missingCartonsController.text.trim().isEmpty)
+                    Text(
+                      '*',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
+              ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 20.0, right: 20.0),
+                  child: TextField(
+                    controller: _missingCartonsController,
+                    maxLines:
+                    null, // Allow text to wrap to the next line
+                    textInputAction: TextInputAction
+                        .newline, // Enable Return key to insert a newline
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 1.0),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(5.0),
+                          // Adjust the top border radius
+                          bottom: Radius.circular(0),
+                        ),
+                      ),// Add border
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 12.0,
+                          horizontal: 12.0),
+                      // Adjust padding
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        updateProgress();
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
       ],
     );
   }
@@ -764,7 +843,9 @@ class _UnloadingDeliveryReportSuccessfulState extends State<UnloadingDeliveryRep
 
       Timestamp arrivalDateAndTime = Timestamp.fromDate(selectedDateTime);
 
+      int numberCartons = int.tryParse(_numberCartonsController.text)??0;
 
+      // numberCartons: (completeCargo=='Yes')?widget.loadingDelivery.totalCartons:numberCartons,
 
       Navigator.push(context, MaterialPageRoute(builder: (context)=> NextUnloadingDeliveryReportSuccessful(
           unloadingDelivery: widget.unloadingDelivery,
@@ -773,7 +854,8 @@ class _UnloadingDeliveryReportSuccessfulState extends State<UnloadingDeliveryRep
           nextDelivery: widget.nextDelivery,
           arrivalTimeAndDate: arrivalDateAndTime,
           completeCartons: (completeCargo=='Yes')?true:false,
-          reasonIncomplete: _missingCartonsController.text.trim(), loadingDeliveryId: widget.loadingDeliveryId,)));
+          reasonIncomplete: _missingCartonsController.text.trim(), loadingDeliveryId: widget.loadingDeliveryId,
+        numberCartons: (completeCargo=='Yes')?widget.unloadingDelivery.quantity:numberCartons,)));
     }
 
 

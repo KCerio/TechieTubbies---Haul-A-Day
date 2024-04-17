@@ -22,6 +22,7 @@ class SendLoadingSuccess extends StatefulWidget {
   final Timestamp arrivalTimeAndDate;
   final bool completeCartons;
   final String reasonIncomplete;
+  final int numberCartons;
   final String recipientName;
   final XFile signatory;
   final XFile documentation;
@@ -37,7 +38,7 @@ class SendLoadingSuccess extends StatefulWidget {
     required this.recipientName,
     required this.signatory,
     required this.documentation,
-    required this.departureTimeAndDate}) : super(key: key);
+    required this.departureTimeAndDate, required this.numberCartons}) : super(key: key);
 
   @override
   _SendLoadingSuccessState createState() =>
@@ -141,11 +142,12 @@ class _SendLoadingSuccessState extends State<SendLoadingSuccess> {
                   
                   informationContainer('Truck Team', teamNames(widget.team)),
 
-                  informationContainer('Cartons', '${widget.loadingDelivery.totalCartons} cartons loaded'),
+                  informationContainer('Cartons', '${widget.numberCartons} cartons loaded'),
 
                   if(!widget.completeCartons)
                   informationContainer('Reason for Incomplete Cartons',
                       widget.reasonIncomplete),
+
                   
                   informationContainer('Recipient Name', widget.recipientName),
 
@@ -207,7 +209,7 @@ class _SendLoadingSuccessState extends State<SendLoadingSuccess> {
                               recipientName: widget.recipientName,
                               signatory: widget.signatory,
                               documentation: widget.documentation,
-                              departureTimeAndDate: widget.departureTimeAndDate)));
+                              departureTimeAndDate: widget.departureTimeAndDate, numberCartons: widget.numberCartons,)));
 
 
 

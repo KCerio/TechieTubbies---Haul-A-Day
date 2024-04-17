@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:haul_a_day_mobile/truckTeamTab/truckteam_tab.dart';
 import 'package:intl/intl.dart';
-import '../accountTab/account_tab.dart';
 import '../bottomTab.dart';
 import 'delivery_tab.dart';
 
@@ -50,243 +48,480 @@ class _UnloadingInformationState extends State<UnloadingInformation> {
           },
         ),
       ),
-      backgroundColor: Colors.blue[100],
-      body:ListView(
-        shrinkWrap: true,
-        physics: ClampingScrollPhysics(),
+      backgroundColor: Colors.blue[700],
+      body:Stack(
         children: [
-          Center(
-              child: Column(
+          //white
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.15,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(50.0),
+                  bottom: Radius.zero, // This makes the bottom edges straight
+                ),
+                color: Colors.white,
+              ),
+              width: MediaQuery.of(context).size.width,
+              child: SingleChildScrollView(
+                child: Column(
                   children: [
+                    SizedBox(height: 50),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                              30), // Adjust the padding values as needed
+                          child: Text(
+                            'Cargo Details',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                    Stack(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 30.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(10.0),
+                              topRight: Radius.circular(10.0),
+                            ),
+                          ),
+                          padding: EdgeInsets.fromLTRB(0, 15, 20, 15),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(width: 10),
+                                  Icon(Icons.numbers_outlined,
+                                      size: 30, color: Colors.blue[700]),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'reference number',
+                                    style: TextStyle(
+                                        color: Colors.grey[400], fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                              Spacer(),
+                              Text(
+                                widget.unloadingDelivery.referenceNum.toString(),
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          left: 80, // Adjust this value to position the border
+                          right: 80, // Adjust this value to position the border
+                          bottom: 0,
+                          child: Container(
+                            height: 1.0, // Height of the border
+                            color: Colors.grey[300], // Color of the border
+                          ),
+                        ),
+                      ],
+                    ),
+                    Stack(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 30.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                          ),
+                          padding: EdgeInsets.fromLTRB(0, 15, 20, 15),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(width: 10),
+                                  Icon(FontAwesomeIcons.boxOpen,
+                                      size: 30, color: Colors.blue[700]),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'quantity',
+                                    style: TextStyle(
+                                        color: Colors.grey[400], fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                              Spacer(),
+                              Text(
+                                '${widget.unloadingDelivery.quantity} cartons',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          left: 80, // Adjust this value to position the border
+                          right: 80, // Adjust this value to position the border
+                          bottom: 0,
+                          child: Container(
+                            height: 1.0, // Height of the border
+                            color: Colors.grey[300], // Color of the border
+                          ),
+                        ),
+                      ],
+                    ),
                     Container(
-                      height: 90,
-                      width: double.infinity, // Fill the width of its parent
+                      margin: EdgeInsets.symmetric(horizontal: 30.0),
                       decoration: BoxDecoration(
-                        color: Colors.blue[100],
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2), // Shadow color
-                            spreadRadius: 2, // Spread radius
-                            blurRadius: 3, // Blur radius
-                            offset: Offset(0, 2), // Shadow offset
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(10.0),
+                          bottomRight: Radius.circular(10.0),
+                        ),
+                      ),
+                      padding: EdgeInsets.fromLTRB(0, 15, 20, 15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Icon(FontAwesomeIcons.weightScale,
+                                  size: 30, color: Colors.blue[700]),
+                              SizedBox(width: 10),
+                              Text(
+                                'weight',
+                                style: TextStyle(
+                                    color: Colors.grey[400], fontSize: 16),
+                              ),
+                            ],
+                          ),
+                          Spacer(),
+                          Text(
+                            '${widget.unloadingDelivery.weight} kgs',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                              30), // Adjust the padding values as needed
+                          child: Text(
+                            'Time and Date',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 30.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Icon(Icons.date_range_outlined,
+                                  size: 30, color: Colors.blue[700]),
+                              SizedBox(width: 10),
+                            ],
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(right: 10.0),
+                            child: Text(
+                              intoTime(widget.unloadingDelivery.unloadingTimeDate),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            'at',
+                            style: TextStyle(
+                                color: Colors.grey[400], fontSize: 16),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(right: 10.0),
+                            child: Text(
+                              intoDate(widget.unloadingDelivery.unloadingTimeDate),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal:
+                              30), // Adjust the padding values as needed
+                          child: Text(
+                            'Location',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                    Stack(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: 30.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(10.0),
+                              topRight: Radius.circular(10.0),
+                            ),
+                          ),
+                          padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(width: 10),
+                                  Icon(Icons.people_outline_outlined,
+                                      size: 30, color: Colors.blue[700]),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'recipient',
+                                        style: TextStyle(
+                                            color: Colors.grey[400],
+                                            fontSize: 16),
+                                      ),
+                                      Container(
+                                        width:
+                                        250, // Set the width of the container
+                                        child: Text(
+                                          widget.unloadingDelivery.recipient,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines:
+                                          null, // Allow unlimited number of lines
+                                          overflow: TextOverflow
+                                              .clip, // Clip overflowed text
+                                          softWrap:
+                                          true, // Enable text wrapping
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: 10),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          left: 80, // Adjust this value to position the border
+                          right: 80, // Adjust this value to position the border
+                          bottom: 0,
+                          child: Container(
+                            height: 1.0, // Height of the border
+                            color: Colors.grey[300], // Color of the border
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 30.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(10.0),
+                          bottomRight: Radius.circular(10.0),
+                        ),
+                      ),
+                      padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Icon(Icons.location_on_outlined,
+                                  size: 30, color: Colors.blue[700]),
+                              SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'location',
+                                    style: TextStyle(
+                                        color: Colors.grey[400], fontSize: 16),
+                                  ),
+                                  Container(
+                                    width:
+                                    250, // Set the width of the container
+                                    child: Text(
+                                      widget.unloadingDelivery.unloadingLocation,
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      softWrap: true, // Enable text wrapping
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(width: 10),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            child: Container(
+              color: Colors.blue[700],
+              height: 20,
+              width: MediaQuery.of(context).size.width,
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 30,
+            right: 30,
+            child: Expanded(
+              child: Container(
+                height: 150.0, // Adjust the height as needed
+                decoration: BoxDecoration(
+                  color: Colors.blue[100],
+                  borderRadius: BorderRadius.circular(10.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1), // Shadow color
+                      spreadRadius: 2, // Spread radius
+                      blurRadius: 2, // Blur radius
+                      offset: Offset(0, 3), // Offset
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(width: 10),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          (widget.unloadingDelivery.deliveryStatus=='Delivered!')?
+                              Icons.check_circle_rounded:Icons.timer,
+                          size: 100,
+                          color: (widget.unloadingDelivery.deliveryStatus=='Delivered!')?
+                          Colors.blue[700]:Colors.grey[400], // Adjust the size of the icon as needed
+                          // Adjust the color of the icon
+                        ),
+                        Text(
+                          widget.unloadingDelivery.deliveryStatus,
+                          style: TextStyle(
+                            color: (widget.unloadingDelivery.deliveryStatus=='Delivered!')?
+                            Colors.blue[700]:Colors.grey[400],
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(width: 10),
+                    Container(
+                      //width: 150,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+
                           Text(
-                            widget.deliveryId,
+                            'ORDER ${widget.deliveryId}',
                             style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          Text(
-                            widget.unloadingDelivery.unloadingId,
-                            style: TextStyle(
+                              color: Colors.blue[700],
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                            ),
+                          ),
+                          Container(
+                            child: Text(
+                              'Unloading ${widget.unloadingDelivery.unloadingId}',
+                              style: TextStyle(
+                                color: Colors.blue[700],
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              softWrap: true,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: 20,
-                      width: 350,
-                      child: Container(
-                        color: Colors.white,
-                      ),
-                    ),
-                    SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          //unloading time
-                          Container(
-                            width: 350,
-                            color: Colors.grey[300],
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Unloading Time:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  intoTime(widget.unloadingDelivery.unloadingTimeDate),
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          //unloading date
-                          Container(
-                            width: 350,
-                            color: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Unloading Date:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  intoDate(widget.unloadingDelivery.unloadingTimeDate),
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          //unloading refnum
-                          Container(
-                            width: 350,
-                            color: Colors.grey[300],
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Reference Number:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  widget.unloadingDelivery.referenceNum.toString(),
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          //unloading recipient
-                          Container(
-                            width: 350,
-                            color: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Recipient:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    widget.unloadingDelivery.recipient,
-                                    style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          //loading location
-                          Container(
-                            width: 350,
-                            color: Colors.grey[300],
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Unloading Location:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Flexible(child: Text(
-                                  widget.unloadingDelivery.unloadingLocation, overflow: TextOverflow.clip,
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                  textAlign: TextAlign.right,
-                                ),)
-                              ],
-                            ),
-                          ),
-
-                          //loading quantity
-                          Container(
-                            width: 350,
-                            color: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Quantity:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  widget.unloadingDelivery.quantity.toString(),
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          //unloading weight
-                          Container(
-                            width: 350,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                            ),
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 35), // Add horizontal padding for space between text and edges
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align children to the start and end of the row
-                              children: [
-                                Text(
-                                  'Weight:',
-                                  style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.05,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  '${widget.unloadingDelivery.weight.toString()} kgs',
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-
-
-
-                        ],
-                      ),
-                    ),
-                  ]
-              )
-
+                    SizedBox(width: 10),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),

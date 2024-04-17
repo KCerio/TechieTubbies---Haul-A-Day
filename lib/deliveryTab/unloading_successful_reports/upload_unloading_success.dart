@@ -29,6 +29,7 @@ class UploadUnloadingSucc extends StatefulWidget {
   final Timestamp arrivalTimeAndDate;
   final bool completeCartons;
   final String reasonIncomplete;
+  final int numberCartons;
   final String recipientName;
   final XFile signatory;
   final XFile documentation;
@@ -45,7 +46,7 @@ class UploadUnloadingSucc extends StatefulWidget {
     required this.recipientName,
     required this.signatory,
     required this.documentation,
-    required this.departureTimeAndDate, required this.loadingDeliveryId}) : super(key: key);
+    required this.departureTimeAndDate, required this.loadingDeliveryId, required this.numberCartons}) : super(key: key);
 
   @override
   _UploadUnloadingSuccState createState() =>
@@ -299,14 +300,14 @@ class _UploadUnloadingSuccState extends State<UploadUnloadingSucc> {
 
     uploadFileToStorage().then((urls) {
       // Once the file is uploaded, use the URL to store the incident report information in Firestore
-      FirebaseFirestore.instance.collection('Order/${widget.orderId}/LoadingSchedule/${widget.loadingDeliveryId}/UnloadingSchedule/${widget.unloadingDelivery.unloadingId}/Delivery Report')
-          .doc('${widget.unloadingDelivery.unloadingId}_Report').set({
+      FirebaseFirestore.instance.collection('Order/${widget.orderId}/Delivery Reports')
+          .doc('${widget.unloadingDelivery.unloadingId}').set({
 
         'arrivalTimeDate': widget.arrivalTimeAndDate,
         'departureTimeDate': widget.departureTimeAndDate,
-        'completerCartons': widget.completeCartons,
-        if(!widget.completeCartons)
-          'reasonIncomplete' :widget.reasonIncomplete,
+        'completeCartons': widget.completeCartons,
+        'reasonIncomplete' :widget.reasonIncomplete,
+        'numberCartons' :widget.numberCartons,
         'signatory': urls[0],
         'documentation': urls[1],
         'recipientName': widget.recipientName,
@@ -321,6 +322,10 @@ class _UploadUnloadingSuccState extends State<UploadUnloadingSucc> {
         });
 
         updateStatus();
+        if(widget.nextDelivery==null){
+          updateAssignedSchedulesToNone(widget.orderId);
+        }
+
 
       }).catchError((error) {
         // Show an error message if there's an issue creating the document
@@ -332,7 +337,7 @@ class _UploadUnloadingSuccState extends State<UploadUnloadingSucc> {
   }
 
   void uploadTeam(){
-    String firestorePath = 'Order/${widget.orderId}/LoadingSchedule/${widget.loadingDeliveryId}/UnloadingSchedule/${widget.unloadingDelivery.unloadingId}/Delivery Report/${widget.unloadingDelivery.unloadingId}_Report/Attendance';
+    String firestorePath = 'Order/${widget.orderId}/Delivery Reports/${widget.unloadingDelivery.unloadingId}/Attendance';
 
     widget.team.forEach((member) {
       String staffId = member.staffId;
@@ -379,7 +384,9 @@ class _UploadUnloadingSuccState extends State<UploadUnloadingSucc> {
 
     totalDelivered = await retrieveDelivered(widget.orderId)  ;
 
-    updateAssignedSchedulesToNone(widget.orderId);
+
+
+
   }
 
   Future<void> updateAssignedSchedulesToNone(String orderId) async {

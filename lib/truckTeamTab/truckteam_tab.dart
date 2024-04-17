@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
 import 'package:haul_a_day_mobile/staffIDController.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/truckteam_incidentreport.dart';
-import '../accountTab/account_tab.dart';
+
 import '../bottomTab.dart';
 
 class TruckInfo {
