@@ -535,7 +535,7 @@ class _IncidentReportNextState extends State<IncidentReportNext> {
 
     // Check if the "Incident Reports" collection exists
     bool incidentReportsExists = await FirebaseFirestore.instance.collection('Trucks').doc(truckId)
-        ?.collection('Incident Reports').get().then((snapshot) => snapshot.docs.isNotEmpty)
+        .collection('Incident Reports').get().then((snapshot) => snapshot.docs.isNotEmpty)
         ?? false;
 
 

@@ -389,88 +389,86 @@ class _LoadingInformationState extends State<LoadingInformation> {
             ),
           ),
 
-
           //delivery id and loading cube
           Positioned(
             top: 0,
             left: 30,
             right: 30,
-            child: Expanded(
-              child: Container(
-                height: 150.0, // Adjust the height as needed
-                decoration: BoxDecoration(
-                  color: Colors.blue[100],
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1), // Shadow color
-                      spreadRadius: 2, // Spread radius
-                      blurRadius: 2, // Blur radius
-                      offset: Offset(0, 3), // Offset
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 10),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          (widget.loadingDelivery.deliveryStatus=='Loaded!')
-                              ?Icons.check_circle_rounded
-                              :Icons.timer,
-                          size: 100,
-                          color: (widget.loadingDelivery.deliveryStatus=='Loaded!')?
-                          Colors.blue[700]:Colors.grey[400], // Adjust the size of the icon as needed
-                          // Adjust the color of the icon
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical:20),
+              decoration: BoxDecoration(
+                color: Colors.blue[100],
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1), // Shadow color
+                    spreadRadius: 2, // Spread radius
+                    blurRadius: 2, // Blur radius
+                    offset: Offset(0, 3), // Offset
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(width: 10),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        (widget.loadingDelivery.deliveryStatus == 'Loaded!')
+                            ? Icons.check_circle_rounded
+                            : Icons.timer,
+                        size: 100,
+                        color: (widget.loadingDelivery.deliveryStatus == 'Loaded!')
+                            ? Colors.blue[700]
+                            : Colors.grey[400], // Adjust the size of the icon as needed
+                        // Adjust the color of the icon
+                      ),
+                      Text(
+                        widget.loadingDelivery.deliveryStatus,
+                        style: TextStyle(
+                          color: (widget.loadingDelivery.deliveryStatus == 'Loaded!')
+                              ? Colors.blue[700]
+                              : Colors.grey[400],
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
                         ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 10),
+                  Container(
+                    //width: 150,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          widget.loadingDelivery.deliveryStatus,
+                          'ORDER ${widget.deliveryId}',
                           style: TextStyle(
-                            color: (widget.loadingDelivery.deliveryStatus=='Loaded!')?
-                          Colors.blue[700]:Colors.grey[400],
-                            fontSize: 22,
+                            color: Colors.blue[700],
+                            fontSize: 26,
                             fontWeight: FontWeight.bold,
-                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        Container(
+                          child: Text(
+                            'Loading ${widget.loadingDelivery.loadingId}',
+                            style: TextStyle(
+                              color: Colors.blue[700],
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            softWrap: true,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(width: 10),
-                    Container(
-                      //width: 150,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-
-                          Text(
-                            'ORDER ${widget.deliveryId}',
-                            style: TextStyle(
-                              color: Colors.blue[700],
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Container(
-                            child: Text(
-                              'Loading ${widget.loadingDelivery.loadingId}',
-                              style: TextStyle(
-                                color: Colors.blue[700],
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              softWrap: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: 10),
+                ],
               ),
             ),
           ),

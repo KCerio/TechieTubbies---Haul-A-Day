@@ -1,10 +1,8 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 
@@ -423,13 +421,11 @@ class _UploadUnloadingSuccState extends State<UploadUnloadingSucc> {
       String assignedTruckId = orderSnapshot['assignedTruck'];
 
       // Update truckStatus for the assigned truck in the Trucks collection
-      if (assignedTruckId != null) {
-        await FirebaseFirestore.instance
-            .collection('Trucks')
-            .doc(assignedTruckId)
-            .update({'truckStatus': 'Available'});
-      }
-
+      await FirebaseFirestore.instance
+          .collection('Trucks')
+          .doc(assignedTruckId)
+          .update({'truckStatus': 'Available'});
+    
       print('Assigned schedules updated successfully.');
     } catch (e) {
       print("Error updating assigned schedules: $e");
@@ -505,16 +501,14 @@ class _UploadUnloadingSuccState extends State<UploadUnloadingSucc> {
       String assignedTruckId = orderSnapshot['assignedTruck'];
 
       // Update truckStatus for the assigned truck in the Trucks collection
-      if (assignedTruckId != null) {
-        var accomplishedDeliveriesCollection = FirebaseFirestore.instance
-            .collection('Trucks')
-            .doc(assignedTruckId)
-            .collection('Accomplished Deliveries');
+      var accomplishedDeliveriesCollection = FirebaseFirestore.instance
+          .collection('Trucks')
+          .doc(assignedTruckId)
+          .collection('Accomplished Deliveries');
 
-        // Add a new document to the "Accomplished Deliveries" subcollection
-        await accomplishedDeliveriesCollection.doc(widget.orderId).set({});
-      }
-      
+      // Add a new document to the "Accomplished Deliveries" subcollection
+      await accomplishedDeliveriesCollection.doc(widget.orderId).set({});
+          
     } catch (e) {
       print('Error adding document: $e');
     }

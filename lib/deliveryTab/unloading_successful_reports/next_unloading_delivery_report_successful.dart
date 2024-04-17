@@ -2,10 +2,8 @@
 import 'dart:io';
 
 import 'package:date_field/date_field.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/widgets.dart';
 
 
 import 'package:haul_a_day_mobile/bottomTab.dart';
@@ -486,7 +484,7 @@ class _NextUnloadingDeliveryReportSuccessfulState extends State<NextUnloadingDel
                         _selectedTime = null;
                       } else {
                         _selectedTime =
-                            TimeOfDay.fromDateTime(value as DateTime);
+                            TimeOfDay.fromDateTime(value);
                       }
                       setState(() {
                         updateProgress();

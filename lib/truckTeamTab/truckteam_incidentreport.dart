@@ -48,7 +48,7 @@ class _IncidentReportState extends State<IncidentReport> {
 
     if(incidentDescription.text.trim().isNotEmpty)newProgress+=25;
     if (selectedIncidentType != null) newProgress += 25;
-    if (_image != null && _image!.path != null) {
+    if (_image != null) {
       newProgress += 25;
     }
 

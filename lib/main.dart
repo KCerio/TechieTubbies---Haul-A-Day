@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:haul_a_day_mobile/firebase_options.dart';
@@ -143,6 +142,7 @@ class _LoginPageState extends State<LoginPage> {
                                   if(value!.isEmpty){
                                     return "Enter Username or Employee ID";
                                   }
+                                  return null;
                                 }
                                 ,
                                 controller: usernameController,
@@ -172,6 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                                   if (value!.isEmpty) {
                                     return "Enter Password";
                                   }
+                                  return null;
                                 },
                                 obscureText: !_passwordVisible,
                                 controller: passwordController,

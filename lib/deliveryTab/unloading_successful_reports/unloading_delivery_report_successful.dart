@@ -472,7 +472,7 @@ class _UnloadingDeliveryReportSuccessfulState extends State<UnloadingDeliveryRep
                         _selectedTime = null;
                       } else {
                         _selectedTime =
-                            TimeOfDay.fromDateTime(value as DateTime);
+                            TimeOfDay.fromDateTime(value);
                       }
                       setState(() {
                         updateProgress();
