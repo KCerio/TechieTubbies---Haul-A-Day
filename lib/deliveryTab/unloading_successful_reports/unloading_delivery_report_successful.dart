@@ -707,7 +707,7 @@ class _UnloadingDeliveryReportSuccessfulState extends State<UnloadingDeliveryRep
                 children: [
                   SizedBox(width: 20),
                   Text(
-                    'Cartons Loaded',
+                    'Cartons Delivered',
                     style: TextStyle(
                         color: Colors.black,
                         fontSize: 12,
@@ -736,7 +736,7 @@ class _UnloadingDeliveryReportSuccessfulState extends State<UnloadingDeliveryRep
                     maxLines:1, // Allow text to wrap to the next line
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Enter actual number of cartons loaded',
+                      hintText: 'Enter actual number of cartons delivered',
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.blue, width: 1.0),
                         borderRadius: BorderRadius.vertical(

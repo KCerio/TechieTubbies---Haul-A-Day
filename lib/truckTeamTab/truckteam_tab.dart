@@ -196,7 +196,7 @@ class _TruckTeamState extends State<TruckTeam> {
 
   List<String> getDropdown(TruckInfo truck) {
     if(truck.truckStatus=='Available'){
-      return ['Available',' On-Repoair'];
+      return ['Available','On-Repair'];
     }else if(truck.truckStatus=='Busy'){
       return ['Busy', 'On-Repair'];
     }else{

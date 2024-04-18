@@ -440,11 +440,11 @@ class _IncidentReportNextState extends State<IncidentReportNext> {
                           backgroundColor: MaterialStateProperty.resolveWith<Color>(
                                 (Set<MaterialState> states) {
                               if (states.contains(MaterialState.pressed)) {
-                                // return light blue when pressed
+
                                 return Colors.green[200]!;
                               }
-                              // return blue when not pressed
-                              return Colors.green[300]!;
+
+                              return Colors.green[700]!;
                             },
                           ),
                           minimumSize: MaterialStateProperty.all<Size>(Size(150, 40)),
@@ -476,10 +476,10 @@ class _IncidentReportNextState extends State<IncidentReportNext> {
                           backgroundColor: MaterialStateProperty.resolveWith<Color>(
                                 (Set<MaterialState> states) {
                               if (states.contains(MaterialState.pressed)) {
-                                // return light blue when pressed
+
                                 return Colors.green[200]!;
                               }
-                              // return blue when not pressed
+
                               return Colors.green[700]!;
                             },
                           ),

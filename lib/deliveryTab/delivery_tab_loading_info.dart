@@ -168,7 +168,7 @@ class _LoadingInformationState extends State<LoadingInformation> {
                           ),
                           Spacer(),
                           Text(
-                            '${widget.loadingDelivery.totalCartons}',
+                            '${widget.loadingDelivery.totalCartons} cartons',
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 18,
