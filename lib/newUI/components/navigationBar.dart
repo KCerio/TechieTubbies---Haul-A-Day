@@ -40,7 +40,7 @@ class NavigationTopBar extends StatelessWidget {
                   
                 },
                 child: Container(
-                  margin: const EdgeInsets.only(left: 24),
+                  //margin: const EdgeInsets.only(left: 24),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12
@@ -54,7 +54,7 @@ class NavigationTopBar extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 20, // Adjust the size of the circle
-                        backgroundImage:Image.asset('images/user_pic.png', ).image
+                        backgroundImage:NetworkImage(userInfo['pictureUrl'])
                       ), //User Pic
                       //const Text("User's Name"), // User's Fullname
                       const SizedBox(width: 5,),

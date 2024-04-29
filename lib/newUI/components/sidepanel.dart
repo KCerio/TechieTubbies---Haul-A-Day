@@ -56,11 +56,11 @@ class SideMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String imagePath = userInfo['pictureUrl'];
+    //String imagePath = userInfo['pictureUrl'];
     //String name = userInfo['firstname'] + ;
     //String email = userInfo['email'];
     //print("Side $userInfo");
-    print("User pic: $imagePath");
+    //print("User pic: $imagePath");
     return Drawer(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       child: SingleChildScrollView(
@@ -80,7 +80,10 @@ class SideMenu extends StatelessWidget {
               child: Row(
                 children: [
                   
-                  userPic(imagePath), //User Pic
+                  CircleAvatar(
+                    radius: 30, // Adjust the size of the circle
+                    backgroundImage:NetworkImage(userInfo['pictureUrl'])
+                  ), //User Pic
                   SizedBox(width: 10,),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -95,7 +98,8 @@ class SideMenu extends StatelessWidget {
                         ),  
                       ), // User's Fullname
                       Text(
-                        userInfo['position'],
+                        userInfo['position'] == null ? 'position'
+                        : userInfo['position'],
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 16,
@@ -215,19 +219,4 @@ class DrawerListTile extends StatelessWidget {
       ),
     );
   }
-}
-
-Widget userPic(String imagePath){
-  try {
-    return CircleAvatar(
-        radius: 28,
-        backgroundImage: NetworkImage(imagePath),
-    );
-  } catch (e) {
-      // Handle the error, e.g., show a placeholder image
-      print('Error loading image: $e');
-      // Show a placeholder image or some default avatar
-      return Container();
-  }
-  
 }

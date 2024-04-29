@@ -19,6 +19,7 @@ class _AllDeliveriesState extends State<AllDeliveries> {
 
   @override
   void initState() {
+    super.initState();
     // TODO: implement initState
     for(Map<String, dynamic> order in widget.orderDetails){
       if(order['assignedStatus'] == 'true' && order['confirmed_status'] == true){
@@ -26,6 +27,8 @@ class _AllDeliveriesState extends State<AllDeliveries> {
       }
     }
   }
+
+  //Future<void> status
   
   @override
   Widget build(BuildContext context) {
@@ -37,19 +40,45 @@ class _AllDeliveriesState extends State<AllDeliveries> {
             //thy list creates the containers for all the trucks
             ListView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // you can try to delete this
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: _deliverySchedules.length,
               itemBuilder: (context, index) {
-                return deliveryContainer(_deliverySchedules[index]);
+                return FutureBuilder<Widget>(
+                  future: deliveryContainer(_deliverySchedules[index]),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else {
+                      return snapshot.data ?? Container(); // Return the widget or an empty Container
+                    }
+                  },
+                );
               },
             ),
+
           ],
         )
       ),
     );
   }
 
-  Widget deliveryContainer(Map<String,dynamic> delivery){
+  Future<bool> getUnloadingStatus(String orderId)async{
+    DatabaseService databaseService = DatabaseService();
+    List<Map<String, dynamic>> unloadingSchedules = await databaseService.fetchUnloadingSchedules(orderId);
+    List<Map<String, dynamic>> reports = await databaseService.fetchDeliveryReports(orderId);
+    //print('$(unloadingSchedules.length - 1)  $(reports.length)');
+    if(unloadingSchedules.isEmpty && reports.isEmpty){
+      return false;
+    }else if(unloadingSchedules.length - 1 == reports.length){
+      return true;
+    } return false;
+  }
+
+
+
+  Future<Widget> deliveryContainer(Map<String,dynamic> delivery)async{
+    bool deliveryStatus = await getUnloadingStatus(delivery['id']);
+    print('${delivery['id']}: $deliveryStatus');
     return Padding(
       padding: const EdgeInsets.only(right: 16,left:10),
       child: InkWell(
@@ -86,7 +115,8 @@ class _AllDeliveriesState extends State<AllDeliveries> {
                   ),
                   child: CircleAvatar(
                     radius: 25,
-                    backgroundColor: delivery['loadingStatus'] == 'On Route' ? Color.fromRGBO(255, 213, 77, 0.8)
+                    backgroundColor: deliveryStatus == true ? Color.fromRGBO(12, 197, 42, 0.74)
+                    : delivery['loadingStatus'] == 'Loaded!' ? Color.fromRGBO(255, 213, 77, 0.8)
                     : Color.fromRGBO(35 , 99, 237, 0.67),
                     child: Icon(Icons.assignment, color: Colors.white, size: 35,),
                   ),
@@ -166,17 +196,7 @@ class _AllDeliveriesState extends State<AllDeliveries> {
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 25),
-                              child: Text(
-                                "Date Filed: ${delivery['loadingDate']}",
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 14,
-                                  //fontWeight: FontWeight.bold
-                                ),
-                              ),
-                            ),
+                            
                           ],
                         ),
                     ],

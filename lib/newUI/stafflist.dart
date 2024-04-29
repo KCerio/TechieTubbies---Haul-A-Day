@@ -214,11 +214,11 @@ class _StaffListState extends State<StaffList> {
         child: Row(
           children: [
             //truckPicture
-            const CircleAvatar(
+            CircleAvatar(
               radius: 40,
               backgroundColor:
               Colors.white,
-              backgroundImage: AssetImage('images/user_pic.png'),
+              backgroundImage: aStaff['pictureUrl'] != null ? NetworkImage(aStaff['pictureUrl']): Image.asset('images/user_pic.png').image,
             ),
             const SizedBox(width: 5),
             Column(
@@ -360,7 +360,9 @@ class _StaffListState extends State<StaffList> {
                 height: 150.0,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
-                  child: Image.asset(
+                  child: aStaff['pictureUrl'] != null ? Image.network(aStaff['pictureUrl'],
+                    fit: BoxFit.cover,)
+                  : Image.asset(
                     'images/user_pic.png',
                     fit: BoxFit.cover,
                   ),

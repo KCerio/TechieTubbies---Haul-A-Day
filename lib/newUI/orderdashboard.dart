@@ -91,33 +91,7 @@ class _OrderDashboardState extends State<OrderDashboard> {
                          
                          Padding(
                            padding: const EdgeInsets.only(bottom: 24),
-                           child: Column(
-                             children: [
-                               Container(
-                                padding: const EdgeInsets.only(bottom: 10, top:10),
-                                 alignment: Alignment.centerLeft,
-                                 child: const Text(
-                                   'To be Assigned',
-                                   style: TextStyle(
-                                     fontFamily: 'Inter',
-                                     fontSize: 26,
-                                     fontWeight: FontWeight.bold
-                                   ),
-                                 ),
-                               ),
-                               
-                               const Divider(color: Colors.blue,),
-                               const SizedBox(height: 10),
-
-                               Container(
-                                 padding: const EdgeInsets.all(16),
-                                 height: 250, // Set a fixed height for the container
-                                 width: double.infinity, // Make the container expand horizontally
-                                 decoration: const BoxDecoration(color: Color.fromARGB(109, 223, 222, 222)),
-                                 child: AssignedWidget(orderDetails: widget.orderDetails,)
-                               ),
-                             ],
-                           ),
+                           child: AssignedWidget(orderDetails: widget.orderDetails,)
                          ),
                          
                             

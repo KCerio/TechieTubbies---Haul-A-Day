@@ -1,0 +1,1630 @@
+//CODE FOR MAIN
+import 'package:firebase_core/firebase_core.dart';
+import 'package:haul_a_day_web/controllers/menuController.dart';
+import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
+import 'package:haul_a_day_web/newUI/homescreen.dart';
+import 'package:haul_a_day_web/newUI/orderdashboard.dart';
+import 'package:haul_a_day_web/newUI/orderdashboard.dart';
+import 'package:haul_a_day_web/page/order.dart';
+//import 'package:haul_a_day_web/trial_pages/homepagetrial.dart';
+//import 'package:haul_a_day_web/page/menupage2.dart';
+import 'package:haul_a_day_web/page/orderpage.dart';
+import 'package:haul_a_day_web/page/staffList.dart';
+import 'package:haul_a_day_web/page/truck_list.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
+import 'package:flutter/material.dart';
+import 'package:haul_a_day_web/authentication/login_screen.dart';
+
+Future <void> main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ); 
+  runApp(ChangeNotifierProvider(
+      create: (_) => SideMenuSelection(),
+      child: MyApp(),
+    ),);
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Haul-A-Day Website',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: login_screen()
+    );
+  }
+}
+
+
+
+
+///CODE FOR LOGIN
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:haul_a_day_web/controllers/menuController.dart';
+//import 'package:haul_a_day_web/page/menupage2.dart';
+import 'package:haul_a_day_web/newUI/homescreen.dart';
+import 'package:haul_a_day_web/service/database.dart';
+import 'package:provider/provider.dart';
+
+class Login extends StatefulWidget {
+  final Function onSignUpSelected;
+  const Login({required this.onSignUpSelected});
+
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+  final _formfield = GlobalKey<FormState>();
+  String adminusername = "";
+  String adminpassword = "";
+  var _isObscured = true;
+  var usernameCheck;
+  //var passwordCheck;
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+  final _db = FirebaseFirestore.instance;
+
+
+  void disposer(){
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+  void onSignUpSelected() {
+  Navigator.pushReplacementNamed(context, '/signup');
+}
+
+  _checkIfUser(String username, String password) async {
+  DatabaseService databaseService = DatabaseService();
+  
+  QuerySnapshot usernameQuerySnapshot = await _db
+   .collection('Users')
+   .where('userName', isEqualTo: username)
+   .where('password', isEqualTo: password)
+   .get();
+
+   QuerySnapshot staffIdQuerySnapshot = await _db
+    .collection('Users')
+    .where(FieldPath.documentId, isEqualTo: username)
+    .where('password', isEqualTo: password)
+    .get();
+
+  
+   if(usernameQuerySnapshot.docs.isNotEmpty){
+      // Get the first document in the query snapshot
+    QueryDocumentSnapshot user = usernameQuerySnapshot.docs.first;
+    
+    // Access the document ID
+    String userId = user.id;
+
+    Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
+
+      Navigator.push( 
+       context, 
+       MaterialPageRoute( 
+           builder: (context) => 
+              homepage(context, userInfo))); 
+
+   }else if(staffIdQuerySnapshot.docs.isNotEmpty){
+    QueryDocumentSnapshot user = staffIdQuerySnapshot.docs.first;
+    
+    // Access the document ID
+    String userId = user.id;
+    Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
+
+      Navigator.push( 
+       context, 
+       MaterialPageRoute( 
+           builder: (context) => 
+              homepage(context, userInfo))); 
+   }
+   else{
+     showDialog(context: context, builder: 
+     (_) => AlertDialog(title: Text("Error"), content: Text("Invalid credentials entered. Please Try Again!"),));
+   }
+}
+ 
+ Widget homepage(BuildContext context, Map<String, dynamic> userInfo) {
+    return MaterialApp(
+      title: 'Haul-A-Day Website',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (context) => MenuAppController(),
+          ),
+        ],
+        child: Homepage(userInfo: userInfo,),
+      ),
+    );
+  } 
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    
+    return Padding(
+      padding: EdgeInsets.all(size.height > 770 ? 64 : size.height > 670 ? 32 : 16),
+      child: Center(
+        child: Card(
+          elevation: 4,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(25),
+            ),
+          ),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            height: size.height * (size.height > 770 ? 0.7 : size.height > 670 ? 0.8 : 0.9),
+            width: 500,
+            color: Colors.white,
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Form(
+                    key: _formfield,
+                    child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset("images/logo1.png"),
+
+                      const Text(
+                        "Login to Haul-a-day",
+                        style: TextStyle(
+                          fontSize: 25,
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          fontWeight: FontWeight.bold 
+                        ),
+                      ),
+
+                      const Text(
+                        "Login using your Haul-a-day account",
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          //fontWeight: FontWeight.bold 
+                        ),
+                      ),
+
+                      const SizedBox(
+                        height: 32,
+                      ),
+
+                      TextFormField(
+                        controller: usernameController,
+                        validator: (value){
+                          adminusername = usernameController.text.trim();
+                          if(value!.isEmpty){
+                            return "Enter Username or Staff ID";
+                          }
+                          else if(usernameCheck == false){
+                            return "The username or staff ID you entered cannot be found";
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                          //hintText: 'Username or Staff ID',
+                          labelText: 'Username or Staff ID',
+                          //suffixIcon: Icon(Icons.check)
+                        ),
+                      ),
+
+                      const SizedBox(
+                        height: 32,
+                      ),
+
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: _isObscured,
+                        validator: (value){
+                          adminpassword =  passwordController.text.trim();
+                          if(value!.isEmpty){
+                            return "Enter Password";
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          //hintText: 'Password',
+                          labelText: 'Password',
+                          suffixIcon: GestureDetector(
+                            onTap: (){
+                              setState(() {
+                                _isObscured = !_isObscured;
+                              });
+                            }, 
+                            child: _isObscured ? const Icon(Icons.visibility_off) : const Icon(Icons.visibility), 
+                          )
+                        ),
+                      ),
+
+                      const SizedBox(
+                        height: 64,
+                      ),
+
+                      //actionButton("Log In"),
+
+                      const SizedBox(
+                        height: 30,
+                      ),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+
+                          const Text(
+                            "You do not have an account?",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
+                          ),
+
+                          const SizedBox(
+                            width: 8,
+                          ),
+
+                          GestureDetector(
+                            onTap: () {
+                              widget.onSignUpSelected();
+                            },
+                            child: const Row(
+                              children: [
+                                Text(
+                                  "Sign Up",
+                                  style: TextStyle(
+                                    color: Colors.amber,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.amber,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        ],
+                      ),
+
+                    SizedBox(
+                        width: 8,
+                    ),
+                    ElevatedButton(
+                            onPressed: () async{
+                              if(_formfield.currentState!.validate()){
+                              _checkIfUser(adminusername, adminpassword);
+                              }
+                            },
+                            style: ButtonStyle(
+                              padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 100, vertical: 20)),
+                              backgroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 102, 179, 101)),
+                              foregroundColor: MaterialStateProperty.all<Color>(Color.fromARGB(255, 255, 255, 255)),
+                            ), 
+                            child: const Text("Log in",
+                            style: TextStyle(
+                              color: Colors.white, 
+                              letterSpacing:2, 
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),  
+                            ))
+
+                    ],
+                  ),
+                    )
+                ),
+              ),
+            ),
+      )
+      )
+    )
+    );
+
+    
+
+    }}
+
+
+/// ADD TO DatabaseService
+
+Future<Map<String, dynamic>> fetchUserDetails(String staffId) async {
+    try {
+      DocumentSnapshot userSnapshot =
+          await _firestore.collection('Users').doc(staffId).get();
+
+      if (userSnapshot.exists) {
+        return userSnapshot.data() as Map<String, dynamic>;
+      } else {
+        throw Exception('user with ID $staffId not found');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch user details: $e');
+    }
+  }
+
+///CODE FOR HOMESCREEN
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:haul_a_day_web/authentication/constant.dart';
+import 'package:haul_a_day_web/controllers/menuController.dart';
+import 'package:haul_a_day_web/newUI/components/navigationBar.dart';
+import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
+import 'package:haul_a_day_web/newUI/delivery.dart';
+import 'package:haul_a_day_web/newUI/orderdashboard.dart';
+import 'package:haul_a_day_web/newUI/orderdetails.dart';
+import 'package:haul_a_day_web/newUI/payroll.dart';
+import 'package:haul_a_day_web/newUI/trucklist.dart';
+import 'package:haul_a_day_web/newUI/stafflist.dart';
+import 'package:haul_a_day_web/service/database.dart';
+import 'package:provider/provider.dart';
+
+import 'package:provider/provider.dart';
+
+class Homepage extends StatefulWidget {
+  final Map<String, dynamic> userInfo;
+  Homepage({Key? key, required this.userInfo}) : super(key: key);
+
+  @override
+  State<Homepage> createState() => _HomepageState();
+}
+
+class _HomepageState extends State<Homepage> {
+  DatabaseService databaseService = DatabaseService();
+
+  List<Map<String, dynamic>> _orderDetails = [];
+  bool fetchingStatus = false; // if fecthing data is finished
+  //TabSelection _previousTab = TabSelection.Home;
+  //Map<String, dynamic> _loadingDetails = {};
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+    List<Map<String, dynamic>> orderDetails = await databaseService.fetchAllOrderList();
+    setState(() {
+      _orderDetails = orderDetails;
+      fetchingStatus = true;
+    });
+    } catch (e){
+      print('Failed to fetch order details: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //print('Home ${widget.userInfo}');
+    return Scaffold(
+      key: context.read<MenuAppController>().scaffoldKey,
+      drawer: SideMenu(userInfo: widget.userInfo),
+      body: SafeArea(
+        child: Row(
+          children: [
+            /*Expanded(
+              flex: 2,
+              child: SideMenu(),
+            ),*/
+            Expanded(
+              //flex: 6,
+              child: Column(
+                children: [
+                  Expanded(
+                    flex:1,
+                    child: Container(color: Color.fromARGB(255, 236, 234, 234),child: NavigationTopBar(userInfo: widget.userInfo,)),
+                  ),
+                  Expanded(
+                    flex: 7,
+                    child: Container(
+                      height: 1500,
+                      //color: Color.fromARGB(255, 236, 234, 234),
+                      child: Consumer<SideMenuSelection>(
+                        builder: (context, sideMenuSelection, _) {
+                          TabSelection _tabSelection = sideMenuSelection.selectedTab;
+                          Map<String, dynamic> orderSelected = sideMenuSelection.orderSelected;
+                          TabSelection _previousTab = sideMenuSelection.previousTab;
+                          //List<Map<String, dynamic>> updatedOrders = sideMenuSelection.updatedOrders;
+                          Widget selectedWidget;
+                          switch (_tabSelection) {
+                            case TabSelection.Home:
+                              selectedWidget = Home(userFirstName: widget.userInfo['firstname'],);
+                              break;
+                            case TabSelection.StaffList:
+                              selectedWidget = StaffList();
+                              break;
+                            case TabSelection.TruckList:
+                              selectedWidget = TruckList();
+                              break;
+                            case TabSelection.Order:
+                              
+                              selectedWidget = OrderDashboard(orderDetails: _orderDetails, fetchOrderDetails: fetchingStatus,);
+                              break;
+                            case TabSelection.OrderDetails:
+
+                              selectedWidget = OrderDetailsPage(order: orderSelected,previousTab: _previousTab,);
+                              break;
+                            case TabSelection.Delivery:
+                              
+                              selectedWidget = DeliveryDashboard(orderDetails: _orderDetails, fetchOrderDetails: fetchingStatus,);
+                              break;
+                            case TabSelection.Payroll:
+                              selectedWidget = Payroll();
+                              break;
+                            default:
+                              selectedWidget = Container();
+                              break;
+                          }
+                          return selectedWidget;
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class Home extends StatefulWidget {
+  final String userFirstName;
+  const Home({super.key, required this.userFirstName});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+
+  String getMonth(int month) {
+    switch (month) {
+      case 1:
+        return 'January';
+      case 2:
+        return 'February';
+      case 3:
+        return 'March';
+      case 4:
+        return 'April';
+      case 5:
+        return 'May';
+      case 6:
+        return 'June';
+      case 7:
+        return 'July';
+      case 8:
+      return 'August';
+      case 9:
+      return 'September';
+      case 10:
+      return 'October';
+      case 11:
+      return 'November';
+      case 12:
+      return 'December';
+      default:
+        return '';
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    // Get the current date
+    DateTime now = DateTime.now();
+
+    // Get the current month
+    String month = getMonth(now.month);
+
+    // Get the current date
+    String currentDate = '${now.day} $month, ${now.year}';
+
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints){
+          return Row(
+            children: [
+              //Left panel
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Container(
+                    width: 150,
+                    child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding:
+                                EdgeInsets.fromLTRB(
+                                    90, 0, 10, 0),
+                            child: Text(
+                              'Hello, ${widget.userFirstName}',
+                              style: TextStyle(
+                                  fontSize: 50,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green),
+                            ),
+                          ),
+                            Padding(
+                            padding:
+                                const EdgeInsets.fromLTRB(
+                                    90, 2, 0, 0),
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 6),
+                                Text(
+                                  currentDate,
+                                  style: const TextStyle(
+                                      fontSize: 25,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                      color: Colors.black),
+                                )
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 50),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(
+                                90, 0, 105, 0),
+                            child: const Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                    child: Divider(
+                                        color: Colors.green)),
+                                Padding(
+                                  padding:
+                                      EdgeInsets.fromLTRB(
+                                          2, 0, 0, 0),
+                                  child: Text(
+                                    'Notifications',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight
+                                            .normal),
+                                  ),
+                                ),
+                                Expanded(
+                                    child: Divider(
+                                        color: Colors.green)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Container(
+                            width: 700,
+                            margin: const EdgeInsets.fromLTRB(
+                                100, 0, 100, 0),
+                            padding: const EdgeInsets.fromLTRB(
+                                10, 0, 0, 0),
+                            decoration: BoxDecoration(
+                              color: Colors.orangeAccent,
+                              borderRadius:
+                                  BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                // Icon and Text "Customer X" and "16 December 2023" in a Column
+                                const Row(
+                                  children: [
+                                    Icon(Icons.content_paste,
+                                        size: 50,
+                                        color: Colors
+                                            .white), // Icon before "Customer X"
+                                    SizedBox(
+                                        width:
+                                            5), // Spacer between icon and text
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
+                                      children: [
+                                        Text(
+                                          'Customer X',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 25,
+                                            fontWeight:
+                                                FontWeight
+                                                    .bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '16 December 2023',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+
+                                // Spacer to push the "Order" text and arrows to the right
+                                const Spacer(),
+
+                                //Text Order
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Order',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight:
+                                              FontWeight
+                                                  .normal,
+                                          color:
+                                              Colors.white),
+                                    ),
+                                    GestureDetector(
+                                        onTap: () {
+                                          Provider.of<SideMenuSelection>(context, listen: false)
+                                            .setSelectedTab(TabSelection.Order); // Assuming the order tab index is 3
+                                        },
+                                        child: const Icon(
+                                          Icons
+                                              .keyboard_double_arrow_right_outlined,
+                                          size:
+                                              50, // Set the size of the icon
+                                          color: Colors
+                                              .white, // Set the color of the icon
+                                        )),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          //Team A
+                          Container(
+                            width: 700,
+                            margin: const EdgeInsets.fromLTRB(
+                                100, 0, 100, 0),
+                            padding: const EdgeInsets.fromLTRB(
+                                10, 0, 0, 0),
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius:
+                                  BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                // Icon and Text "Customer X" and "16 December 2023" in a Column
+                                const Row(
+                                  children: [
+                                    Icon(Icons.local_shipping,
+                                        size: 50,
+                                        color: Colors
+                                            .white), // Icon before "Customer X"
+                                    SizedBox(
+                                        width:
+                                            5), // Spacer between icon and text
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
+                                      children: [
+                                        Text(
+                                          'Team A',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 35,
+                                            fontWeight:
+                                                FontWeight
+                                                    .bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '15 December 2023',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+
+                                // Spacer to push the "Order" text and arrows to the right
+                                const Spacer(),
+
+                                //Text Order
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Report',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight:
+                                              FontWeight
+                                                  .normal,
+                                          color:
+                                              Colors.white),
+                                    ),
+                                    GestureDetector(
+                                        onTap: () {
+                                          // Assuming the order tab index is 3
+                                        },
+                                        child: const Icon(
+                                          Icons
+                                              .keyboard_double_arrow_right_outlined,
+                                          size:
+                                              50, // Set the size of the icon
+                                          color: Colors
+                                              .white, // Set the color of the icon
+                                        )),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+
+                          //Team B
+                          Container(
+                            width: 700,
+                            margin: const EdgeInsets.fromLTRB(
+                                100, 0, 100, 0),
+                            padding: const EdgeInsets.fromLTRB(
+                                10, 0, 0, 0),
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius:
+                                  BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                // Icon and Text "Customer X" and "16 December 2023" in a Column
+                                const Row(
+                                  children: [
+                                    Icon(Icons.local_shipping,
+                                        size: 50,
+                                        color: Colors
+                                            .white), // Icon before "Team B"
+                                    SizedBox(
+                                        width:
+                                            5), // Spacer between icon and text
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
+                                      children: [
+                                        Text(
+                                          'Team B',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 25,
+                                            fontWeight:
+                                                FontWeight
+                                                    .bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '15 December 2023',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+
+                                // Spacer to push the "Order" text and arrows to the right
+                                const Spacer(),
+
+                                //Text Order
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Report',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight:
+                                              FontWeight
+                                                  .normal,
+                                          color:
+                                              Colors.white),
+                                    ),
+                                    GestureDetector(
+                                        onTap: () {
+                                          // Assuming the order tab index is 3
+                                        },
+                                        child: const Icon(
+                                          Icons
+                                              .keyboard_double_arrow_right_outlined,
+                                          size:
+                                              50, // Set the size of the icon
+                                          color: Colors
+                                              .white, // Set the color of the icon
+                                        )),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          //Customer Y
+                          Container(
+                            width: 700,
+                            margin: const EdgeInsets.fromLTRB(
+                                100, 0, 100, 0),
+                            padding: const EdgeInsets.fromLTRB(
+                                10, 0, 0, 0),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius:
+                                  BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                // Icon and Text "Customer X" and "16 December 2023" in a Column
+                                const Row(
+                                  children: [
+                                    Icon(Icons.content_paste,
+                                        size: 50,
+                                        color: Colors
+                                            .white), // Icon before "Customer X"
+                                    SizedBox(
+                                        width:
+                                            5), // Spacer between icon and text
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
+                                      children: [
+                                        Text(
+                                          'Customer Y',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 25,
+                                            fontWeight:
+                                                FontWeight
+                                                    .bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '15 December 2023',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+
+                                // Spacer to push the "Order" text and arrows to the right
+                                const Spacer(),
+
+                                //Text Order
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Order',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight:
+                                              FontWeight
+                                                  .normal,
+                                          color:
+                                              Colors.white),
+                                    ),
+                                    GestureDetector(
+                                        onTap: () {
+                                          Provider.of<SideMenuSelection>(context, listen: false)
+                                            .setSelectedTab(TabSelection.Order); // Assuming the order tab index is 3
+                                        },
+                                        child: const Icon(
+                                          Icons
+                                              .keyboard_double_arrow_right_outlined,
+                                          size:
+                                              50, // Set the size of the icon
+                                          color: Colors
+                                              .white, // Set the color of the icon
+                                        )),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+
+                          //Customer Z
+                          Container(
+                            width: 700,
+                            margin: const EdgeInsets.fromLTRB(
+                                100, 0, 100, 0),
+                            padding: const EdgeInsets.fromLTRB(
+                                10, 0, 0, 0),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius:
+                                  BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                // Icon and Text "Customer X" and "16 December 2023" in a Column
+                                const Row(
+                                  children: [
+                                    Icon(Icons.content_paste,
+                                        size: 50,
+                                        color: Colors
+                                            .white), // Icon before "Customer X"
+                                    SizedBox(
+                                        width:
+                                            5), // Spacer between icon and text
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
+                                      children: [
+                                        Text(
+                                          'Customer Z',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 25,
+                                            fontWeight:
+                                                FontWeight
+                                                    .bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '15 December 2023',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .white, // White text color for better visibility
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+
+                                // Spacer to push the "Order" text and arrows to the right
+                                const Spacer(),
+
+                                //Text Order
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Order',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight:
+                                              FontWeight
+                                                  .normal,
+                                          color:
+                                              Colors.white),
+                                    ),
+                                    GestureDetector(
+                                        onTap: () {
+                                          Provider.of<SideMenuSelection>(context, listen: false)
+                                            .setSelectedTab(TabSelection.Order); // Assuming the order tab index is 3
+                                        },
+                                        child: const Icon(
+                                          Icons
+                                              .keyboard_double_arrow_right_outlined,
+                                          size:
+                                              50, // Set the size of the icon
+                                          color: Colors
+                                              .white, // Set the color of the icon
+                                        )),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]),
+                          )
+                )
+              ),
+              // Right panel for Home
+              Expanded(
+                child: Container(
+                    padding: const EdgeInsets.fromLTRB(25, 10, 25, 0),
+                    color: Colors.blue[50],
+                    child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'TOP TEAM per week',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black),
+                          ),
+                          Container(
+                            margin:
+                                const EdgeInsets.symmetric(vertical: 3.0),
+                            height: 1.0,
+                            color: Colors.green,
+                          ),
+                          Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 25,
+                                backgroundImage:
+                                    AssetImage('images/truck.png'),
+                              ),
+                              const SizedBox(width: 8.0),
+                              const Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text('Team A',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight:
+                                              FontWeight.bold,
+                                          color: Colors.black)),
+                                  Text('20 Deliveries',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight:
+                                              FontWeight.normal,
+                                          color: Colors.black)),
+                                ],
+                              ),
+                              Expanded(child: Container()),
+                              const Text(
+                                '>',
+                                style: TextStyle(
+                                    fontSize: 50,
+                                    color: Colors.green),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(top: 3.0),
+                            height: 1.0,
+                            color: Colors.green,
+                          ),
+
+                          Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 25,
+                                backgroundImage:
+                                    AssetImage('images/truck.png'),
+                              ),
+                              const SizedBox(width: 8.0),
+                              const Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text('Team B',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight:
+                                              FontWeight.bold,
+                                          color: Colors.black)),
+                                  Text('18 Deliveries',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight:
+                                              FontWeight.normal,
+                                          color: Colors.black)),
+                                ],
+                              ),
+                              Expanded(child: Container()),
+                              const Text(
+                                '>',
+                                style: TextStyle(
+                                    fontSize: 50,
+                                    color: Colors.green),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(top: 3.0),
+                            height: 1.0,
+                            color: Colors.green,
+                          ),
+
+                          Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 25,
+                                backgroundImage:
+                                    AssetImage('images/truck.png'),
+                              ),
+                              const SizedBox(width: 8.0),
+                              const Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text('Team C',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight:
+                                              FontWeight.bold,
+                                          color: Colors.black)),
+                                  Text('18 Deliveries',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight:
+                                              FontWeight.normal,
+                                          color: Colors.black)),
+                                ],
+                              ),
+                              Expanded(child: Container()),
+                              const Text(
+                                '>',
+                                style: TextStyle(
+                                    fontSize: 50,
+                                    color: Colors.green),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(top: 3.0),
+                            height: 1.0,
+                            color: Colors.green,
+                          ),
+
+                          // Separation
+                          // Expanded(child: Container()),
+                          Container(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'Accomplished Deliveries',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20.0,
+                                  ),
+                                ),
+                                Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 8.0),
+                                  height: 1.0,
+                                  color: Colors.orange,
+                                ), // orange line
+
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment
+                                          .spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .stretch,
+                                        children: [
+                                          const Text('Delivery',
+                                              style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .bold)),
+                                          Container(
+                                            margin: const EdgeInsets
+                                                .symmetric(
+                                                    vertical: 8.0),
+                                            height: 1.0,
+                                            color: Colors.orange,
+                                          ),
+                                          const Text('2023054'),
+                                          const Text('2023053'),
+                                          const Text('2023052'),
+                                          const Text('2023051'),
+                                          const Text('2023050'),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .center,
+                                        children: [
+                                          const Text('Truck Team',
+                                              style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .bold)),
+                                          Container(
+                                            margin: const EdgeInsets
+                                                .symmetric(
+                                                    vertical: 8.0),
+                                            height: 1.0,
+                                            color: Colors.orange,
+                                          ),
+                                          const Text('GDC523'),
+                                          const Text('GDL897'),
+                                          const Text('GDC523'),
+                                          const Text('GDL897'),
+                                          const Text('GDC523'),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          const Text('Date',
+                                              style: TextStyle(
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .bold)),
+                                          Container(
+                                            margin: const EdgeInsets
+                                                .symmetric(
+                                                    vertical: 8.0),
+                                            height: 1.0,
+                                            color: Colors.orange,
+                                          ),
+                                          const Text('12-16-2023'),
+                                          const Text('12-16-2023'),
+                                          const Text('12-15-2023'),
+                                          const Text('12-15-2023'),
+                                          const Text('12-15-2023'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ])),
+              ),
+            ],
+          );
+        }
+      ),
+    );
+  }
+}
+
+
+////CODE FOR SIDE PANEL
+import 'package:flutter/material.dart';
+import 'package:haul_a_day_web/authentication/constant.dart';
+import 'package:haul_a_day_web/authentication/login_screen.dart';
+import 'package:haul_a_day_web/service/database.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
+
+// Create a ChangeNotifier class to manage the selected tab
+class SideMenuSelection extends ChangeNotifier {
+  DatabaseService databaseService = DatabaseService();
+  TabSelection _selectedTab = TabSelection.Home;
+  TabSelection _previousTab = TabSelection.Home;
+  Map<String, dynamic> _orderSelected = {};
+  List<Map<String, dynamic>> _updatedOrders= [];
+
+  TabSelection get selectedTab => _selectedTab;
+  Map<String, dynamic> get orderSelected => _orderSelected;
+  List<Map<String, dynamic>> get updatedOrders => _updatedOrders;
+  TabSelection get previousTab => _previousTab;
+
+  SideMenuSelection() {
+    // Initialize _updatedOrders asynchronously inside the constructor
+    fetchUpdatedOrders();
+  }
+
+  Future<void> fetchUpdatedOrders() async {
+    _updatedOrders = await databaseService.fetchAllOrderList();
+    notifyListeners();
+  }
+  
+  void setSelectedTab(TabSelection tab) {
+    _selectedTab = tab;
+    notifyListeners();
+  }
+
+  void setSelectedOrder(Map<String, dynamic> orderSelected) {
+    _orderSelected = orderSelected;
+    notifyListeners();
+  }
+
+  void setPreviousTab(TabSelection tab){
+    _previousTab = tab;
+    notifyListeners();
+  }
+
+  void setUpdatedOrders(List<Map<String, dynamic>> orderDetails) {
+    _updatedOrders = orderDetails;
+    notifyListeners();
+  }   
+}
+
+class SideMenu extends StatelessWidget {
+  final Map<String, dynamic> userInfo;
+  const SideMenu({Key? key, required this.userInfo}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    String imagePath = userInfo['pictureUrl'];
+    //String name = userInfo['firstname'] + ;
+    //String email = userInfo['email'];
+    //print("Side $userInfo");
+    print("User pic: $imagePath");
+    return Drawer(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: 340,
+              //decoration: BoxDecoration(color: const Color.fromARGB(197, 255, 255, 255),),
+              child: DrawerHeader(
+                child: Image.asset('images/logo2_trans.png'),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.all(16),
+              color: const Color.fromARGB(255, 99, 174, 235),
+              height: 100,
+              child: Row(
+                children: [
+                  
+                  CircleAvatar(
+                    radius: 28, // Adjust the size of the circle
+                    backgroundImage:NetworkImage('imagePath')
+                  ), //User Pic
+                  SizedBox(width: 10,),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${userInfo['firstname']} ${userInfo['lastname']}",
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                        ),  
+                      ), // User's Fullname
+                      Text(
+                        userInfo['position'],
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                          //fontWeight: FontWeight.bold
+                        ),
+                      ), // User's Fullname
+                    ],
+                  ) //User Pic
+                  //const Text("User's Name"), // User's Fullname
+                ],
+              ),
+            ),
+            DrawerListTile(
+              title: 'Home',
+              svgSrc: Icons.home,
+              press: () {
+                Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Home);
+                Navigator.pop(context);
+              },
+            ),
+            DrawerListTile(
+              title: 'Staff List',
+              svgSrc: Icons.groups_rounded,
+              press: () {
+                Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.StaffList);
+                Navigator.pop(context);
+              },
+            ),
+            DrawerListTile(
+              title: 'Truck List',
+              svgSrc: Icons.local_shipping,
+              press: () {
+                Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.TruckList);
+                Navigator.pop(context);
+              },
+            ),
+            DrawerListTile(
+              title: 'Order Dashboard',
+              svgSrc: Icons.assignment_add,
+              press: () {
+                Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Order);
+                Navigator.pop(context);
+              },
+            ),
+            DrawerListTile(
+              title: 'Delivery Dashboard',
+              svgSrc: Icons.fact_check,
+              press: () {
+                Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Delivery);
+                Navigator.pop(context);
+              },
+            ),
+            DrawerListTile(
+              title: 'Payroll',
+              svgSrc: Icons.payment,
+              press: () {
+                Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Payroll);
+                Navigator.pop(context);
+              },
+            ),
+            DrawerListTile(
+              title: 'Settings',
+              svgSrc: Icons.settings,
+              press: () {
+                Navigator.pop(context);
+              },
+            ),
+            DrawerListTile(
+              title: 'Log out',
+              svgSrc: Icons.exit_to_app,
+              press: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const login_screen()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DrawerListTile extends StatelessWidget {
+  const DrawerListTile({
+    Key? key,
+    // For selecting those three line once press "Command+D"
+    required this.title,
+    required this.svgSrc,
+    required this.press,
+  }) : super(key: key);
+
+  final String title; 
+  final IconData svgSrc;
+  final VoidCallback press;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: press,
+      horizontalTitleGap: 25,
+      leading: Icon(
+        svgSrc,
+        color: Colors.green,//ColorFilter.mode(Colors.white54, BlendMode.srcIn),
+        size: 25,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(color: Colors.green),
+      ),
+    );
+  }
+}
+
+
+///CODE FOR NAVIGATION BAR
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:haul_a_day_web/controllers/menuController.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
+class NavigationTopBar extends StatelessWidget {
+  final Map<String, dynamic> userInfo;
+  const NavigationTopBar({super.key,required this.userInfo});
+
+  @override
+  Widget build(BuildContext context) {
+    //print('Nav $userInfo');
+    Size size = MediaQuery.of(context).size;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              IconButton(
+                onPressed: context.read<MenuAppController>().controlMenu,
+                icon: const Icon(Icons.menu, color: Colors.black,)
+              ),
+              const SizedBox(width: 10,),
+              SizedBox(
+                width: size.width *0.1,
+                child: Image.asset(
+                  'images/logo1.png',
+                  fit: BoxFit.scaleDown,
+                )
+              ),
+              const Spacer(flex: 2,),
+          
+          
+              //user Container
+              InkWell(
+                onTap: () {
+                  
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(left: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(235, 104, 209, 108),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20, // Adjust the size of the circle
+                        backgroundImage:Image.asset('images/user_pic.png', ).image
+                      ), //User Pic
+                      //const Text("User's Name"), // User's Fullname
+                      const SizedBox(width: 5,),
+                      const Icon(Icons.keyboard_arrow_down)
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+          Divider(
+            color: Colors.black,
+            thickness: 2,
+          )
+        ],
+      ),
+    );
+  }
+}

@@ -1,6 +1,9 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:haul_a_day_web/newUI/components/attendance.dart';
 import 'package:haul_a_day_web/service/database.dart';
+import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
@@ -14,6 +17,8 @@ class DeliveryReports extends StatefulWidget {
 
 class _DeliveryReportsState extends State<DeliveryReports> {
   List<Map<String, dynamic>> _allReports = [];
+  List<Map<String, dynamic>> _unloadings = [];
+  
   bool stillEmpty = false;
   String _orderId = '';
 
@@ -29,19 +34,24 @@ class _DeliveryReportsState extends State<DeliveryReports> {
     try {
       DatabaseService databaseService = DatabaseService();
       List<Map<String, dynamic>> allReports = await databaseService.fetchDeliveryReports(orderId);
-      print("database: $allReports");
-      setState(() {
-        stillEmpty = allReports.isEmpty; // Check if allReports is empty
-        _allReports = allReports;
-      });
+      List<Map<String, dynamic>> unloadings = await databaseService.fetchUnloadingSchedules(orderId);
+      //print("Unloadings: $unloadings");
+      // Update state with _unloading
+          setState(() {
+            stillEmpty = allReports.isEmpty;
+            _allReports = allReports;
+            _unloadings = unloadings;
+          });
     } catch (e) {
       print("Error fetching data: $e");
     }
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
-    print("Reports: $_allReports, $stillEmpty");
+    //print("Reports: $_allReports, $stillEmpty");
     return Expanded(
       child: SingleChildScrollView(
         child: Column(
@@ -68,7 +78,7 @@ class _DeliveryReportsState extends State<DeliveryReports> {
               physics: const NeverScrollableScrollPhysics(), // you can try to delete this
               itemCount: _allReports.length,
               itemBuilder: (context, index) {
-                return reportContainer(context,_allReports[index], widget.order);
+                return reportContainer(context,_allReports[index], widget.order,_unloadings);
               },
             ),
           ],
@@ -78,7 +88,7 @@ class _DeliveryReportsState extends State<DeliveryReports> {
   }
 }
 
-Widget reportContainer(BuildContext context,Map<String, dynamic> report,Map<String, dynamic> order){
+Widget reportContainer(BuildContext context,Map<String, dynamic> report,Map<String, dynamic> order, List<Map<String, dynamic>> unloadings){
     //print('${order['id']}: ${order['assignedStatus'].runtimeType} ${order['confirmed_status'].runtimeType }');
     //String orderRef = order['id'].substring(2, 5);
     BuildContext dialogContext;
@@ -95,7 +105,7 @@ Widget reportContainer(BuildContext context,Map<String, dynamic> report,Map<Stri
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
-                content: viewReport(report, order, dialogContext)
+                content: viewReport(report, order, dialogContext, unloadings)
               );
             },
           );
@@ -151,7 +161,27 @@ Widget reportContainer(BuildContext context,Map<String, dynamic> report,Map<Stri
   
 }
 
-Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, BuildContext context){
+Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, BuildContext context,List<Map<String, dynamic>> unloadings){
+  var arrivalTimeStamp = report['arrivalTimeDate'].toDate();
+  var arrivalTime = DateFormat('HH:mm a').format(arrivalTimeStamp);
+  var arrivalDate = DateFormat('MMM dd, yyyy').format(arrivalTimeStamp);
+
+  var departTimestamp = report['departureTimeDate'].toDate();
+  var departTime = DateFormat('HH:mm a').format(departTimestamp);
+  var departDate = DateFormat('MMM dd, yyyy').format(departTimestamp);
+
+  Map<String, dynamic> unload = {};
+  if(report['id'].contains('US')){
+    for(Map<String, dynamic> unloading in unloadings){
+      //print('Unload: ${report['id'] == unloading['unloadId']}');
+      if(report['id'] == unloading['unloadId']){
+        unload = unloading;
+      }
+    }
+  }
+
+  //print('Unload: ${unload['unloadId']}');  
+  
   return Container(
     width: 1062,
     height: 689,
@@ -171,7 +201,7 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                 'Order ${order['id']} - Loading ${order['loading_id']} - Report ${report['id']}',
                 style: TextStyle(
                   fontFamily: 'InriaSans',
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.normal
                 ),
               ),
@@ -195,7 +225,8 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
               Container(
                 width:1012/2,
                 height: 600,
-                color: Colors.amber,
+                padding:EdgeInsets.only(right:16),
+                //color: Colors.amber,
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
                   children: [
@@ -214,8 +245,117 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                     Container(
                       width:1012/2,
                       height: 182,
-                      color: Colors.green,
-                      //child: ,
+                      //color: Colors.green,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: percentIndicator(report, order, unload)
+                          ),
+                          Expanded(
+                            flex:2,
+                            child:Container(
+                              margin: EdgeInsets.only(left:16),
+                              padding: EdgeInsets.symmetric(vertical: 15,horizontal: 20),
+                              width: 215,
+                              height: 148,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Color.fromRGBO(190, 216, 253, 1),
+                                  width: 5,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    report['id'].contains('LS') ? 'Number of Cartons Loaded:'
+                                    :'Number of Cartons Unloaded:',
+                                    style: TextStyle(
+                                      fontFamily: 'InriaSans',
+                                      fontSize: 19,
+                                      color: Color.fromRGBO(115, 115, 115, 1)
+                                    )
+                                  ),
+                                  Text(
+                                    report['id'].contains('LS') 
+                                    ? '${report['numberCartons'].toString()} / ${order['totalCartons']}'
+                                    :'${report['numberCartons'].toString()} / ${unload['quantity']}',
+                                    style: TextStyle(
+                                      fontFamily: 'InriaSans',
+                                      fontSize: 55,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromRGBO(56, 113, 193, 1)
+                                    )
+                                  )
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
+                      width: 414,
+                      height: 74,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey,width: 1)
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Reasons for Incomplete Cartons:',
+                            style: TextStyle(
+                              fontFamily: 'InriaSans',
+                              fontSize: 15,
+                              color: Color.fromRGBO(148,143,143, 1)
+                            )
+                          ),
+                          Text(
+                            report['reasonIncomplete'] == '' ? 'None'
+                            : report['reasonIncomplete'],
+                            style: TextStyle(
+                              fontFamily: 'InriaSans',
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromRGBO(115,115,115, 1)
+                            )
+                          )
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: const Text(
+                        "Truck Team Present",
+                        style: TextStyle(
+                          fontFamily: 'InriaSans',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 5,),
+                    Container(
+                      width:1012/2,
+                      height: 210,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Color.fromARGB(188, 195, 235, 253)//Color.fromARGB(255, 235, 236, 235),
+                      ),
+                      child: AttendanceWidget(reportId: report['id'], orderId: order['id'], truck: order['assignedTruck'])
                     ),
 
 
@@ -250,8 +390,9 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                           width: 236,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
-                            color: Colors.blue
+                            color: Color.fromARGB(188, 195, 235, 253)
                           ),
+                          child: Image.network(report['signatory']),
                         ),
                         const SizedBox(height: 20,),
                         Container(
@@ -272,8 +413,9 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                           width: 236,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
-                            color: Colors.blue
+                            color: Color.fromARGB(188, 195, 235, 253)
                           ),
+                          child: Image.network(report['documentation']),
                         )
                       ],
                     ),
@@ -283,6 +425,7 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
+                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
                             width: 235,
                             height: 75,
                             decoration: BoxDecoration(
@@ -292,6 +435,29 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                                 color: Color.fromRGBO(190, 216, 253, 1),
                                 width: 5,
                               )
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Recipient',
+                                  style: TextStyle(
+                                    fontFamily: 'InriaSans',
+                                    fontSize: 15,
+                                    color: Color.fromRGBO(148,143,143, 1)
+                                  )
+                                ),
+                                Text(
+                                  report['recipientName'],
+                                  style: TextStyle(
+                                    fontFamily: 'InriaSans',
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromRGBO(56, 113, 193, 1)
+                                  )
+                                )
+                              ],
                             ),
                           ),
                           const SizedBox(height:45),
@@ -307,17 +473,57 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                           ),
                         ),
                         Container(
-                            width: 235,
-                            height: 124,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Color.fromRGBO(190, 216, 253, 1),
-                                width: 5,
-                              )
-                            ),
+                          padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
+                          width: 235,
+                          height: 124,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Color.fromRGBO(190, 216, 253, 1),
+                              width: 5,
+                            )
                           ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.access_time, color: Color.fromRGBO(56, 113, 193, 1)),
+                                  const SizedBox(width:12),
+                                  Text(
+                                    arrivalTime,
+                                    style: TextStyle(
+                                      fontFamily: 'InriaSans',
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromRGBO(115,115,115, 1)
+                                    )
+                                  )
+                                ],
+                              ),
+                              Divider(color: Color.fromRGBO(206, 220, 240, 1),),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                //mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.calendar_today, color: Color.fromRGBO(56, 113, 193, 1)),
+                                  const SizedBox(width:12),
+                                  Text(
+                                    arrivalDate,
+                                    style: TextStyle(
+                                      fontFamily: 'InriaSans',
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromRGBO(115,115,115, 1)
+                                    )
+                                  )
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                           const SizedBox(height:35),
                           Container(
                           alignment: Alignment.topLeft,
@@ -331,6 +537,7 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                           ),
                         ),
                         Container(
+                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
                             width: 235,
                             height: 124,
                             decoration: BoxDecoration(
@@ -340,6 +547,45 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
                                 color: Color.fromRGBO(190, 216, 253, 1),
                                 width: 5,
                               )
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.access_time, color: Color.fromRGBO(56, 113, 193, 1)),
+                                    const SizedBox(width:12),
+                                    Text(
+                                      departTime,
+                                      style: TextStyle(
+                                        fontFamily: 'InriaSans',
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromRGBO(115,115,115, 1)
+                                      )
+                                    )
+                                  ],
+                                ),
+                                Divider(color: Color.fromRGBO(206, 220, 240, 1),),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  //mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.calendar_today, color: Color.fromRGBO(56, 113, 193, 1)),
+                                    const SizedBox(width:12),
+                                    Text(
+                                      departDate,
+                                      style: TextStyle(
+                                        fontFamily: 'InriaSans',
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromRGBO(115,115,115, 1)
+                                      )
+                                    )
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -357,21 +603,30 @@ Widget viewReport(Map<String, dynamic> report, Map<String, dynamic> order, Build
 
 }
 
-Widget percentIndicator(Map<String, dynamic> report, Map<String, dynamic> order,){
-  double actualCartons = double.parse(report['numberCartons']);
-  double percent = actualCartons/order['totalCartons'];
+Widget percentIndicator(Map<String, dynamic> report, Map<String, dynamic> order, Map<String, dynamic> unload){
+  double totalCartons=500;
+  if(report['id'].contains('LS')){
+    totalCartons = order['totalCartons'];
+  }else if(report['id'].contains('US')){
+    totalCartons = unload['quantity'];
+  }
+  double actualCartons = report['numberCartons'];
+  double percent = actualCartons/totalCartons;
   return CircularPercentIndicator(
-      radius: 100.0,
-      lineWidth: 10.0,
+      radius: 80,
+      lineWidth: 20.0,
       percent: percent ,
       animation: true,
       center: Text(
-        '${percent*100}%',
+        '${percent == percent.toInt() ? percent*100 :
+          (percent*100).toStringAsFixed(2)} %',
         style: TextStyle(
           fontWeight: FontWeight.bold,
+          fontFamily: 'InriaSans',
+          fontSize: 30
           ),
         ),
-      backgroundColor: Colors.lightBlue,
+      backgroundColor: const Color.fromARGB(255, 135, 211, 246),
       progressColor: Colors.blue,         
       circularStrokeCap: CircularStrokeCap.round,
   );

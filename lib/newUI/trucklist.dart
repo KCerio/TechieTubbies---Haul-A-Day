@@ -97,31 +97,45 @@ class _TruckListState extends State<TruckList> {
                       ),
                       //const SizedBox(height: 10,),
                       Container(
-                        width:size.width*0.6,
-                        alignment: Alignment.centerRight,
+                        width:200,
+                        alignment: Alignment.centerLeft,
                         padding:
                             const EdgeInsets.fromLTRB(
                                 25, 2, 30, 0),
-                        child: IconButton(
-                          icon: Icon(Icons.add_box,
-                            size: 30,
-                            color: Color.fromRGBO(33, 150, 243, 0.8),
-                          ),
-                          onPressed: (){
+                        child: ElevatedButton(
+                          onPressed: () {
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
                                   contentPadding: EdgeInsets.zero,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15.0),
+                                    borderRadius: BorderRadius.circular(15.0), // Set the border radius for the dialog
                                   ),
                                   content: AddTruckDialog(),
                                 );
                               },
                             );
                           },
-                        )
+                          child: Row(
+                            children: [
+                              Icon(Icons.add_box, color: Colors.white,),
+                              SizedBox(width: 5,),
+                              Text('Add truck', style: TextStyle(color: Colors.white))
+                            ],
+                          ),
+                          style: ButtonStyle(
+                            padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                            backgroundColor: MaterialStateProperty.all<Color>(const Color.fromRGBO(76, 175, 80, 1)),
+                            foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5), // Set the border radius for the button
+                              ),
+                            ),
+                          ),
+                        ),
+
                       ),
                       //const SizedBox(height: 20),
                       Container(
@@ -212,11 +226,11 @@ class _TruckListState extends State<TruckList> {
         child: Row(
           children: [
             //truckPicture
-            const CircleAvatar(
+            CircleAvatar(
               radius: 40,
               backgroundColor:
               Colors.white,
-              backgroundImage: AssetImage('images/truck.png'),
+              backgroundImage: aTruck['truckPic'] != null ? NetworkImage(aTruck['truckPic']) : Image.asset('images/truck.png').image,
             ),
             const SizedBox(width: 5),
             Column(
@@ -266,9 +280,10 @@ class _TruckListState extends State<TruckList> {
                 children: [
                   Text(
                     aTruck['truckStatus'],
-                    style: const TextStyle(
+                    style:TextStyle(
                         fontWeight: FontWeight.bold,
-                        color:Colors.green,
+                        color: aTruck['truckStatus'] == 'Available' ? Colors.green
+                        : Colors.grey,
                         fontSize:20
                       ),
                   ),
@@ -349,7 +364,12 @@ class _TruckListState extends State<TruckList> {
                           padding: const EdgeInsets.fromLTRB(100, 10, 100, 0),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10.0),
-                            child: Image.asset('images/truck.png',
+                            child: aTruck['truckPic'] != null ? Image.network(aTruck['truckPic'],
+                              width: 200.0,
+                              height: 200.0,
+                              fit: BoxFit.cover, // Adjust the fit as needed
+                            )
+                            : Image.asset('images/truck.png',
                               width: 200.0,
                               height: 200.0,
                               fit: BoxFit.cover, // Adjust the fit as needed

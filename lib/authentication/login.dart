@@ -37,6 +37,31 @@ class _LoginState extends State<Login> {
 
   _checkIfUser(String username, String password) async {
   DatabaseService databaseService = DatabaseService();
+
+  // Declare progressContext outside the showDialog function
+      BuildContext? progressContext;
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      // Update progressContext inside the showDialog function
+      progressContext = context;
+      return Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Colors.green,),
+              SizedBox(height: 20),
+              Text('Loging in...'),
+            ],
+          ),
+        ),
+      );
+    },
+  );
   
   QuerySnapshot usernameQuerySnapshot = await _db
    .collection('Users')
@@ -59,7 +84,9 @@ class _LoginState extends State<Login> {
     String userId = user.id;
 
     Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
-
+      if (progressContext != null) {
+        Navigator.pop(progressContext!);
+      }
       Navigator.push( 
        context, 
        MaterialPageRoute( 
@@ -72,14 +99,21 @@ class _LoginState extends State<Login> {
     // Access the document ID
     String userId = user.id;
     Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
+      if (progressContext != null) {
+        Navigator.pop(progressContext!);
+      }
 
       Navigator.push( 
        context, 
        MaterialPageRoute( 
            builder: (context) => 
               homepage(context, userInfo))); 
+
    }
    else{
+    if (progressContext != null) {
+        Navigator.pop(progressContext!);
+      }
      showDialog(context: context, builder: 
      (_) => AlertDialog(title: Text("Error"), content: Text("Invalid credentials entered. Please Try Again!"),));
    }

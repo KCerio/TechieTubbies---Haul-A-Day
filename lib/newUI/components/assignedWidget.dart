@@ -28,6 +28,74 @@ class _AssignedWidgetState extends State<AssignedWidget> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+            padding: const EdgeInsets.only(bottom: 10, top:10),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'To be Assigned',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold
+                ),
+              ),
+            ),
+            const SizedBox(width: 20,),
+            Container(
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.green,
+
+              ),
+              child: Text(
+                toBeAssigned.length.toString(),
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white
+                ),
+              ),
+            )
+          ],
+        ),
+        
+        const Divider(color: Colors.blue,),
+        const SizedBox(height: 10),
+
+        Container(
+          padding: const EdgeInsets.all(16),
+          height: 250, // Set a fixed height for the container
+          width: double.infinity, // Make the container expand horizontally
+          decoration: const BoxDecoration(color: Color.fromARGB(109, 223, 222, 222)),
+          child: toBeAssigned.length == 0 
+          ? Container(
+            height: 300,
+            child: const Center(
+              child: Text(
+                'No deliveries to be assigned',
+                style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold
+                  ),  
+                )
+              ),
+            )          
+          : assignCarousel()
+        ),
+      ],
+    );
+  }
+
+  Widget assignCarousel(){
     return CarouselSlider.builder(
       itemCount: toBeAssigned.length,
       options: CarouselOptions(
@@ -56,11 +124,11 @@ class _AssignedWidgetState extends State<AssignedWidget> {
 
   Widget assignContainer(Map<String,dynamic> order) {
     return InkWell(
-      onTap: () {
+      onTap: () async{
         if(order['assignedStatus'] == 'true' && order['confirmed_status'] == true){
           null;
         } else if(order['assignedStatus'] == 'false' && order['confirmed_status'] == true){
-          showDialog(
+          String? assigned = await showDialog<String>(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
@@ -68,10 +136,23 @@ class _AssignedWidgetState extends State<AssignedWidget> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
-                content: AssignDialog(order: order,)
+                content: AssignDialog(order: order, onAssigned: (value) {
+                  Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                },),
               );
             },
           );
+          print('AssignS: $assigned');
+          // Now that the dialog has finished, get the assigned truck ID
+          if (assigned != null && assigned.isNotEmpty) {
+            DateTime timestamp = DateTime.now();
+            String timestampString = timestamp.toIso8601String(); // Convert DateTime to string
+
+            setState(() {
+              order['assignedStatus'] = 'true';
+              //order['assignedTimestamp'] = timestampString; // Add timestamp as a string to the map
+            });
+          }
         } else if(order['assignedStatus'] == 'false' && order['confirmed_status'] == false){
           showDialog(
             context: context,

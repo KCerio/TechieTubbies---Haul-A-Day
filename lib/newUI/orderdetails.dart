@@ -9,7 +9,9 @@ import 'package:haul_a_day_web/newUI/components/deliveryReports.dart';
 import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:haul_a_day_web/page/orderscreen.dart';
 import 'package:haul_a_day_web/service/database.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:timeline_tile/timeline_tile.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final Map<String,dynamic> order;
@@ -22,12 +24,26 @@ class OrderDetailsPage extends StatefulWidget {
 
 class _OrderDetailsPageState extends State<OrderDetailsPage> {
   Map<String,dynamic> _order = {};
+  List<Map<String, dynamic>> _unloadings = [];
+  List<Map<String, dynamic>> _deliveryReport = [];
+  DatabaseService databaseService = DatabaseService();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _order = widget.order;
+    getUnloadings();
+  }
+
+  Future<void> getUnloadings()async{
+    List<Map<String, dynamic>> unloadings = await databaseService.fetchUnloadingSchedules(_order['id']);
+    List<Map<String, dynamic>> deliveryReport = await databaseService.fetchDeliveryReports(_order['id']);
+    print("Delivery Reports: $deliveryReport");
+    setState(() {
+      _unloadings=unloadings;
+      _deliveryReport = deliveryReport;
+    });
   }
 
   @override
@@ -71,7 +87,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             child: Row(
               children: [
                 Expanded(
-                  flex: 6,
+                  flex: 5,
                   child: LayoutBuilder(
                     builder: (context,constraints) {
                       return Container(
@@ -180,7 +196,47 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 ),
                 Expanded(
                   flex: 2,
-                  child: Container(color: Colors.green[200]),
+                  child: LayoutBuilder(
+                      builder: (context,constraints) {
+                        return Padding(
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          child: Container(
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey), // Create a simple border
+                              borderRadius: BorderRadius.circular(10), // Define border radius
+                            ),
+                            child: (_unloadings.isEmpty)
+                                ?Container(
+                                  height: constraints.maxHeight,
+                                  child: Center(
+                                    child: CircularProgressIndicator(color: Colors.green[700],),
+                                  ),
+                                )
+                                :Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Order Status',
+                                  style: TextStyle(
+                                    fontFamily: 'Itim',
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                orderStatus(constraints),
+                                SizedBox(height:20),
+                                completeDelivery(),
+
+
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                  ),
                 )
               ],
             ) 
@@ -257,8 +313,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   } 
                   : () {
                     setState(() {
+                      DateTime timestamp = DateTime.now();
+                      String timestampString = timestamp.toIso8601String(); // Convert DateTime to string
                       confirm = true;
                       order['confirmed_status'] = true; // Set the flag to true when the button is clicked
+                      order['confirmedTimestamp'] = timestampString;
                     });
                     databaseService.updateConfirmValue(confirm, order['id']);
                     showDialog(
@@ -313,12 +372,14 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   setState(() {
                                     confirm = !confirm;
                                     order['confirmed_status'] = confirm;
+                                    order['confirmedTimestamp'] = null;
                                   });
                                   databaseService.updateConfirmValue(confirm, order['id']);
                                   if(order['assignedStatus'] == 'true'){
                                     databaseService.cancelSchedule(order['id'], order['assignedTruck']);
                                     setState(() {    
                                       order['assignedStatus'] = 'false'; 
+                                      order['assignedTimestamp'] = null;
                                     });
                                   }
                                   Navigator.of(context).pop();
@@ -371,7 +432,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 ),
                 SizedBox(width: 10,),
                 ElevatedButton(
-                  onPressed: (){
+                  onPressed: ()async{
                     if(order['assignedStatus'] == 'true' && order['confirmed_status'] == true){
                       showDialog(
                           context: context,
@@ -392,7 +453,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                           }
                         );
                     } else if(order['assignedStatus'] == 'false' && order['confirmed_status'] == true){
-                      showDialog(
+                      // Show the AssignDialog and wait for it to complete
+                      String? assigned = await showDialog<String>(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
@@ -400,10 +462,24 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
                             ),
-                            content: AssignDialog(order: order,),
+                            content: AssignDialog(order: order, onAssigned: (value) {
+                              Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                            },),
                           );
                         },
                       );
+                      print('AssignS: $assigned');
+                      // Now that the dialog has finished, get the assigned truck ID
+                      if (assigned != null && assigned.isNotEmpty) {
+                        DateTime timestamp = DateTime.now();
+                        String timestampString = timestamp.toIso8601String(); // Convert DateTime to string
+
+                        setState(() {
+                          order['assignedStatus'] = 'true';
+                          order['assignedTimestamp'] = timestampString; // Add timestamp as a string to the map
+                        });
+                      }
+
                     } else if(order['assignedStatus'] == 'false' && order['confirmed_status'] == false){
                       showDialog(
                         context: context,
@@ -501,4 +577,310 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       ],
     );
   }
+
+  Widget orderStatus(constraints) {
+    Map<String, dynamic> loadReport = {};
+    List<Map<String, dynamic>> unloadReport = [];
+    for(Map<String, dynamic> report in  _deliveryReport){
+      if(report['id'].contains('LS')){
+        loadReport = report;
+      }
+      else if(report['id'].contains('US')){
+        unloadReport.add(report);
+      }
+    }
+    
+    return SizedBox(
+      height: constraints.maxHeight*0.8, // Constrain the height
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            orderConfirmTile(constraints),
+            assignTile(constraints),
+            loadingTile(constraints,loadReport),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: ClampingScrollPhysics(),
+              itemCount: _unloadings.length,
+              itemBuilder: (context, index) {
+                Map<String, dynamic> unload = _unloadings[index];
+                Map<String, dynamic> report = index < unloadReport.length ? unloadReport[index] : {};
+                if(index==_unloadings.length-1){
+                  return lastUnloadingTile(constraints, unload, report);
+                }else{
+                  return unloadingTile(constraints, unload,report);
+                }
+              },
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget completeDelivery(){
+    Map<String, dynamic> lastUnload = _unloadings[_unloadings.length-1];
+    bool isComplete = lastUnload['deliveryStatus'] =='Delivered!';
+    return Container(
+        child: Row(
+          children: [
+            Icon(
+              isComplete?Icons.check_circle:Icons.timer,
+              color: isComplete? Colors.green[700]!:Colors.grey[700]!,),
+            Text(
+              isComplete? 'Order ${_order['id']} Completed!': 'Order ${_order['id']} In Progress...',
+              style: TextStyle(
+                color: isComplete? Colors.green[700]!:Colors.grey[700]!,
+                fontSize: 18,
+                fontWeight: FontWeight.bold
+              ),
+            )
+          ],
+        )
+    );
+  }
+
+
+  Widget orderConfirmTile(constraints){
+    print('here');
+    double tileheight =constraints.maxHeight *0.125;
+    bool isConfirmed =_order['confirmed_status']==true;
+    String? confirmedDate;
+    if(_order['confirmedTimestamp'] != null){
+      DateTime timestamp = DateTime.parse(_order['confirmedTimestamp']);
+      confirmedDate = DateFormat('MMM dd, yyyy').format(timestamp);
+    }
+    print('Confirmed: $confirmedDate');
+    return SizedBox(
+      height: tileheight-6,
+      child: TimelineTile(
+        isFirst: true,
+        endChild: statusContainer(
+          isConfirmed ? "Order Confirmed" : "Order Not Yet Confirmed",
+          confirmedDate ?? "Confirmation in progress", // Using null-aware operator to provide a default value
+          isConfirmed,
+        ),  
+        indicatorStyle: IndicatorStyle(
+          width: 40,
+          height: 40,
+          color: isConfirmed ? Colors.blue[700]! : Colors.grey[700]!,
+          iconStyle: IconStyle(
+            color: Colors.white,
+            iconData: Icons.assignment,
+          ),
+        ),
+        afterLineStyle: LineStyle(
+          color: isConfirmed ? Colors.blue[700]! : Colors.grey[700]!,
+          thickness: 6,
+        ),
+      ),
+    );
+  }
+
+  Widget assignTile(constraints){
+    double tileheight =constraints.maxHeight *0.125;
+    bool isAssigned = _order['assignedStatus']=='true';
+    String? assignedDate;
+    if(_order['assignedTimestamp'] != null){
+      DateTime timestamp = DateTime.parse(_order['assignedTimestamp']);
+      assignedDate = DateFormat('MMM dd, yyyy').format(timestamp);
+    }
+    print('Assigned: $assignedDate $isAssigned');
+    return SizedBox(
+      height:tileheight,
+      child: TimelineTile(
+        endChild: statusContainer(
+            isAssigned? "Order Assigned": "Order Not Yet Assigned",
+            assignedDate ?? "assignment in process",
+            isAssigned? true: false),
+        indicatorStyle: IndicatorStyle(
+          width: 40,
+          height: 40,
+          color: isAssigned?Colors.blue[700]! : Colors.grey[700]!,
+          iconStyle: IconStyle(
+            color: Colors.white,
+            iconData: Icons.local_shipping,
+          ),
+        ),
+        beforeLineStyle: LineStyle(
+          color: isAssigned?Colors.blue[700]! : Colors.grey[700]!,
+          thickness: 6,
+        ),
+        afterLineStyle: LineStyle(
+          color: isAssigned?Colors.blue[700]! : Colors.grey[700]!,
+          thickness: 6,
+        ),
+      ),
+    );
+  }
+
+  Widget loadingTile(constraints, Map<String, dynamic> load){
+    //print('Loading: $load');
+    double tileheight =constraints.maxHeight *0.125;
+    bool isLoaded = _order['loadingStatus']=='Loaded!';
+    bool isAssigned = _order['assignedStatus']=='true';
+    String? departDate;
+    //print('Load: ${load['departureTimeDate']}');
+    if(isLoaded &&load['departureTimeDate'] != null){
+      var departTimestamp = load['departureTimeDate'].toDate();
+      departDate = DateFormat('MMM dd, yyyy').format(departTimestamp);
+    }
+    //print('Load: $departDate');
+
+    return SizedBox(
+      height:tileheight,
+      child: TimelineTile(
+        endChild: statusContainer(
+            isLoaded? "${_order["loading_id"]} Loaded":
+            (isAssigned? "Loading ${_order["loading_id"]}...": "Order Not Yet Assigned"),
+            departDate ?? (isAssigned?"loading in progress":'order in progress'),
+            isLoaded? true: false),
+        indicatorStyle: IndicatorStyle(
+          width: 40,
+          height: 40,
+          color: isLoaded?Colors.blue[700]!:Colors.grey[700]!,
+          iconStyle: IconStyle(
+            color: Colors.white,
+            iconData:  Icons.featured_video,
+          ),
+        ),
+        beforeLineStyle: LineStyle(
+          color: isLoaded?Colors.blue[700]!:Colors.grey[700]!,
+          thickness: 6,
+        ),
+        afterLineStyle: LineStyle(
+          color: isLoaded?Colors.blue[700]!:Colors.grey[700]!,
+          thickness: 6,
+        ),
+      ),
+    );
+  }
+
+  Widget unloadingTile(constraints, Map<String, dynamic> unload, Map<String, dynamic> report){
+    double tileheight =constraints.maxHeight *0.125;
+
+    bool isDelivered = unload['deliveryStatus']=='Delivered!';
+    bool isAssigned = _order['assignedStatus']=='true';
+
+    String? departDate;
+    if(isDelivered && report['departureTimeDate'] != null){
+      var departTimestamp = report['departureTimeDate'].toDate();
+      departDate = DateFormat('MMM dd, yyyy').format(departTimestamp);
+    }
+    print('Unload: $departDate');
+    return SizedBox(
+      height:tileheight,
+      child: TimelineTile(
+        endChild: statusContainer(
+          isDelivered? " ${unload['unloadId']} Delivered!":
+          (isAssigned? '${unload['unloadId']}  ${unload['deliveryStatus']}': 'Order Not Yet Assigned'),
+            departDate ?? (isAssigned?"delivery in progress":"order in progress"),
+            isDelivered?true:false),
+        indicatorStyle: IndicatorStyle(
+          width: 40,
+          height: 40,
+          color: isDelivered?Colors.blue[700]!:Colors.grey[700]!,
+          iconStyle: IconStyle(
+            color: Colors.white,
+            iconData: Icons.featured_play_list_rounded,
+          ),
+        ),
+        beforeLineStyle: LineStyle(
+          color: isDelivered?Colors.blue[700]!:Colors.grey[700]!,
+          thickness: 6,
+        ),
+        afterLineStyle: LineStyle(
+          color: isDelivered?Colors.blue[700]!:Colors.grey[700]!,
+          thickness: 6,
+        ),
+      ),
+    );
+  }
+
+  Widget lastUnloadingTile(constraints, Map<String, dynamic> unload, Map<String, dynamic> report){
+    double tileheight =constraints.maxHeight *0.125;
+
+    bool isDelivered = unload['deliveryStatus']=='Delivered!';
+    bool isAssigned = _order['assignedStatus']=='true';
+
+    String? departDate;
+    if(isDelivered && report['departureTimeDate'] != null){
+      var departTimestamp = report['departureTimeDate'].toDate();
+      departDate = DateFormat('MMM dd, yyyy').format(departTimestamp);
+    }
+    print('Last Unload: $departDate');
+    return SizedBox(
+      height:tileheight,
+      child: TimelineTile(
+        isLast: true,
+        endChild: statusContainer(
+            isDelivered? " ${unload['unloadId']} Delivered!":
+            (isAssigned? '${unload['unloadId']}  ${unload['deliveryStatus']}': 'Order Not Yet Assigned'),
+            departDate ?? (isAssigned?"delivery in progress":"order in progress"),
+            isDelivered?true:false),
+        indicatorStyle: IndicatorStyle(
+          width: 40,
+          height: 40,
+          color: isDelivered?Colors.blue[700]!:Colors.grey[700]!,
+          iconStyle: IconStyle(
+            color: Colors.white,
+            iconData: Icons.featured_play_list_rounded,
+          ),
+        ),
+        beforeLineStyle: LineStyle(
+          color: isDelivered?Colors.blue[700]!:Colors.grey[700]!,
+          thickness: 6,
+        ),
+        afterLineStyle: LineStyle(
+          color: isDelivered?Colors.blue[700]!:Colors.grey[700]!,
+          thickness: 6,
+        ),
+      ),
+    );
+  }
+
+  Widget statusContainer(String title, String subtitle, bool stat){
+    return SizedBox(
+      width: double.infinity,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 5),
+        child: Container(
+          child: Column( // Wrap Row with Column
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center, // Center the contents vertically
+            children: [
+              Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(subtitle,
+                        style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Spacer(),
+                  Icon(
+                    (stat) ? Icons.check_circle_outline_outlined : Icons.timer,
+                    color: (stat) ? Colors.green[700] : Colors.grey[700],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 }
