@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import '../bottomTab.dart';
+import '../components/bottomTab.dart';
+import '../components/data/delivery_information.dart';
 import 'delivery_tab.dart';
 
 
@@ -505,7 +506,7 @@ class _UnloadingInformationState extends State<UnloadingInformation> {
                             'Unloading ${widget.unloadingDelivery.unloadingId}',
                             style: TextStyle(
                               color: Colors.blue[700],
-                              fontSize: 22,
+                              fontSize: MediaQuery.of(context).size.width * 0.05,
                               fontWeight: FontWeight.bold,
                             ),
                             softWrap: true,

@@ -2,7 +2,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:haul_a_day_mobile/bottomTab.dart';
+import 'package:haul_a_day_mobile/components/bottomTab.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/truckteam_incidentreportnext.dart';
 import 'package:image_picker/image_picker.dart';
 

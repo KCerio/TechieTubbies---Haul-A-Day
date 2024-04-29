@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/truckteam_tab.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/uploading_report.dart';
 import 'package:intl/intl.dart';
-import '../bottomTab.dart';
+import '../components/bottomTab.dart';
 import 'package:image_picker/image_picker.dart';
 
 class IncidentReportNext extends StatefulWidget {

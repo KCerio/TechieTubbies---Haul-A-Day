@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:intl/intl.dart';
-import '../bottomTab.dart';
+import '../components/bottomTab.dart';
+import '../components/data/delivery_information.dart';
 import 'delivery_tab.dart';
 
 

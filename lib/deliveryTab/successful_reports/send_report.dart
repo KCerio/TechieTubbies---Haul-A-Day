@@ -3,21 +3,24 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
-import 'package:haul_a_day_mobile/deliveryTab/unloading_successful_reports/unloading_delivery_report_successful.dart';
-import 'package:haul_a_day_mobile/deliveryTab/unloading_successful_reports/upload_unloading_success.dart';
+import 'package:haul_a_day_mobile/deliveryTab/successful_reports/upload_report.dart';
+import 'package:haul_a_day_mobile/deliveryTab/unsuccessful_reports/upload_report.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-import '../../bottomTab.dart';
+import '../../components/bottomTab.dart';
+import '../../components/data/delivery_information.dart';
+import '../../components/data/teamMembers.dart';
+import '../../components/dateThings.dart';
 
-class SendUnloadingSuccess extends StatefulWidget {
 
-  final UnloadingDelivery unloadingDelivery;
+
+class SendSuccessfulReport extends StatefulWidget {
+
+  final String deliveryId;
   final String orderId;
-  final UnloadingDelivery? nextDelivery;
-  final String loadingDeliveryId;
   final List<teamMember> team;
   final Timestamp arrivalTimeAndDate;
   final bool completeCartons;
@@ -27,30 +30,36 @@ class SendUnloadingSuccess extends StatefulWidget {
   final XFile signatory;
   final XFile documentation;
   final Timestamp departureTimeAndDate;
+  final String nextDeliveryId;
 
-  const SendUnloadingSuccess({Key? key,
-    required this.unloadingDelivery,
+  const SendSuccessfulReport({Key? key,
+    required this.deliveryId,
     required this.orderId,
-    required this.nextDelivery,
     required this.team,
     required this.arrivalTimeAndDate,
     required this.completeCartons,
     required this.reasonIncomplete,
+    required this.numberCartons,
     required this.recipientName,
     required this.signatory,
     required this.documentation,
-    required this.departureTimeAndDate, required this.loadingDeliveryId, required this.numberCartons}) : super(key: key);
+    required this.departureTimeAndDate,
+    required this.nextDeliveryId,
+   }) : super(key: key);
 
   @override
-  _SendUnloadingSuccessState createState() =>
-      _SendUnloadingSuccessState();
+  _SendSuccessfulReportState createState() =>
+      _SendSuccessfulReportState();
 }
 
 
-class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
+
+class _SendSuccessfulReportState extends State<SendSuccessfulReport> {
   int _currentIndex = 1;
   int progress = 90;
 
+  LoadingDelivery? loadingDelivery=null;
+  UnloadingDelivery? unloadingDelivery=null;
 
   @override
   void initState() {
@@ -59,7 +68,8 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
   }
 
   Future<void> initializeData() async {
-    setState(() {}); // Call setState to update the UI after data is fetched
+    retrieveDeliveryInformation();
+    setState(() {});
   }
 
   @override
@@ -69,7 +79,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
         appBar: AppBar(
           backgroundColor: Colors.blue[700],
           title: Text(
-            'Create Successful Delivery Report',
+            'Create Unsuccessful Delivery Report',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -90,7 +100,9 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
             },
           ),
         ),
-        body: Column(
+        body: (loadingDelivery==null && unloadingDelivery==null)?
+        Center(child: CircularProgressIndicator(color: Colors.blue[700],),)
+            :Column(
           children: [
             //progress bar
             Container(
@@ -130,7 +142,8 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                   SizedBox(height: 10),
 
                   //loading Information
-                  unloadingInformation(),
+                  deliveryInformation(),
+
                   SizedBox(height: 15),
 
                   informationContainer('Arrival Time and Date',
@@ -138,11 +151,12 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
 
                   informationContainer('Truck Team', teamNames(widget.team)),
 
-                  informationContainer('Cartons', '${widget.numberCartons} cartons delivered'),
+                  informationContainer('Cartons', '${widget.numberCartons} cartons'),
 
                   if(!widget.completeCartons)
                     informationContainer('Reason for Incomplete Cartons',
                         widget.reasonIncomplete),
+
 
                   informationContainer('Recipient Name', widget.recipientName),
 
@@ -152,7 +166,6 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
 
                   informationContainer('Departure Time and Date'
                       ,'${intoTime(widget.departureTimeAndDate)} at ${intoDate(widget.departureTimeAndDate)}'),
-
 
 
 
@@ -194,19 +207,22 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                           setState(() {
                             progress+=10;
                           });
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => UploadUnloadingSucc(
-                              unloadingDelivery: widget.unloadingDelivery,
-                              orderId: widget.orderId,
-                              nextDelivery: widget.nextDelivery,
-                              team: widget.team,
-                              arrivalTimeAndDate: widget.arrivalTimeAndDate,
-                              completeCartons: widget.completeCartons,
-                              reasonIncomplete: widget.reasonIncomplete,
-                              recipientName: widget.recipientName,
-                              signatory: widget.signatory,
-                              documentation: widget.documentation,
-                              departureTimeAndDate: widget.departureTimeAndDate,
-                              loadingDeliveryId: widget.loadingDeliveryId, numberCartons: widget.numberCartons,)));
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                              UploadSuccessfulReport(
+                                  deliveryId: widget.deliveryId,
+                                  orderId: widget.orderId,
+                                  team: widget.team,
+                                  documentation:widget. documentation,
+                                  arrivalTimeAndDate: widget.arrivalTimeAndDate,
+                                  completeCartons: widget.completeCartons,
+                                  reasonIncomplete: widget.reasonIncomplete,
+                                  numberCartons: widget.numberCartons,
+                                  recipientName: widget.recipientName,
+                                  signatory: widget.signatory,
+                                  departureTimeAndDate: widget.departureTimeAndDate,
+                                  nextDeliveryId: widget.nextDeliveryId)
+                          ));
 
 
 
@@ -245,20 +261,32 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
   }
 
 
+  Widget deliveryInformation()  {
+    if(widget.deliveryId.startsWith('L')){
+      return loadingInformation(loadingDelivery!);
+    }else{
+      return unloadingInformation(unloadingDelivery!);
+    }
 
-  String intoDate (Timestamp timeStamp)  {
-    DateTime dateTime = timeStamp.toDate(); // Convert Firebase Timestamp to DateTime
-    String formattedDate = DateFormat('MMM d,yyyy').format(dateTime); // Format DateTime into date string
-    return formattedDate; // Return the formatted date string
   }
 
-  String intoTime (Timestamp stampTime) {
-    DateTime dateTime =  stampTime.toDate();  // Convert Firebase Timestamp to DateTime
-    String formattedTime = DateFormat('h:mm a').format(dateTime); // Format DateTime into time string
-    return formattedTime; // Return the formatted time string
+  Future<void> retrieveDeliveryInformation() async{
+    if(widget.deliveryId.startsWith('L')){
+
+      loadingDelivery = (await retrieveLoadingDelivery(widget.orderId))! as LoadingDelivery?;
+
+    }else{
+      unloadingDelivery= (await retrieveUnloadingDelivery(widget.orderId, widget.deliveryId)) as UnloadingDelivery?;
+    }
+
+    setState(() {
+
+    });
+
   }
 
-  Widget unloadingInformation(){
+
+  Widget unloadingInformation(UnloadingDelivery unloadingDelivery){
     return Container(
       color: Colors.blue[100],
       child: Column(
@@ -314,7 +342,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                 padding: EdgeInsets.all(
                     10.0), // Adjust the padding values as needed
                 child: Text(
-                  widget.unloadingDelivery.unloadingId,
+                  unloadingDelivery.unloadingId,
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -345,7 +373,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                 padding: EdgeInsets.all(
                     10.0), // Adjust the padding values as needed
                 child: Text(
-                  intoTime(widget.unloadingDelivery.unloadingTimeDate),
+                  intoTime(unloadingDelivery.unloadingTimeDate),
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -376,7 +404,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                 padding: EdgeInsets.all(
                     10.0), // Adjust the padding values as needed
                 child: Text(
-                  intoDate(widget.unloadingDelivery.unloadingTimeDate),
+                  intoDate(unloadingDelivery.unloadingTimeDate),
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -407,7 +435,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                 padding: EdgeInsets.all(
                     10.0), // Adjust the padding values as needed
                 child: Text(
-                  widget.unloadingDelivery.recipient,
+                  unloadingDelivery.recipient,
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -438,7 +466,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                 padding: EdgeInsets.all(
                     10.0), // Adjust the padding values as needed
                 child: Text(
-                  widget.unloadingDelivery.unloadingLocation,
+                  unloadingDelivery.unloadingLocation,
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -469,7 +497,7 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                 padding: EdgeInsets.all(
                     10.0), // Adjust the padding values as needed
                 child: Text(
-                  '${widget.unloadingDelivery.quantity} cartons',
+                  '${unloadingDelivery.quantity} cartons',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -500,7 +528,266 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
                 padding: EdgeInsets.all(
                     10.0), // Adjust the padding values as needed
                 child: Text(
-                  '${widget.unloadingDelivery.weight} kgs',
+                  '${unloadingDelivery.weight} kgs',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+
+        ],
+      ),
+    );
+  }
+
+  Widget loadingInformation(LoadingDelivery loadingDelivery){
+    return Container(
+      color: Colors.blue[100],
+      child: Column(
+        children: [
+          //orderId
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  'Order ID',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  widget.orderId,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          //deliveryId
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  'Delivery ID',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  widget.deliveryId,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          //loadingTime
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  'Loading Time',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  intoTime(loadingDelivery.loadingTimeDate),
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          //loadingDate
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  'Loading Date',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  intoDate(loadingDelivery.loadingTimeDate),
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          //loading Warehouse
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  'Loading Warehouse',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  loadingDelivery.warehouse,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          //loading Location
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  'Location',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  loadingDelivery.loadingLocation,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          //CargoType
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  'Cargo Type',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  loadingDelivery.cargoType,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          //Total Cartons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  'Total Cartons',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(
+                    10.0), // Adjust the padding values as needed
+                child: Text(
+                  loadingDelivery.totalCartons.toString(),
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 18,
@@ -571,6 +858,8 @@ class _SendUnloadingSuccessState extends State<SendUnloadingSuccess> {
   String teamNames (List<teamMember> selected){
     return selected.map((member) => member.fullname).join(', ');
   }
+
+
 
 
 

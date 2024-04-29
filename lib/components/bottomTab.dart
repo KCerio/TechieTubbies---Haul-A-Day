@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import 'accountTab/account_tab.dart';
-import 'deliveryTab/delivery_tab.dart';
-import 'truckTeamTab/truckteam_tab.dart';
+import '../accountTab/account_tab.dart';
+import '../deliveryTab/delivery_tab.dart';
+import '../truckTeamTab/truckteam_tab.dart';
 
 class BottomTab extends StatefulWidget {
 

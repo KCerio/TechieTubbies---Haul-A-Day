@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
 
-import '../bottomTab.dart';
+import '../components/bottomTab.dart';
 
 class WellDonePage extends StatefulWidget {
   final int totalDelivered;

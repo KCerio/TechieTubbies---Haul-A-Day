@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:haul_a_day_mobile/staffIDController.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/truckteam_incidentreport.dart';
 
-import '../bottomTab.dart';
+import '../components/bottomTab.dart';
 
 class TruckInfo {
   final String cargoType;
@@ -67,7 +67,7 @@ class _TruckTeamState extends State<TruckTeam> {
 
 
 
-    if (truckId != "none") {
+    if (truckId != "none"&& truckId !='no truck') {
       truckInfo = await getTruckInfoByTruckId(truckId);
       truckStatuses = getDropdown(truckInfo!);
     }
@@ -122,12 +122,18 @@ class _TruckTeamState extends State<TruckTeam> {
     }
 
     if (position == 'Driver') {
-      // Return just truckID
-      return querySnapshot.docs.first['truck'];
-    } else { // Position is Crew
-
-
-      // Get the assignedSchedule
+      String truckId;
+      try {
+        truckId = querySnapshot.docs.first['truck'];
+        if(truckId=='')
+          truckId = 'no truck';
+      } catch (e) {
+        truckId = 'no truck';
+        print('truckId: ${truckId}');
+      }
+      return truckId;
+    }
+    else {
       if (querySnapshot.docs.isNotEmpty) {
         // Retrieve the assignedSchedule from the document
         assignedSchedule = querySnapshot.docs.first['assignedSchedule'];
@@ -232,7 +238,7 @@ class _TruckTeamState extends State<TruckTeam> {
           ? Center(
           child: CircularProgressIndicator(color: Colors.green),
       )
-          : truckId == "none"
+          : truckId == "none" ||truckId == 'no truck' //no assigned schedule
           ? Center(
           child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -245,7 +251,7 @@ class _TruckTeamState extends State<TruckTeam> {
             ),
             SizedBox(height: 10),
             Text(
-              "No Truck Team has been assigned yet",
+              (truckId == "none")?"No Truck Team has been assigned yet":"No Truck has been assigned to you yet",
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,

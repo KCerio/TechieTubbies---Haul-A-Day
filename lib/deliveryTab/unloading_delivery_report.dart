@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
-import 'package:haul_a_day_mobile/deliveryTab/unloading_successful_reports/unloading_delivery_report_successful.dart';
-import '../bottomTab.dart';
+
+import 'package:haul_a_day_mobile/deliveryTab/successful_reports/create_report.dart';
+
+import 'package:haul_a_day_mobile/deliveryTab/unsuccessful_reports/create_report.dart';
+import '../components/bottomTab.dart';
+import '../components/data/delivery_information.dart';
 
 
 class UnloadingDeliveryReport extends StatefulWidget {
   final UnloadingDelivery unloadingDelivery;
   final String deliveryId;
-  final UnloadingDelivery? nextDelivery;
-  final String loadingDeliveryId;
+  final String nextDeliveryId;
+
 
   const UnloadingDeliveryReport({Key? key,
     required this.unloadingDelivery,
-    required this.deliveryId,  this.nextDelivery, required this.loadingDeliveryId}) : super(key: key);
+    required this.deliveryId,  required this.nextDeliveryId, }) : super(key: key);
 
   @override
   _UnloadingDeliveryReportState createState() => _UnloadingDeliveryReportState();
@@ -94,12 +97,13 @@ class _UnloadingDeliveryReportState extends State<UnloadingDeliveryReport> {
                     setState(() {});
                     // Add your onPressed logic here
                     selectedButtonIndex = 0;
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => UnloadingDeliveryReportSuccessful(
-                            unloadingDelivery: widget.unloadingDelivery,
-                            orderId: widget.deliveryId, nextDelivery: widget.nextDelivery, loadingDeliveryId: widget.loadingDeliveryId,)),
+                          builder: (context) =>CreateSuccessfulReport(
+                              deliveryId: widget.unloadingDelivery.unloadingId, orderId: widget.deliveryId,
+                              nextDeliveryId: widget.nextDeliveryId)),
                     );
                   },
                   style: ButtonStyle(
@@ -128,6 +132,13 @@ class _UnloadingDeliveryReportState extends State<UnloadingDeliveryReport> {
                     setState(() {});
                     // Add your onPressed logic here
                     selectedButtonIndex = 1;
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              CreateUnsuccessfulReport(deliveryId: widget.unloadingDelivery.unloadingId, orderId: widget.deliveryId,)),
+                    );
                   },
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.resolveWith<Color>(

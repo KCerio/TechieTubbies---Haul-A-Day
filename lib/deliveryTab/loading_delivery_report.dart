@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
-import '../bottomTab.dart';
-import 'loading_successful_reports/loading_delivery_report_successful.dart';
+
+import 'package:haul_a_day_mobile/deliveryTab/successful_reports/create_report.dart';
+import 'package:haul_a_day_mobile/deliveryTab/unsuccessful_reports/create_report.dart';
+import '../components/bottomTab.dart';
+import '../components/data/delivery_information.dart';
+
+
 
 
 class LoadingDeliveryReport extends StatefulWidget {
@@ -95,7 +99,7 @@ class _LoadingDeliveryReportState extends State<LoadingDeliveryReport> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => LoadingDeliveryReportSuccessful(loadingDelivery: widget.loadingDelivery, orderId: widget.deliveryId,)),
+                          builder: (context) => CreateSuccessfulReport(deliveryId: widget.loadingDelivery.loadingId, orderId: widget.deliveryId, nextDeliveryId: '',)),
                   );
                 },
                 style: ButtonStyle(
@@ -122,8 +126,14 @@ class _LoadingDeliveryReportState extends State<LoadingDeliveryReport> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {});
-                  // Add your onPressed logic here
+
                   selectedButtonIndex = 1;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            CreateUnsuccessfulReport(deliveryId: widget.loadingDelivery.loadingId, orderId: widget.deliveryId,)),
+                  );
                 },
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.resolveWith<Color>(

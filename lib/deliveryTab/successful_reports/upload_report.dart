@@ -4,20 +4,22 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:haul_a_day_mobile/components/data/delivery_information.dart';
 
 
-import 'package:haul_a_day_mobile/deliveryTab/delivery_tab.dart';
-import 'package:haul_a_day_mobile/deliveryTab/loading_successful_reports/loading_delivery_report_successful.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../accountTab/account_tab.dart';
+import '../../components/data/teamMembers.dart';
 import '../../truckTeamTab/truckteam_tab.dart';
+import '../delivery_tab.dart';
+import '../finished_deliveries_page.dart';
 
-class UploadLoadingSucc extends StatefulWidget {
+class UploadSuccessfulReport extends StatefulWidget {
 
-  final LoadingDelivery loadingDelivery;
+  final String deliveryId;
   final String orderId;
   final List<teamMember> team;
   final Timestamp arrivalTimeAndDate;
@@ -28,37 +30,44 @@ class UploadLoadingSucc extends StatefulWidget {
   final XFile signatory;
   final XFile documentation;
   final Timestamp departureTimeAndDate;
+  final String nextDeliveryId;
 
-  const UploadLoadingSucc({Key? key,
-    required this.loadingDelivery,
+  const UploadSuccessfulReport({Key? key,
+    required this.deliveryId,
     required this.orderId,
     required this.team,
+    required this.documentation,
     required this.arrivalTimeAndDate,
     required this.completeCartons,
     required this.reasonIncomplete,
+    required this.numberCartons,
     required this.recipientName,
     required this.signatory,
-    required this.documentation,
-    required this.departureTimeAndDate, required this.numberCartons}) : super(key: key);
+    required this.departureTimeAndDate,
+    required this.nextDeliveryId,
+
+  }) : super(key: key);
 
   @override
-  _UploadLoadingSuccState createState() =>
-      _UploadLoadingSuccState();
+  _UploadSuccessfulReportState createState() =>
+      _UploadSuccessfulReportState();
 }
 
 
 
-class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
+class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
   int _currentIndex = 1;
 
   UploadTask? signatoryUploadTask;
   UploadTask? documentationUploadTask;
   bool _isUploading = false;
+  int totalDelivered = 0;
 
   @override
   void initState(){
     super.initState();
     createIncidentReport();
+
   }
 
   @override
@@ -107,10 +116,34 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
           body: Center(
             child: GestureDetector(
               onTap: () {
-                if (!_isUploading) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => DeliveryTab()), // Replace NextPage with the desired page
+                if(!_isUploading){
+                  print('next deli: ${widget.nextDeliveryId}');
+                  if(widget.deliveryId.startsWith('U')&&widget.nextDeliveryId.isEmpty){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WellDonePage(
+                          totalDelivered: totalDelivered ,
+                          orderId: widget.orderId,
+                        ),
+                      ),
+                    );
+
+                  }else{
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => DeliveryTab()),
+                    );
+                  }
+
+
+                }
+                else{
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Report is still Uploading'),
+                      duration: Duration(seconds: 2),
+                    ),
                   );
                 }
               },
@@ -121,7 +154,7 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
                   SizedBox(height: 20),
                   Text(
                     _isUploading
-                        ? 'Uploading Report ${widget.loadingDelivery.loadingId}'
+                        ? 'Uploading Report ${widget.deliveryId}'
                         : 'Success!',
                     style: TextStyle(
                       fontSize: 28,
@@ -132,7 +165,7 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
                   Text(
                     _isUploading
                         ? 'Please wait a moment'
-                        : '${widget.loadingDelivery.loadingId} submitted to management',
+                        : '${widget.deliveryId} submitted to management',
                     style: TextStyle(
                       fontSize: 16,
                     ),
@@ -140,6 +173,7 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
                 ],
               ),
             ),
+
           ),
 
 
@@ -221,6 +255,8 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
     }
   }
 
+
+
   Future<List<String>> uploadFileToStorage() async {
 
     setState(() {
@@ -229,7 +265,7 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
 
     String originalExtension = widget.signatory.path.split('.').last;
     //Signatory
-    final signatoryFileName = '${widget.loadingDelivery.loadingId}_signatory.$originalExtension';
+    final signatoryFileName = '${widget.deliveryId}_signatory.$originalExtension';
     final signatoryPath  = 'Orders/${widget.orderId}/Delivery Reports/Loading/$signatoryFileName';
     final signatoryFile = File(widget.signatory.path);
     final signatoryRef = FirebaseStorage.instance.ref().child(signatoryPath);
@@ -239,9 +275,9 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
 
 
     // Construct the new file name with the same extension
-     originalExtension = widget.documentation.path.split('.').last;
+    originalExtension = widget.documentation.path.split('.').last;
 
-    final documentationFileName = '${widget.loadingDelivery.loadingId}_documentation.$originalExtension';
+    final documentationFileName = '${widget.deliveryId}_documentation.$originalExtension';
     final documentationPath  = 'Orders/${widget.orderId}/Delivery Reports/Loading/$documentationFileName';
     final documentationFile = File(widget.documentation.path);
     final documentationRef = FirebaseStorage.instance.ref().child(documentationPath);
@@ -258,7 +294,7 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
     uploadFileToStorage().then((urls) {
       // Once the file is uploaded, use the URL to store the incident report information in Firestore
       FirebaseFirestore.instance.collection('Order/${widget.orderId}/Delivery Reports')
-          .doc('${widget.loadingDelivery.loadingId}').set({
+          .doc('${widget.deliveryId}').set({
 
         'arrivalTimeDate': widget.arrivalTimeAndDate,
         'departureTimeDate': widget.departureTimeAndDate,
@@ -268,17 +304,25 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
         'signatory': urls[0],
         'documentation': urls[1],
         'recipientName': widget.recipientName,
-
+        'isSuccessful' : true,
 
 
       }).then((_) async {
         uploadTeam();
 
+        if(widget.deliveryId.startsWith('L')){
+          updateStatusLoading();
+        }else{
+          updateStatusUnloading();
+          if(widget.nextDeliveryId==''){
+            updateAssignedSchedulesToNone(widget.orderId);
+          }
+        }
         setState(() {
           _isUploading = false; // Set _isUploading to true when upload is complete
         });
 
-        updateStatus();
+
 
       }).catchError((error) {
         // Show an error message if there's an issue creating the document
@@ -290,13 +334,18 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
   }
 
   void uploadTeam(){
-    String firestorePath = 'Order/${widget.orderId}/Delivery Reports/${widget.loadingDelivery.loadingId}/Attendance';
+    String firestorePath = 'Order/${widget.orderId}/Delivery Reports/${widget.deliveryId}/Attendance';
 
     widget.team.forEach((member) {
       String staffId = member.staffId;
       FirebaseFirestore.instance.collection(firestorePath).doc(staffId).set({
       }).then((_) {
         print('Team member with staffId $staffId uploaded successfully');
+        if(widget.deliveryId.startsWith('U')){
+          if(widget.nextDeliveryId==''){
+            addToAccomplished(staffId);
+          }
+        }
       }).catchError((error) {
         print('Error uploading team member with staffId $staffId: $error');
       });
@@ -304,13 +353,13 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
 
   }
 
-  Future<void> updateStatus() async {
+  Future<void> updateStatusLoading() async {
     //set status of next delivery
     final querySnapshot = await FirebaseFirestore.instance
         .collection('Order')
         .doc(widget.orderId)
         .collection('LoadingSchedule')
-        .doc(widget.loadingDelivery.loadingId)
+        .doc(widget.deliveryId)
         .collection('UnloadingSchedule')
         .limit(1)
         .get();
@@ -326,11 +375,141 @@ class _UploadLoadingSuccState extends State<UploadLoadingSucc> {
         .collection('Order')
         .doc(widget.orderId)
         .collection('LoadingSchedule')
-        .doc(widget.loadingDelivery.loadingId);
+        .doc(widget.deliveryId);
 
     await documentReference.update({'deliveryStatus': 'Loaded!'});
   }
 
+
+  Future<void> updateStatusUnloading() async {
+    String loadingId = getLoading(widget.deliveryId);
+
+    if(widget.nextDeliveryId!=''){
+      final documentReference = FirebaseFirestore.instance
+          .collection('Order')
+          .doc(widget.orderId)
+          .collection('LoadingSchedule')
+          .doc(loadingId)
+          .collection('UnloadingSchedule')
+          .doc(widget.nextDeliveryId);
+
+      await documentReference.update({'deliveryStatus': 'On Route'});
+    }
+
+
+
+    // Update current loading delivery status in Firestore
+    final documentReference = FirebaseFirestore.instance
+        .collection('Order')
+        .doc(widget.orderId)
+        .collection('LoadingSchedule')
+        .doc(loadingId)
+        .collection('UnloadingSchedule')
+        .doc(widget.deliveryId);
+
+    await documentReference.update({'deliveryStatus': 'Delivered!'});
+
+    totalDelivered = await retrieveDelivered(widget.orderId);
+
+    setState(() {
+
+    });
+
+
+
+
+  }
+
+
+  Future<void> updateAssignedSchedulesToNone(String orderId) async {
+    try {
+      // Reference to the truckTeam collection
+      CollectionReference truckTeamRef = FirebaseFirestore.instance.collection('Order').doc(orderId).collection('truckTeam');
+
+      // Get all documents from the truckTeam collection
+      QuerySnapshot truckTeamSnapshot = await truckTeamRef.get();
+
+      // List to store the staff IDs
+      List<String> staffIds = [];
+
+      // Iterate over the documents and extract the staff IDs
+      truckTeamSnapshot.docs.forEach((doc) {
+        staffIds.add(doc.id);
+      });
+
+      // Update the assignedSchedule field to "None" for each staff ID in the Users collection
+      for (String staffId in staffIds) {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('Users')
+            .where('staffId', isEqualTo: staffId)
+            .get();
+
+        querySnapshot.docs.forEach((doc) async {
+
+          await doc.reference.update({'assignedSchedule': 'none'});
+        });
+      }
+
+      // Get the assignedTruck ID from the Order collection
+      DocumentSnapshot orderSnapshot = await FirebaseFirestore.instance.collection('Order').doc(widget.orderId).get();
+      String assignedTruckId = orderSnapshot['assignedTruck'];
+
+      // Update truckStatus for the assigned truck in the Trucks collection
+      await FirebaseFirestore.instance
+          .collection('Trucks')
+          .doc(assignedTruckId)
+          .update({'truckStatus': 'Available'});
+
+      print('Assigned schedules updated successfully.');
+    } catch (e) {
+      print("Error updating assigned schedules: $e");
+    }
+  }
+
+  Future<void> addToAccomplished(String staffId) async {
+    try {
+      // Retrieve the user document ID corresponding to staffId
+      var userQuerySnapshot = await FirebaseFirestore.instance
+          .collection('Users')
+          .where('staffId', isEqualTo: staffId)
+          .get();
+
+      // Check if any documents were found
+      if (userQuerySnapshot.docs.isNotEmpty) {
+        var userDocId = userQuerySnapshot.docs.first.id;
+
+        // Construct the path to the "Accomplished Deliveries" subcollection
+        var accomplishedDeliveriesCollection = FirebaseFirestore.instance
+            .collection('Users')
+            .doc(userDocId)
+            .collection('Accomplished Deliveries');
+
+        // Add a new document to the "Accomplished Deliveries" subcollection
+        await accomplishedDeliveriesCollection.doc(widget.orderId).set({});
+
+        print('Document added to "Accomplished Deliveries" subcollection');
+      } else {
+        print('User with staffId $staffId not found');
+      }
+
+      // Get the assignedTruck ID from the Order collection
+      DocumentSnapshot orderSnapshot = await FirebaseFirestore.instance.collection('Order').doc(widget.orderId).get();
+      String assignedTruckId = orderSnapshot['assignedTruck'];
+
+      // Update truckStatus for the assigned truck in the Trucks collection
+      var accomplishedDeliveriesCollection = FirebaseFirestore.instance
+          .collection('Trucks')
+          .doc(assignedTruckId)
+          .collection('Accomplished Deliveries');
+
+      // Add a new document to the "Accomplished Deliveries" subcollection
+      await accomplishedDeliveriesCollection.doc(widget.orderId).set({});
+
+    } catch (e) {
+      print('Error adding document: $e');
+    }
+
+  }
 
   void showErrorDialog(BuildContext context) {
     showDialog(

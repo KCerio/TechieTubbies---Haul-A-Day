@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:haul_a_day_mobile/staffIDController.dart';
 import '../AuthController.dart';
-import '../bottomTab.dart';
+import '../components/bottomTab.dart';
 import 'account_tab_accountinfo.dart';
 
 class AccountInfo {

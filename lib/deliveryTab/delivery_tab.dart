@@ -6,7 +6,9 @@ import 'package:haul_a_day_mobile/deliveryTab/loading_delivery_report.dart';
 import 'package:haul_a_day_mobile/deliveryTab/unloading_delivery_report.dart';
 import 'package:haul_a_day_mobile/staffIDController.dart';
 import 'package:unicons/unicons.dart';
-import '../bottomTab.dart';
+import '../components/bottomTab.dart';
+import '../components/data/delivery_information.dart';
+import '../components/dateThings.dart';
 import 'delivery_tab_loading_info.dart';
 import 'delivery_tab_unloading_info.dart';
 
@@ -18,64 +20,7 @@ class DeliveryTab extends StatefulWidget {
   _DeliveryTabState createState() => _DeliveryTabState();
 }
 
-class LoadingDelivery {
-  final String loadingId;
-  String deliveryStatus;
-  final String cargoType;
-  final String loadingLocation;
-  final Timestamp loadingTimeDate;
-  final int totalCartons;
-  final String warehouse;
 
-  LoadingDelivery({
-    required this.loadingId,
-    required this.deliveryStatus,
-    required this.cargoType,
-    required this.loadingLocation,
-    required this.loadingTimeDate,
-    required this.totalCartons,
-    required this.warehouse,
-
-  });
-
-}
-
-class UnloadingDelivery{
-  final String unloadingId;
-  String deliveryStatus;
-  final String recipient;
-  final String unloadingLocation;
-  final Timestamp unloadingTimeDate;
-  final int quantity;
-  final int weight;
-  final int referenceNum;
-
-  UnloadingDelivery({
-    required this.unloadingId,
-    required this.deliveryStatus,
-    required this.recipient,
-    required this.unloadingLocation,
-    required this.unloadingTimeDate,
-    required this.quantity,
-    required this.weight,
-    required this.referenceNum});
-
-  factory UnloadingDelivery.fromSnapshot(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    return UnloadingDelivery(
-      unloadingId: doc.id,
-      deliveryStatus: data['deliveryStatus'] ?? '',
-      recipient: data['recipient'] ?? '',
-      unloadingLocation: data['unloadingLocation'] ?? '',
-      unloadingTimeDate: data['unloadingTimestamp']??'',
-      quantity: data['quantity'] ?? 0,
-      weight: data['weight'] ?? 0,
-      referenceNum: data['reference_num'] ?? 0,
-    );
-  }
-
-
-}
 
 class _DeliveryTabState extends State<DeliveryTab> {
   int _currentIndex = 1;
@@ -105,7 +50,7 @@ class _DeliveryTabState extends State<DeliveryTab> {
     if(userAssignedSchedule!="none"){
       loadingDelivery = await retrieveLoadingDelivery(userAssignedSchedule);
       if (loadingDelivery != null) {
-        unloadingDeliveries = await retrieveUnloadingDeliveries(userAssignedSchedule);
+        unloadingDeliveries = await retrieveUnloadingDeliveries(userAssignedSchedule, loadingDelivery!.loadingId);
         totalDelivered = await retrieveDelivered(userAssignedSchedule);
       }
     }
@@ -130,71 +75,6 @@ class _DeliveryTabState extends State<DeliveryTab> {
 
     return userAssignedSchedule;
   }
-
-
-  // Retrieving loading deliveries
-  Future<LoadingDelivery?> retrieveLoadingDelivery(String userAssignedSchedule) async {
-    QuerySnapshot loadSnapshot = await FirebaseFirestore.instance
-        .collection('Order')
-        .doc(userAssignedSchedule) // Access the specific order document
-        .collection('LoadingSchedule')
-        .get();
-
-    if (loadSnapshot.docs.isNotEmpty) {
-      // Assuming there's only one document, retrieve the first one
-      DocumentSnapshot firstDocument = loadSnapshot.docs.first;
-      return LoadingDelivery(
-        loadingId: firstDocument.id,
-        deliveryStatus: firstDocument['deliveryStatus'] ?? '',
-        cargoType: firstDocument['cargoType'] ?? '',
-        loadingLocation: firstDocument['loadingLocation'] ?? '',
-        loadingTimeDate: firstDocument['loadingTime_Date'] ?? '',
-        totalCartons: firstDocument['totalCartons'] ?? 0,
-        warehouse: firstDocument['warehouse'] ?? '',
-      );
-    } else {
-      // If there are no documents, return null
-      return null;
-    }
-  }
-
-  // Retrieving unloading deliveries
-  Future<List<UnloadingDelivery>> retrieveUnloadingDeliveries(String userAssignedSchedule) async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Order')
-        .doc(userAssignedSchedule)
-        .collection('LoadingSchedule')
-        .doc(loadingDelivery?.loadingId)
-        .collection('UnloadingSchedule')
-        .get();
-
-    List<UnloadingDelivery> unloadingDeliveries = [];
-
-    if (querySnapshot.docs.isNotEmpty) {
-      // Map the documents to UnloadingDelivery objects and add them to the list
-      unloadingDeliveries = querySnapshot.docs
-          .map((doc) => UnloadingDelivery.fromSnapshot(doc))
-          .toList();
-    }
-
-    return unloadingDeliveries;
-  }
-
-  //Retrieve number of completed deliveries for the counter
-  Future<int> retrieveDelivered(String userAssignedSchedule) async {
-
-    //Check number of done deliveries
-    int loadedDelivery = (loadingDelivery?.deliveryStatus=="Loaded!")?1:0;
-    int totalUndelivered = unloadingDeliveries
-        .where((delivery) => delivery.deliveryStatus == 'Delivered!')
-        .length;
-
-
-
-    return loadedDelivery + totalUndelivered;
-
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +329,7 @@ class _DeliveryTabState extends State<DeliveryTab> {
         ),
         bottomNavigationBar: BottomTab(currIndex: _currentIndex)
     ), onWillPop: () async {
-      return false; // Returning false will prevent the user from navigating back
+      return false;
     },);
   }
 
@@ -668,14 +548,16 @@ class _DeliveryTabState extends State<DeliveryTab> {
                         //check if it is on the top of the unloading list
                         if(unloadingDelivery.deliveryStatus=='On Route'){
                           UnloadingDelivery? theNextDelivery = null;
+                          String nextDeliveryId = '';
                           if(unloadingDeliveries.length-1 != index){
                             theNextDelivery = unloadingDeliveries[index+1];
+                            nextDeliveryId = theNextDelivery.unloadingId;
                           }
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) =>UnloadingDeliveryReport(
                                 unloadingDelivery: unloadingDelivery,
-                                deliveryId: userAssignedSchedule, nextDelivery: theNextDelivery, loadingDeliveryId: loadingDelivery!.loadingId,
+                                deliveryId: userAssignedSchedule, nextDeliveryId: nextDeliveryId,
                             )),
                           );
 
@@ -778,17 +660,7 @@ class _DeliveryTabState extends State<DeliveryTab> {
   }
 
 
-  String intoDate (Timestamp timeStamp)  {
-    DateTime dateTime = timeStamp.toDate(); // Convert Firebase Timestamp to DateTime
-    String formattedDate = DateFormat('MMM d,yyyy').format(dateTime); // Format DateTime into date string
-    return formattedDate; // Return the formatted date string
-  }
 
-  String intoTime (Timestamp stampTime) {
-    DateTime dateTime =  stampTime.toDate();  // Convert Firebase Timestamp to DateTime
-    String formattedTime = DateFormat('h:mm a').format(dateTime); // Format DateTime into time string
-    return formattedTime; // Return the formatted time string
-  }
 }
 
 
