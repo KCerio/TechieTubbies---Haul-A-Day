@@ -9,5 +9,5 @@ enum OrderOption{
 }
 
 enum TabSelection{
-  Home, Order, StaffList, TruckList, Delivery, Payroll, OrderDetails
+  Home, Order, StaffList, TruckList, Delivery, Payroll, OrderDetails, PayrollPage
 }

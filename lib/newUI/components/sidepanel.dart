@@ -67,10 +67,10 @@ class SideMenu extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 28, // Adjust the size of the circle
-                    backgroundImage:Image.asset('images/user_pic.png', ).image
+                    backgroundImage:Image.network("https://firebasestorage.googleapis.com/v0/b/cuc-haul-a-day.appspot.com/o/Users%2Fuser1.jpg?alt=media&token=3b0b0535-a3e6-4d0b-83a2-58dbeae840dc").image
                   ),
                   SizedBox(width: 10,),
-                  const Column(
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
