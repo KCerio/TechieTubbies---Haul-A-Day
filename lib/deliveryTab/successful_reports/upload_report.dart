@@ -485,7 +485,9 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
             .collection('Accomplished Deliveries');
 
         // Add a new document to the "Accomplished Deliveries" subcollection
-        await accomplishedDeliveriesCollection.doc(widget.orderId).set({});
+        await accomplishedDeliveriesCollection.doc(widget.orderId).set({
+
+        });
 
         print('Document added to "Accomplished Deliveries" subcollection');
       } else {
@@ -503,7 +505,9 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
           .collection('Accomplished Deliveries');
 
       // Add a new document to the "Accomplished Deliveries" subcollection
-      await accomplishedDeliveriesCollection.doc(widget.orderId).set({});
+      await accomplishedDeliveriesCollection.doc(widget.orderId).set({
+
+      });
 
     } catch (e) {
       print('Error adding document: $e');

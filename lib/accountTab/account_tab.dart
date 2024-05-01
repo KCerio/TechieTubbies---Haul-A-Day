@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:haul_a_day_mobile/accountTab/account_tab_accomplished.dart';
 import 'package:haul_a_day_mobile/staffIDController.dart';
 import '../AuthController.dart';
 import '../components/bottomTab.dart';
@@ -250,39 +251,49 @@ class _AccountTabState extends State<AccountTab> {
                               ),
 
                               //Accomplished Deliveries
-                              Container(
-                                color: Colors.white,
-                                height: 100.0, // Adjust the height as needed
-                                margin: EdgeInsets.only(
-                                    left: 30, right: 30), // Example margin
-                                padding: EdgeInsets.all(10.0), // Example padding
-                                child: Row(
-                                  children: [
-                                    SizedBox(width: 10),
-                                    Icon(
-                                      Icons.checklist_outlined,
-                                      size: 75, // Adjust the size of the icon as needed
-                                      color: Colors
-                                          .green[700], // Adjust the color of the icon
+                              GestureDetector(
+                                onTap:(){
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AccomplishedDeliveries(staffId: accountInfo.staffID)
                                     ),
-                                    SizedBox(width: 10),
-                                    Container(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          // Add spacing between the text widgets
-                                          Text(
-                                            'Accomplished \nDeliveries',
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.green[700]),
-                                          ),
-                                        ],
+                                  );
+                                },
+                                child: Container(
+                                  color: Colors.white,
+                                  height: 100.0, // Adjust the height as needed
+                                  margin: EdgeInsets.only(
+                                      left: 30, right: 30), // Example margin
+                                  padding: EdgeInsets.all(10.0), // Example padding
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 10),
+                                      Icon(
+                                        Icons.checklist_outlined,
+                                        size: 75, // Adjust the size of the icon as needed
+                                        color: Colors
+                                            .green[700], // Adjust the color of the icon
                                       ),
-                                    ),
-                                  ],
+                                      SizedBox(width: 10),
+                                      Container(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            // Add spacing between the text widgets
+                                            Text(
+                                              'Accomplished \nDeliveries',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.green[700]),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
 

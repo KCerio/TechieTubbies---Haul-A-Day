@@ -108,13 +108,29 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           backgroundColor: Colors.blue[700],
-          title: Text(
-            'Create Unsuccessful Delivery Report',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Create Unsuccessful Delivery',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'Report',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           centerTitle: true,
           leading: IconButton(
@@ -545,7 +561,7 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
       children: [
         Row(
           children: [
-            SizedBox(width: 20),
+            SizedBox(width: 10),
             Text(
               'Reason',
               style: TextStyle(
@@ -566,57 +582,36 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
           ],
         ),
         SizedBox(height: 10),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(reasons.length, (index) {
-              final reason = reasons[index];
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4), // Add horizontal spacing
-                child: Container(
-                  width: 135,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedReason = reason == selectedReason ? null : reason;
-                        updateProgress();
-                      });
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.pressed)) {
-                            // return light blue when pressed
-                            return Colors.blue[200]!;
-                          }
-                          // return blue when not pressed
-                          return selectedReason == reason ? Colors.blue[700]! : Colors.blue[200]!;
-                        },
-                      ),
-                      minimumSize: MaterialStateProperty.all<Size>(Size(60, 60)),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
-                        ),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8), // Add horizontal padding
-                      child: Text(
-                        reason,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center, // Align text to the center
-                      ),
-                    ),
-                  ),
-                ),
+        Container(
+            margin: EdgeInsets.symmetric(horizontal: 30),
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(
+                color: Colors.black, // Specify the border color here
+                width: 1, // Adjust the border width as needed
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          child: DropdownButton<String>(
+            value: selectedReason == '' ? null : selectedReason,
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedReason = newValue ?? '';
+              });
+            },
+            items: reasons.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
               );
-            }),
+            }).toList(), // Convert to Set to remove duplicates, then back to List
+            hint: Text(
+              'Enter reason of unsuccessful delivery',
+            ),
+            isExpanded:true,
           ),
+
         ),
 
         if(selectedReason=='Others')
