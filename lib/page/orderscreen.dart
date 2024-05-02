@@ -1142,75 +1142,75 @@ class _UnloadingScheduleState extends State<UnloadingSchedule> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DataTable(
-                showCheckboxColumn: false,
-                columns: const [
-                  DataColumn(label: 
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, 
-                      children: [Text('RECIPIENT', textAlign: TextAlign.center,)]
-                      )
-                    )
-                  ),
-                  DataColumn(label: 
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, 
-                      children: [Text('REFERENCE NO.', textAlign: TextAlign.center,)]
-                      )
-                    )
-                  ),
-                  DataColumn(label: 
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, 
-                      children: [Text('CARGO TYPE', textAlign: TextAlign.center,)]
-                      )
-                    )
-                  ),
-                  DataColumn(label: 
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, 
-                      children: [Text('WEIGHT', textAlign: TextAlign.center,)]
-                      )
-                    )
-                  ),
-                  DataColumn(label: 
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, 
-                      children: [Text('QUANTITY', textAlign: TextAlign.center,)]
-                      )
-                    )
-                  ),
-                  DataColumn(label: 
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, 
-                      children: [Text('UNLOADING LOCATION', textAlign: TextAlign.center,)]
-                      )
-                    )
-                  ),
-                  DataColumn(
-                          label: Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [Text('DATE DELIVERED', textAlign: TextAlign.center)]
-                            )
+                    showCheckboxColumn: false,
+                    columns: const [
+                      DataColumn(label: 
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center, 
+                          children: [Text('RECIPIENT', textAlign: TextAlign.center,)]
                           )
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [Text('TIME', textAlign: TextAlign.center)]
-                            )
+                        )
+                      ),
+                      DataColumn(label: 
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center, 
+                          children: [Text('REFERENCE NO.', textAlign: TextAlign.center,)]
                           )
-                        ),
-                ],
-                rows: _rows ?? [], // Populate rows with data
-              ),
+                        )
+                      ),
+                      DataColumn(label: 
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center, 
+                          children: [Text('CARGO TYPE', textAlign: TextAlign.center,)]
+                          )
+                        )
+                      ),
+                      DataColumn(label: 
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center, 
+                          children: [Text('WEIGHT', textAlign: TextAlign.center,)]
+                          )
+                        )
+                      ),
+                      DataColumn(label: 
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center, 
+                          children: [Text('QUANTITY', textAlign: TextAlign.center,)]
+                          )
+                        )
+                      ),
+                      DataColumn(label: 
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center, 
+                          children: [Text('UNLOADING LOCATION', textAlign: TextAlign.center,)]
+                          )
+                        )
+                      ),
+                      DataColumn(
+                              label: Expanded(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [Text('DATE DELIVERED', textAlign: TextAlign.center)]
+                                )
+                              )
+                            ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [Text('TIME', textAlign: TextAlign.center)]
+                          )
+                        )
+                      ),
+                    ],
+                    rows: _rows ?? [], // Populate rows with data
+                  ),
                 ],
               )
             

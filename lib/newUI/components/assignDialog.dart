@@ -7,13 +7,16 @@ import 'package:provider/provider.dart';
 
 class AssignDialog extends StatefulWidget {
   final Map<String,dynamic> order;
-  const AssignDialog({super.key, required this.order});
+  //final TabSelection currentTab;
+  final Function(String?) onAssigned;
+  const AssignDialog({super.key, required this.order, required this.onAssigned});
 
   @override
   State<AssignDialog> createState() => _AssignDialogState();
 }
 
 class _AssignDialogState extends State<AssignDialog> {
+  String? assignedValue; // State variable to hold the assigned value
 
   DatabaseService databaseService = DatabaseService();
 
@@ -23,13 +26,13 @@ class _AssignDialogState extends State<AssignDialog> {
   String? _selectedTruck;
   String? _selectedCrew1;
   String? _selectedCrew2;
-  Map<String,dynamic> _order = {};
+  Map<String,dynamic> order = {};
   
   @override
   void initState(){
     super.initState();
     setState(() {
-      _order = widget.order;
+      order = widget.order;
     });
     getDetails();
   }
@@ -37,7 +40,7 @@ class _AssignDialogState extends State<AssignDialog> {
   Future<void> getDetails()async{
   // Fetch order details
   try {
-    List<String> truckAvailable = await databaseService.getAvailableTruckDocumentIds(_order['cargoType']);
+    List<String> truckAvailable = await databaseService.getAvailableTruckDocumentIds(order['cargoType']);
     List<String> helpersAvailable = await databaseService.getAvailableCrewIds();
     setState(() {
       _truckAvailable = truckAvailable;
@@ -120,7 +123,7 @@ class _AssignDialogState extends State<AssignDialog> {
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  _order['id'],
+                                  order['id'],
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontFamily: 'Arial',
@@ -168,7 +171,7 @@ class _AssignDialogState extends State<AssignDialog> {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                          '${_order['company_name'] ?? ''}',
+                                          '${order['company_name'] ?? ''}',
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontFamily: 'Arial',
@@ -191,9 +194,9 @@ class _AssignDialogState extends State<AssignDialog> {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                          _order['cargoType'] == 'fgl'
+                                          order['cargoType'] == 'fgl'
                                             ? 'frozen cargo'
-                                            : _order['cargoType'] == 'cgl'
+                                            : order['cargoType'] == 'cgl'
                                                 ? 'dry cargo'
                                                 : '',
                                           style: const TextStyle(
@@ -218,7 +221,7 @@ class _AssignDialogState extends State<AssignDialog> {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                          '${_order['totalWeight']} kgs',
+                                          '${order['totalWeight']} kgs',
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontFamily: 'Arial',
@@ -252,7 +255,7 @@ class _AssignDialogState extends State<AssignDialog> {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                          '${_order['loadingDate'] ?? ''}',
+                                          '${order['loadingDate'] ?? ''}',
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontFamily: 'Arial',
@@ -275,7 +278,7 @@ class _AssignDialogState extends State<AssignDialog> {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                          '${_order['loadingTime'] ?? ''}',
+                                          '${order['loadingTime'] ?? ''}',
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontFamily: 'Arial',
@@ -298,7 +301,7 @@ class _AssignDialogState extends State<AssignDialog> {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                          '${_order['route'] ?? ''}',
+                                          '${order['route'] ?? ''}',
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontFamily: 'Arial',
@@ -544,22 +547,55 @@ class _AssignDialogState extends State<AssignDialog> {
                           },
                         );
                       }else{
-                        String orderId = _order['id'];
+                        // Declare progressContext outside the showDialog function
+                        BuildContext? progressContext;
+
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (BuildContext context) {
+                            // Update progressContext inside the showDialog function
+                            progressContext = context;
+                            return Dialog(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircularProgressIndicator(color: Colors.green,),
+                                    SizedBox(height: 20),
+                                    Text('Assigning...'),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                        String orderId = order['id'];
                         String truck = _selectedTruck!;
                         String crew1 = _selectedCrew1!;
                         String  crew2 = _selectedCrew2!;
+                        DateTime timestamp = DateTime.now();
+                        String timestampString = timestamp.toIso8601String(); // Convert DateTime to string
 
                         setState(() {
-                          _order['assignedStatus'] = 'true';
+                          order['assignedStatus'] = 'true';
+                          order['assignedTimestamp'] = timestampString; // Add timestamp as a string to the map
                         });
                         print('Assign Schedule to: $orderId, $truck, $crew1, $crew2');
-                        databaseService.assignSchedule(_order['id'], truck,crew1,crew2);
+                        bool status = await databaseService.assignSchedule(order['id'], truck,crew1,crew2);
                         
                         /*//updates orders                        
                         List<Map<String, dynamic>> orderDetails = await databaseService.fetchAllOrderList();
                         Provider.of<SideMenuSelection>(context, listen: false)
                           .setUpdatedOrders(orderDetails);
                         */
+                        if(status == false){
+                          if (progressContext != null) {
+                            Navigator.pop(progressContext!);
+                          }
+                        }
+                        assignedValue = 'Assigned';
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
@@ -569,10 +605,9 @@ class _AssignDialogState extends State<AssignDialog> {
                               actions: <Widget>[
                                 TextButton(
                                   onPressed: () {
-                                    Provider.of<SideMenuSelection>(context, listen: false)
-                                      .setSelectedTab(TabSelection.Order);
                                     Navigator.pop(context);
-                                    Navigator.pop(context);
+                                    //Navigator.pop(context);
+                                    widget.onAssigned(assignedValue);
                                   },
                                   child: const Text('OK'),
                                 ),

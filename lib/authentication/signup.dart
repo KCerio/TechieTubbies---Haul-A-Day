@@ -45,6 +45,46 @@ class _SignUpState extends State<SignUp> {
   void onLoginSelected() {
   Navigator.pushReplacementNamed(context, '/login');
 }
+
+  void _signUp()async{
+    if(_formfield.currentState!.validate()){
+      String confirmpass = confirmController.text.trim();
+      adminpassword =  passwordController.text.trim();
+
+      //check if confirmed password and password match
+      if (confirmpass == adminpassword){
+
+        // create user model from the filled text form fields
+        final user = UserModel(
+          staffId: staffIdController.text.trim(), 
+          //depart_id: depart_id, 
+          firstname: firstNameController.text.trim(), 
+          lastname: lastNameController.text.trim(), 
+          //contact_no: contact_no, 
+          userName: usernameController.text.trim(), 
+          password: passwordController.text.trim()
+        );
+      
+        // check if user (staff id) already exist in database
+        QuerySnapshot _staffIdQuerySnapshot = await _db.collection('Users').where('staffId', isEqualTo: staffIdController.text.trim()).get();
+        if(_staffIdQuerySnapshot.docs.isNotEmpty){
+          showDialog(context: context, builder: 
+            (_) => const AlertDialog(title: Text("Error"), 
+                content: Text("Account already exist."),));
+        }else{
+          // save new account to the database
+          createUser(user); 
+          showDialog(context: context, builder: 
+            (_) => const AlertDialog(title: Text("Success"), content: Text("Account Added!"),));
+          widget.onLogInSelected();
+        }
+      }
+      else{
+        showDialog(context: context, builder: 
+      (_) => const AlertDialog(title: Text("Error"), content: Text("Your password does not match"),));
+      }
+    }
+  }
   
   void createUser(UserModel user) async{
     await userRepo.createUser(user);
@@ -98,6 +138,9 @@ class _SignUpState extends State<SignUp> {
                         children: [
                           Expanded(
                             child: TextFormField(
+                              onFieldSubmitted: (_) {
+                               _signUp();
+                              },
                               validator: (value){
                               if(value!.isEmpty){
                                 return "Enter First Name";
@@ -121,6 +164,9 @@ class _SignUpState extends State<SignUp> {
                           ),
                           Expanded(
                             child: TextFormField(
+                              onFieldSubmitted: (_) {
+                               _signUp();
+                              },
                               validator: (value){
                               if(value!.isEmpty){
                                 return "Enter Last Name";
@@ -148,6 +194,9 @@ class _SignUpState extends State<SignUp> {
 
                       //text field for Staff Id
                       TextFormField(
+                        onFieldSubmitted: (_) {
+                         _signUp();
+                        },
                          validator: (value){
                               if(value!.isEmpty){
                                 return "Enter your Staff ID";
@@ -173,6 +222,9 @@ class _SignUpState extends State<SignUp> {
 
                       //text field for username
                       TextFormField(
+                        onFieldSubmitted: (_) {
+                         _signUp();
+                        },
                         validator: (value){
                               if(value!.isEmpty){
                                 return "Enter username";
@@ -199,6 +251,9 @@ class _SignUpState extends State<SignUp> {
 
                       //textfield  for password with obscure text
                       TextFormField(
+                        onFieldSubmitted: (_) {
+                         _signUp();
+                        },
                          validator: (value){
                               if(value!.isEmpty){
                                 return "Enter password";
@@ -233,6 +288,9 @@ class _SignUpState extends State<SignUp> {
 
                       //textfield for confirmation password
                       TextFormField(
+                        onFieldSubmitted: (_) {
+                         _signUp();
+                        },
                          validator: (value){
                               if(value!.isEmpty){
                                 return "Enter password again to confirm your password";
@@ -316,43 +374,7 @@ class _SignUpState extends State<SignUp> {
                     // Sign up button                 
                     ElevatedButton(
                             onPressed: () async {
-                              if(_formfield.currentState!.validate()){
-                                String confirmpass = confirmController.text.trim();
-                                adminpassword =  passwordController.text.trim();
-
-                                //check if confirmed password and password match
-                                if (confirmpass == adminpassword){
-
-                                  // create user model from the filled text form fields
-                                  final user = UserModel(
-                                    staffId: staffIdController.text.trim(), 
-                                    //depart_id: depart_id, 
-                                    firstname: firstNameController.text.trim(), 
-                                    lastname: lastNameController.text.trim(), 
-                                    //contact_no: contact_no, 
-                                    userName: usernameController.text.trim(), 
-                                    password: passwordController.text.trim()
-                                  );
-                                
-                                  // check if user (staff id) already exist in database
-                                  QuerySnapshot _staffIdQuerySnapshot = await _db.collection('Users').where('staffId', isEqualTo: staffIdController.text.trim()).get();
-                                  if(_staffIdQuerySnapshot.docs.isNotEmpty){
-                                    showDialog(context: context, builder: 
-                                      (_) => const AlertDialog(title: Text("Error"), 
-                                          content: Text("Account already exist."),));
-                                  }else{
-                                    // save new account to the database
-                                    createUser(user); 
-                                    showDialog(context: context, builder: 
-                                      (_) => const AlertDialog(title: Text("Success"), content: Text("Account Added!"),));
-                                    widget.onLogInSelected();
-                                  }
-                                }
-                                else{
-                                  showDialog(context: context, builder: 
-                                (_) => const AlertDialog(title: Text("Error"), content: Text("Your password does not match"),));
-                                }
-                              }
+                              
                             },
                             style: ButtonStyle(
                               padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 100, vertical: 20)),

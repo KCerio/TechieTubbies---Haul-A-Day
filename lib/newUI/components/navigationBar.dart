@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class NavigationTopBar extends StatelessWidget {
-  const NavigationTopBar({super.key});
+  final Map<String, dynamic> userInfo;
+  const NavigationTopBar({super.key,required this.userInfo});
 
   @override
   Widget build(BuildContext context) {
+    //print('Nav $userInfo');
     Size size = MediaQuery.of(context).size;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 21, 24, 0),
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
       child: Column(
         children: [
           Row(
@@ -37,7 +40,7 @@ class NavigationTopBar extends StatelessWidget {
                   
                 },
                 child: Container(
-                  margin: const EdgeInsets.only(left: 24),
+                  //margin: const EdgeInsets.only(left: 24),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12
@@ -51,7 +54,7 @@ class NavigationTopBar extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 20, // Adjust the size of the circle
-                        backgroundImage:Image.asset('images/user_pic.png', ).image
+                        backgroundImage:NetworkImage(userInfo['pictureUrl'])
                       ), //User Pic
                       //const Text("User's Name"), // User's Fullname
                       const SizedBox(width: 5,),

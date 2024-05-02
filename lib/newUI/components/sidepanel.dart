@@ -3,18 +3,21 @@ import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/authentication/login_screen.dart';
 import 'package:haul_a_day_web/service/database.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 
 // Create a ChangeNotifier class to manage the selected tab
 class SideMenuSelection extends ChangeNotifier {
   DatabaseService databaseService = DatabaseService();
   TabSelection _selectedTab = TabSelection.Home;
+  TabSelection _previousTab = TabSelection.Home;
   Map<String, dynamic> _orderSelected = {};
   List<Map<String, dynamic>> _updatedOrders= [];
 
   TabSelection get selectedTab => _selectedTab;
   Map<String, dynamic> get orderSelected => _orderSelected;
   List<Map<String, dynamic>> get updatedOrders => _updatedOrders;
+  TabSelection get previousTab => _previousTab;
 
   SideMenuSelection() {
     // Initialize _updatedOrders asynchronously inside the constructor
@@ -36,6 +39,11 @@ class SideMenuSelection extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setPreviousTab(TabSelection tab){
+    _previousTab = tab;
+    notifyListeners();
+  }
+
   void setUpdatedOrders(List<Map<String, dynamic>> orderDetails) {
     _updatedOrders = orderDetails;
     notifyListeners();
@@ -43,10 +51,16 @@ class SideMenuSelection extends ChangeNotifier {
 }
 
 class SideMenu extends StatelessWidget {
-  const SideMenu({Key? key}) : super(key: key);
+  final Map<String, dynamic> userInfo;
+  const SideMenu({Key? key, required this.userInfo}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    //String imagePath = userInfo['pictureUrl'];
+    //String name = userInfo['firstname'] + ;
+    //String email = userInfo['email'];
+    //print("Side $userInfo");
+    //print("User pic: $imagePath");
     return Drawer(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       child: SingleChildScrollView(
@@ -65,17 +79,18 @@ class SideMenu extends StatelessWidget {
               height: 100,
               child: Row(
                 children: [
+                  
                   CircleAvatar(
-                    radius: 28, // Adjust the size of the circle
-                    backgroundImage:Image.network("https://firebasestorage.googleapis.com/v0/b/cuc-haul-a-day.appspot.com/o/Users%2Fuser1.jpg?alt=media&token=3b0b0535-a3e6-4d0b-83a2-58dbeae840dc").image
-                  ),
+                    radius: 30, // Adjust the size of the circle
+                    backgroundImage:NetworkImage(userInfo['pictureUrl'])
+                  ), //User Pic
                   SizedBox(width: 10,),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "User's Name",
+                        "${userInfo['firstname']} ${userInfo['lastname']}",
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 20,
@@ -83,7 +98,8 @@ class SideMenu extends StatelessWidget {
                         ),  
                       ), // User's Fullname
                       Text(
-                        "User's email",
+                        userInfo['position'] == null ? 'position'
+                        : userInfo['position'],
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 16,

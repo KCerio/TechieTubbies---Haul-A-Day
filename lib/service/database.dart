@@ -1,23 +1,49 @@
+import 'dart:html';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool astatus = false;
 
-  Future<Map<String, dynamic>> fetchOrderDetails(String orderId) async {
+  Future<Map<String, dynamic>> fetchUserDetails(String staffId) async {
     try {
+      DocumentSnapshot userSnapshot =
+          await _firestore.collection('Users').doc(staffId).get();
+
+      if (userSnapshot.exists) {
+        return userSnapshot.data() as Map<String, dynamic>;
+      } else {
+        throw Exception('user with ID $staffId not found');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch user details: $e');
+    }
+  }
+  
+  Future<Map<String, dynamic>> fetchOrderDetails(String orderId) async {
+    Map<String, dynamic> order = {};
+    try {
+      // Retrieve order details from Firestore
       DocumentSnapshot orderSnapshot =
           await _firestore.collection('Order').doc(orderId).get();
 
       if (orderSnapshot.exists) {
-        return orderSnapshot.data() as Map<String, dynamic>;
+        Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
+        order.addAll(orderData); // Use addAll to merge maps
       } else {
         throw Exception('Order with ID $orderId not found');
       }
+
+      // Fetch loading schedule
+      Map<String, dynamic> loadingData = await fetchLoadingSchedule(orderId);
+      order.addAll(loadingData); // Use addAll to merge maps
     } catch (e) {
       throw Exception('Failed to fetch order details: $e');
     }
+    return order;
   }
 
   Future<Map<String, dynamic>> fetchLoadingSchedule(String orderId) async {
@@ -49,109 +75,6 @@ class DatabaseService {
     }
   }
 
-  Future<List<DataRow>> fetchUnloadingSchedule(String orderId,) async {
-    try {
-      List<DataRow> rows =[];
-
-    await _firestore
-    .collection('Order')
-    .doc(orderId)
-    .collection('LoadingSchedule')
-    .limit(1)
-    .get()
-    .then((snapshot) async {
-      if (snapshot.docs.isNotEmpty) {
-        var firstDocument = snapshot.docs.first;
-        //var loadData = firstDocument.data();
-        //var cargoType = loadData['cargoType'];
-
-        var loadingScheduleCollection = firstDocument.reference
-            .collection('UnloadingSchedule'); // Accessing the subcollection
-        // Now you can work with the "UnloadingSchedule" collection
-        loadingScheduleCollection.get().then((snapshot) async {
-        for (var document in snapshot.docs) {
-          //var unloadId = document.id;
-          var unloadData = document.data();
-          var recipient = unloadData['recipient'];
-          var refNo = unloadData['reference_num'];
-          var weight = unloadData['weight'];
-          var quantity = unloadData['quantity'];
-          var location = unloadData['unloadingLocation'];
-          var date = unloadData['unloadingTimestamp'].toDate();
-          var unloadDate = DateFormat('MMM dd, yyyy').format(date);
-          var time = DateFormat('HH:mm a').format(date);
-        print('recipient: '  + recipient);
-        // Add a DataRow with the retrieved data
-        rows.add(DataRow(cells: [
-          DataCell(
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
-                children: [Text(recipient, textAlign: TextAlign.center,)]
-                )
-              )
-            ),
-          DataCell(
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
-                children: [Text(refNo.toString(), textAlign: TextAlign.center)]
-                )
-              )
-            ),
-          
-          DataCell(
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
-                children: [Text(weight.toString(), textAlign: TextAlign.center)]
-                )
-              )
-            ),
-            DataCell(
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
-                children: [Text(quantity.toString(), textAlign: TextAlign.center)]
-                )
-              )
-            ),
-            DataCell(
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
-                children: [Text(location, textAlign: TextAlign.center)]
-                )
-              )
-            ),
-            DataCell(
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
-                children: [Text(unloadDate.toString(), textAlign: TextAlign.center)]
-                )
-              )
-            ),
-            DataCell(
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
-                children: [Text(time.toString(), textAlign: TextAlign.center)]
-                )
-              )
-            ),
-        ]
-        ));
-        
-      }});
-    }});
-
-    print('rows ' + rows.toString());
-    return rows;
-    } catch (e) {
-      throw Exception('Failed to fetch loading schedule: $e');
-    }
-  }
   
   Future<bool> getDeliveryStatus(String orderId)async{
     bool status = false;
@@ -167,6 +90,21 @@ class DatabaseService {
     
     return status;
   }
+
+  Future<String> getAssignedTruck(String orderId) async {
+    String truckId = '';
+
+    DocumentReference orderRef = _firestore.collection('Order').doc(orderId);
+    DocumentSnapshot orderSnapshot = await orderRef.get();
+
+    if (orderSnapshot.exists) {
+      Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
+      truckId = orderData['assignedTruck'];
+    }
+
+    return truckId;
+  }
+
 
   Future<List<String>> getAvailableTruckDocumentIds(String cargoType) async {
     List<String> trucks = [];
@@ -228,6 +166,45 @@ class DatabaseService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getAvailableDrivers() async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+        .collection('Users')
+        .where('position', isEqualTo: 'Driver')
+        .get();
+
+      
+      List<Map<String, dynamic>> drivers = [];
+      if(snapshot.docs.isNotEmpty){
+        print("snapshot exist");
+        for (var doc in snapshot.docs) {
+          Map<String, dynamic> driver = {};
+          var driverDoc = doc.data();
+          if(doc['truck'] == ''){
+            if (doc['firstname'] != null && doc['lastname'] != null) {
+              driver['name'] = doc['firstname'] + ' ' + doc['lastname'];
+            }
+            driver['staffId'] = doc['staffId'];
+            driver['truck'] = doc['truck'];
+            drivers.add(driver); // Add each driver to the list
+          }
+        }
+      }
+
+
+      // If no drivers were found in either case, add a placeholder driver
+      if (drivers.isEmpty) {
+        Map<String, dynamic> driver = {};
+        driver['name'] = 'No Available drivers';
+        drivers.add(driver);
+      }
+
+      return drivers;
+    } catch (e) {
+      throw Exception('Failed to fetch helper staff IDs: $e');
+    }
+  }
+
 
   Future<List<String>> getOrderIdsWithAssignedTruck() async {
     List<String> orderIds = [];
@@ -235,7 +212,7 @@ class DatabaseService {
     try {
       QuerySnapshot querySnapshot = await _firestore
           .collection('Order')
-          .where('assigned truck', isNull: false)
+          .where('assignedTruck', isNull: false)
           .get();
 
       querySnapshot.docs.forEach((doc) {
@@ -249,12 +226,18 @@ class DatabaseService {
     }
   }
 
-  void assignSchedule(String orderId, String truck, String crew1, String crew2)async{
+
+  Future<bool> assignSchedule(String orderId, String truck, String crew1, String crew2)async{
+    bool status = false;
     try{
+      status = true;
+      DateTime timestamp = DateTime.now();
+      String timestampString = timestamp.toIso8601String(); // Convert DateTime to string
       //Update AssignedTruck
       await _firestore.collection('Order').doc(orderId).set(
         {
           'assignedTruck': truck,
+          'assignedTimestamp' : timestampString,
         },
         SetOptions(merge: true), // Merge with existing fields
       );
@@ -266,6 +249,8 @@ class DatabaseService {
         },
         SetOptions(merge: true), // Merge with existing fields
       );
+
+      
 
       DocumentSnapshot truckDoc = await _firestore.collection('Trucks').doc(truck).get();
       if(truckDoc.exists){
@@ -287,8 +272,19 @@ class DatabaseService {
             },
             SetOptions(merge: true), // Merge with existing fields
           );
+
+          var driverData = driverDoc.data() as Map<String,dynamic>;
+          String name = driverData['firstname'] + ' ' + driverData['lastname'];
+
+          await _firestore
+            .collection('Order')
+            .doc(orderId)
+            .collection('truckTeam')
+            .doc(driver)
+            .set({'crewId': name});
         }
       }
+      
 
       // Update assignedTruck and deliveryStatus in LoadingSchedule collection
       QuerySnapshot loadingSnapshot = await _firestore
@@ -304,16 +300,22 @@ class DatabaseService {
       }
 
       // Update deliveryStatus in UnloadingSchedule collection
-      QuerySnapshot unloadingSnapshot = await _firestore
+      final snapshot = await _firestore
           .collection('Order')
           .doc(orderId)
           .collection('LoadingSchedule')
-          .doc(orderId)
-          .collection('UnloadingSchedule')
+          .limit(1)
           .get();
 
-      for (QueryDocumentSnapshot doc in unloadingSnapshot.docs) {
-        await doc.reference.update({'deliveryStatus': 'On Queue'});
+      if (snapshot.docs.isNotEmpty) {
+        final firstDocument = snapshot.docs.first;
+        final loadingScheduleCollection =
+            firstDocument.reference.collection('UnloadingSchedule');        
+        final loadingScheduleSnapshot = await loadingScheduleCollection.get();
+
+        loadingScheduleSnapshot.docs.forEach((document) async{
+          await document.reference.update({'deliveryStatus': 'On Queue'});
+        });
       }
 
       // Create truckTeam collection and add crew documents if crew1 or crew2 is not 'None'
@@ -385,10 +387,70 @@ class DatabaseService {
             .doc(crew2StaffId)
             .set({'crewId': crew2});
       }
-      
+      status = false;
+      return status;
     }catch (error) {
       print('Error updating document: $error');
+      status = false;
+      return status;      
     }
+  }
+
+  void addTruck(
+    String truckId, 
+    String cargotype,
+    String driver,
+    int maxCapacity,
+    String truckPic,
+    String truckType
+    )async{
+      //int max = maxCapacity.toInt();
+      // Create document in truckTeam collection using crew1's staffId
+      if(driver == 'No Available drivers'){
+          await _firestore
+        .collection('Trucks')
+        .doc(truckId).set({
+          'cargoType' : cargotype,
+          "driver" : 'none',
+          "maxCapacity" : maxCapacity,
+          "truckPic" : truckPic,
+          "truckType": truckType,
+          "truckStatus": "Available"
+        });
+      }else{
+          await _firestore
+        .collection('Trucks')
+        .doc(truckId).set({
+          'cargoType' : cargotype,
+          "driver" : driver,
+          "maxCapacity" : maxCapacity,
+          "truckPic" : truckPic,
+          "truckType": truckType,
+          "truckStatus": "Available"
+        });
+        // Split crew1 name into first name and last name
+        List<String> driverParts = driver.split(' ');
+        String driverFirstName = driverParts[0];
+        String driverLastName = driverParts.length > 1 ? driverParts[1] : '';
+
+        // Get driver's document ID from the Users collection
+        DocumentSnapshot driverDoc = await _firestore
+            .collection('Users')
+            .where('firstname', isEqualTo: driverFirstName)
+            .where('lastname', isEqualTo: driverLastName)
+            .limit(1)
+            .get()
+            .then((querySnapshot) => querySnapshot.docs.first);
+        
+        // create assignedSchedule in users 
+         await _firestore.collection('Users').doc(driverDoc.id).set(
+          {
+            'truck': truckId,
+          },
+          SetOptions(merge: true), // Merge with existing fields
+        );
+
+      }     
   }
 
   Future<List<Map<String, dynamic>>> fetchAllTruckList() async {
@@ -397,13 +459,13 @@ class DatabaseService {
           await _firestore.collection('Trucks').get();
 
       List<Map<String, dynamic>> allTrucks = [];
-      truckSnapshots.docs.forEach((DocumentSnapshot truckSnapshot) {
+      for (var truckSnapshot in truckSnapshots.docs) {
         if (truckSnapshot.exists) {
           Map<String, dynamic> truckData = truckSnapshot.data() as Map<String, dynamic>;
           truckData['id'] = truckSnapshot.id; // Include the document ID
           allTrucks.add(truckData);
         }
-      });
+      }
 
       return allTrucks;
     } catch (e) {
@@ -483,7 +545,8 @@ class DatabaseService {
           var time_filed = DateFormat('HH:mm a').format(filedTimeStamp);
           orderData['filed_date'] = date_filed; // Include
           orderData['filed_time'] = time_filed; //
-
+          //orderData['confirmedTimestamp'] = ;
+          //orderData['assignedTimestamp'] =null;
           bool assignStatus = await getDeliveryStatus(orderSnapshot.id);
           if (assignStatus == true) {
             orderData['assignedStatus'] = 'true';
@@ -523,10 +586,13 @@ class DatabaseService {
   // updating confirmation status
   void updateConfirmValue(bool _confirm, String orderId) async {
     try {
+      DateTime timestamp = DateTime.now();
+      String timestampString = timestamp.toIso8601String(); // Convert DateTime to string
       // Update the value of a document in Firestore
       // ignore: avoid_single_cascade_in_expression_statements
       _firestore..collection('Order').doc(orderId).update({
         'confirmed_status': _confirm,
+        'confirmedTimestamp' : timestampString,
       });
 
       print('Document successfully updated');
@@ -535,7 +601,7 @@ class DatabaseService {
     }
   }
 
-  Future<List<String>> fetchTruckTeam(String orderId) async {
+  Future<List<Map<String,dynamic>>> fetchTruckTeam(String orderId) async {
     try {
       QuerySnapshot crewSnapshots = await _firestore
       .collection('Order')
@@ -543,19 +609,31 @@ class DatabaseService {
       .collection('truckTeam')
       .get();
 
-      List<String> crewIDs = [];
+      List<Map<String,dynamic>> crews = [];
       for (DocumentSnapshot crewSnapshot in crewSnapshots.docs) {
         if (crewSnapshot.exists) {
+          Map<String,dynamic> crewInfo = {};
+          Map<String,dynamic> data = crewSnapshot.data() as Map<String,dynamic>;
           String crewId = crewSnapshot.id;
+          crewInfo['crewId'] = crewId;
+          crewInfo['name'] = data['crewId'];
 
-          crewIDs.add(crewId);
+          QuerySnapshot querySnapshot = await _firestore.collection('Users').where('staffId', isEqualTo: crewId).get();
+          if (querySnapshot.docs.isNotEmpty){
+            Map<String,dynamic> data = querySnapshot.docs.first.data() as Map<String,dynamic>;
+            crewInfo['position'] = data['position'];
+          }
+
+          crews.add(crewInfo);
         }
       }
-      return crewIDs;
+      return crews;
     } catch (e) {
       throw Exception('Failed to fetch users: $e');
     }
   }
+
+  
 
   void cancelSchedule(String orderId, String truck)async{
     try{
@@ -563,9 +641,12 @@ class DatabaseService {
       await _firestore.collection('Order').doc(orderId).set(
         {
           'assignedTruck': 'None',
+          'confirmedTimestamp': null,
+          'assignedTimestamp' : null
         },
         SetOptions(merge: true), // Merge with existing fields
       );
+      
 
       //Update Truck Status
       await _firestore.collection('Trucks').doc(truck).set(
@@ -591,7 +672,7 @@ class DatabaseService {
           // create assignedSchedule in users 
           await _firestore.collection('Users').doc(driverDoc.id).set(
             {
-              'assignedSchedule': 'None',
+              'assignedSchedule': 'none',
             },
             SetOptions(merge: true), // Merge with existing fields
           );
@@ -624,9 +705,9 @@ class DatabaseService {
         await doc.reference.update({'deliveryStatus': ''});
       }
 
-      List<String> crews = await fetchTruckTeam(orderId);
-      for(String crew in crews){
-        QuerySnapshot querySnapshot = await _firestore.collection('Users').where('staffId', isEqualTo: crew).get();
+      List<Map<String,dynamic>> crews = await fetchTruckTeam(orderId);
+      for(Map<String,dynamic> crew in crews){
+        QuerySnapshot querySnapshot = await _firestore.collection('Users').where('staffId', isEqualTo: crew['crewId']).get();
 
         // Loop through the documents returned by the query
         querySnapshot.docs.forEach((doc) {
@@ -636,7 +717,7 @@ class DatabaseService {
           // Update the document
           docRef.set(
             {
-              'assignedSchedule': 'None',
+              'assignedSchedule': 'none',
             },
             SetOptions(merge: true), // Merge with existing fields
           );
@@ -665,4 +746,68 @@ class DatabaseService {
     }
   }
 
+  Future<List<Map<String,dynamic>>> fetchDeliveryReports(String orderId) async {
+    try {
+      QuerySnapshot reportSnapshots= await _firestore
+      .collection('Order')
+      .doc(orderId)
+      .collection('Delivery Reports')
+      .get();
+
+      List<Map<String, dynamic>> allReports = [];
+      reportSnapshots.docs.forEach((DocumentSnapshot reportSnapshot) {
+        if (reportSnapshot.exists) {
+          Map<String, dynamic> reportData = reportSnapshot.data() as Map<String, dynamic>;
+          reportData['id'] = reportSnapshot.id; // Include the document ID
+          allReports.add(reportData);
+        }
+        
+      });
+
+      return allReports;
+    } catch (e) {
+      throw Exception('Failed to fetch users: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAttendance(String reportId, String orderId, String truck) async {
+  try {
+    QuerySnapshot attendanceSnapshots = await _firestore
+        .collection('Order')
+        .doc(orderId)
+        .collection('Delivery Reports')
+        .doc(reportId)
+        .collection('Attendance')
+        .get();
+
+    List<Map<String, dynamic>> attendance = [];
+
+    for (DocumentSnapshot attendanceSnapshot in attendanceSnapshots.docs) {
+      if (attendanceSnapshot.exists) {
+        var staffId = attendanceSnapshot.id; // Include the document ID
+
+        Map<String, dynamic> crewInfo = {};
+        QuerySnapshot querySnapshot = await _firestore.collection('Users').where('staffId', isEqualTo: staffId).get();
+        querySnapshot.docs.forEach((DocumentSnapshot documentSnapshot) {
+          if (documentSnapshot.exists) {
+            var crewData = documentSnapshot.data() as Map<String, dynamic>; // Cast to the appropriate type
+            crewInfo['name'] = (crewData['firstname'] ?? '') + ' ' + (crewData['lastname'] ?? '');
+            crewInfo['position'] = crewData['position'];
+            crewInfo['pictureUrl'] = crewData['pictureUrl'];
+          }
+        });
+        attendance.add(crewInfo);
+      }
+    }
+
+    
+
+    return attendance;
+  } catch (e) {
+    throw Exception('Failed to fetch attendance: $e');
+  }
 }
+
+}
+
+

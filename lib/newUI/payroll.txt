@@ -2139,3 +2139,74 @@ class _StaffPayrollState extends State<StaffPayroll> {
     );
   }
 }
+
+
+
+
+Expanded(
+              child: Container(
+                alignment: Alignment.topCenter,
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DataTable(
+                              showCheckboxColumn: false,
+                              columns: const [
+                                DataColumn(label: 
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center, 
+                                    children: [Text('RECIPIENT', textAlign: TextAlign.start,style: TextStyle(color: Color.fromRGBO(115, 115, 115, 1)))]
+                                    )
+                                  )
+                                ),
+                                DataColumn(label: 
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center, 
+                                    children: [Text('QUANTITY', textAlign: TextAlign.center,style: TextStyle(color: Color.fromRGBO(115, 115, 115, 1)))]
+                                    )
+                                  )
+                                ),
+                                DataColumn(label: 
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center, 
+                                    children: [Text('WEIGHT', textAlign: TextAlign.center,style: TextStyle(color: Color.fromRGBO(115, 115, 115, 1)))]
+                                    )
+                                  )
+                                ),                                
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [Text('DELIVERY DATE', textAlign: TextAlign.center,style: TextStyle(color: Color.fromRGBO(115, 115, 115, 1)))]
+                                    )
+                                  )
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [Text('STATUS', textAlign: TextAlign.center,style: TextStyle(color: Color.fromRGBO(115, 115, 115, 1)))]
+                                    )
+                                  )
+                                ),
+                              ],
+                              rows: _rows ?? [], // Populate rows with data
+                            ),
+                          ],
+                        )
+                      
+                    ),
+                  ),
+                ),
+              ),
+            )
+          

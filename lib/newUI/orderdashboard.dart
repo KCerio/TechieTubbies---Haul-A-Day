@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
+import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
 import 'package:haul_a_day_web/newUI/components/allOrdersWidget.dart';
 import 'package:haul_a_day_web/newUI/components/assignedWidget.dart';
@@ -25,21 +26,37 @@ class _OrderDashboardState extends State<OrderDashboard> {
   @override
   void initState() {
     super.initState();
-    _filteredOrderDetails = widget.orderDetails;
+    Provider.of<SideMenuSelection>(context, listen: false)
+                    .setPreviousTab(TabSelection.Order);
+    
   }
 
-  void _filterOrders(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _filteredOrderDetails = widget.orderDetails;
-      } else {
-        _filteredOrderDetails = widget.orderDetails
-            .where((order) =>
-                order['orderID'].toString().toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
-    });
+  List<Map<String, dynamic>> filterList(List<Map<String, dynamic>> originalList, String searchQuery) {
+    List<Map<String, dynamic>> filteredList = originalList;
+    if(searchQuery != ''){
+      // Convert the search query to lowercase for case-insensitive matching
+      final query = searchQuery.toLowerCase();
+
+      // Filter the original list based on the search query
+       filteredList = originalList.where((map) {
+        // Iterate through each key-value pair in the map
+        // and check if any value contains the search query
+        return map.values.any((value) {
+          if (value is String) {
+            // If the value is a string, check if it contains the search query
+            return value.toLowerCase().contains(query);
+          }
+          // If the value is not a string, convert it to a string and check if it contains the search query
+          return value.toString().toLowerCase().contains(query);
+        });
+      }).toList();
+
+      
+    }
+    return filteredList;
+    
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +64,7 @@ class _OrderDashboardState extends State<OrderDashboard> {
     Size size = MediaQuery.of(context).size;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 200, vertical:10),
+        padding: const EdgeInsets.symmetric(horizontal: 50, vertical:10),
         child: Column(
           children: [
             Expanded(
@@ -88,33 +105,7 @@ class _OrderDashboardState extends State<OrderDashboard> {
                          
                          Padding(
                            padding: const EdgeInsets.only(bottom: 24),
-                           child: Column(
-                             children: [
-                               Container(
-                                padding: const EdgeInsets.only(bottom: 10, top:10),
-                                 alignment: Alignment.centerLeft,
-                                 child: const Text(
-                                   'To be Assigned',
-                                   style: TextStyle(
-                                     fontFamily: 'Inter',
-                                     fontSize: 26,
-                                     fontWeight: FontWeight.bold
-                                   ),
-                                 ),
-                               ),
-                               
-                               const Divider(color: Colors.blue,),
-                               const SizedBox(height: 10),
-
-                               Container(
-                                 padding: const EdgeInsets.all(16),
-                                 height: 250, // Set a fixed height for the container
-                                 width: double.infinity, // Make the container expand horizontally
-                                 decoration: const BoxDecoration(color: Color.fromARGB(109, 223, 222, 222)),
-                                 child: AssignedWidget(orderDetails: widget.orderDetails,)
-                               ),
-                             ],
-                           ),
+                           child: AssignedWidget(orderDetails: widget.orderDetails,)
                          ),
                          
                             
@@ -148,7 +139,12 @@ class _OrderDashboardState extends State<OrderDashboard> {
                                       Expanded(
                                         child: TextField(
                                           onChanged: (value){
-                                            _filterOrders(value);
+                                            setState(() {
+                                              _filteredOrderDetails = filterList(widget.orderDetails, value);
+                                            });
+                                            
+                                            print('Searching... $value');
+                                            print("filtered results: $_filteredOrderDetails = ${_filteredOrderDetails.length}");
                                           },
                                           decoration: const InputDecoration(
                                             fillColor: Color.fromARGB(109, 223, 222, 222),
@@ -166,14 +162,14 @@ class _OrderDashboardState extends State<OrderDashboard> {
                                    ],
                                  ),
                                ),
-
                                
                                const Divider(color: Colors.blue,),
                             
                                Container(
                                  width: double.infinity,
                                  height: 500,
-                                 child:  AllOrders(orderDetails: widget.orderDetails)
+                                 child:  _filteredOrderDetails.isNotEmpty ? AllOrders(orderDetails: _filteredOrderDetails)
+                                 : AllOrders(orderDetails: widget.orderDetails)
                                )
                              ],
                            ),
