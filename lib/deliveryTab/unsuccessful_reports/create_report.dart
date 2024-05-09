@@ -488,7 +488,8 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
                     onChanged: (value) {
                       if (value == null) {
                         _selectedTime = null;
-                      } else {
+                      }
+                      else {
                         _selectedTime =
                             TimeOfDay.fromDateTime(value);
                       }
@@ -598,6 +599,7 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
             onChanged: (String? newValue) {
               setState(() {
                 selectedReason = newValue ?? '';
+                updateProgress();
               });
             },
             items: reasons.map<DropdownMenuItem<String>>((String value) {

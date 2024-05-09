@@ -5,26 +5,10 @@ import 'package:haul_a_day_mobile/accountTab/account_tab_accomplished.dart';
 import 'package:haul_a_day_mobile/staffIDController.dart';
 import '../AuthController.dart';
 import '../components/bottomTab.dart';
+import '../components/data/user_information.dart';
 import 'account_tab_accountinfo.dart';
 
-class AccountInfo {
-  final String pictureUrl;
-  final String staffID;
-  final String fullName;
-  final String position;
-  final String registeredDate;
-  final String contactNumber;
 
-
-  AccountInfo({
-    required this.pictureUrl,
-    required this.staffID,
-    required this.fullName,
-    required this.position,
-    required this.registeredDate,
-    required this.contactNumber,
-  });
-}
 
 class AccountTab extends StatefulWidget {
   @override
@@ -44,34 +28,6 @@ class _AccountTabState extends State<AccountTab> {
     return getUserDetails(currentStaffId);
   }
 
-  Future<AccountInfo> getUserDetails(String staffId) async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('staffId', isEqualTo: staffId)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      final firstName = querySnapshot.docs.first['firstname'];
-      final lastName = querySnapshot.docs.first['lastname'];
-      final fullName = '$firstName $lastName';
-      final position = querySnapshot.docs.first['position'];
-      final staffID = querySnapshot.docs.first['staffId'];
-      final registeredDate = querySnapshot.docs.first['registeredDate'];
-      final contactNumber = querySnapshot.docs.first['contactNumber'];
-      final pictureUrl = querySnapshot.docs.first['pictureUrl'];;
-
-      return AccountInfo(
-        pictureUrl: pictureUrl,
-        staffID: staffID,
-        fullName: fullName,
-        position: position,
-        registeredDate: registeredDate,
-        contactNumber: contactNumber,
-      );
-    } else {
-      throw Exception('No user found with staff ID: $staffId');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

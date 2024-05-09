@@ -266,7 +266,7 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
     String originalExtension = widget.signatory.path.split('.').last;
     //Signatory
     final signatoryFileName = '${widget.deliveryId}_signatory.$originalExtension';
-    final signatoryPath  = 'Orders/${widget.orderId}/Delivery Reports/Loading/$signatoryFileName';
+    final signatoryPath  = 'Orders/${widget.orderId}/Delivery Reports/Successful/$signatoryFileName';
     final signatoryFile = File(widget.signatory.path);
     final signatoryRef = FirebaseStorage.instance.ref().child(signatoryPath);
     signatoryUploadTask = signatoryRef.putFile(signatoryFile);
@@ -278,7 +278,7 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
     originalExtension = widget.documentation.path.split('.').last;
 
     final documentationFileName = '${widget.deliveryId}_documentation.$originalExtension';
-    final documentationPath  = 'Orders/${widget.orderId}/Delivery Reports/Loading/$documentationFileName';
+    final documentationPath  = 'Orders/${widget.orderId}/Delivery Reports/Successful/$documentationFileName';
     final documentationFile = File(widget.documentation.path);
     final documentationRef = FirebaseStorage.instance.ref().child(documentationPath);
     documentationUploadTask = documentationRef.putFile(documentationFile);

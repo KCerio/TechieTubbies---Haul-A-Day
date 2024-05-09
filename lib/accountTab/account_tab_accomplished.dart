@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../components/bottomTab.dart';
 import '../components/data/accomplished_deliveries.dart';
@@ -65,24 +66,39 @@ class _AccomplishedDeliveriesState extends State<AccomplishedDeliveries> {
       body: Center(
         child: accomplishedList.isEmpty
             ? CircularProgressIndicator(color: Colors.white,) // Show a loading indicator while data is being fetched
-            : Column(
-          children: [
-            SizedBox(height: 20),
-            Expanded(child: ListView.builder(
-              itemCount: accomplishedList.length,
-              itemBuilder: (context, index) {
-                AccomplishedDelivery accomplishedDelivery = accomplishedList[index];
-                return accomplishedOrderContainer(accomplishedDelivery);
-              },
-            ))
-          ],
-        ),
+            :(accomplishedList.first.orderId == "null")
+              ?Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FaIcon(FontAwesomeIcons.hourglassEmpty, color: Colors.green[700],size: 100,),
+                  SizedBox(height: 10,),
+                  Text(
+                    'No Accomplished \n Deliveries Found',
+                    textAlign: TextAlign.center, // Align text to the center
+                    style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white
+                    ),
+                  ),
+                ],
+              )
+              :Column(
+            children: [
+              SizedBox(height: 20),
+              Expanded(child: ListView.builder(
+                itemCount: accomplishedList.length,
+                itemBuilder: (context, index) {
+                  AccomplishedDelivery accomplishedDelivery = accomplishedList[index];
+                  return accomplishedOrderContainer(accomplishedDelivery);
+                },
+              ))
+            ],
+          ),
       ),
       bottomNavigationBar: BottomTab(currIndex: _currentIndex),
     );
   }
-
-
 
   Widget accomplishedOrderContainer(AccomplishedDelivery accomplishedDelivery) {
 
@@ -98,8 +114,7 @@ class _AccomplishedDeliveriesState extends State<AccomplishedDeliveries> {
 
                   setState(() {
                     accomplishedDelivery.isSelected =!accomplishedDelivery.isSelected;
-                    print('${accomplishedDelivery.orderId} is pressed');
-                    print('${accomplishedDelivery.isSelected}');
+
                   });
                 },
                 child: Container(

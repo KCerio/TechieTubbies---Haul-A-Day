@@ -225,7 +225,7 @@ class _UploadUnsuccessfulReportState extends State<UploadUnsuccessfulReport> {
     String originalExtension = widget.documentation.path.split('.').last;
 
     final documentationFileName = '${widget.deliveryId}_documentation.$originalExtension';
-    final documentationPath  = 'Orders/${widget.orderId}/Delivery Reports/Loading/$documentationFileName';
+    final documentationPath  = 'Orders/${widget.orderId}/Delivery Reports/Unsuccessful/$documentationFileName';
     final documentationFile = File(widget.documentation.path);
     final documentationRef = FirebaseStorage.instance.ref().child(documentationPath);
     documentationUploadTask = documentationRef.putFile(documentationFile);
@@ -241,7 +241,7 @@ class _UploadUnsuccessfulReportState extends State<UploadUnsuccessfulReport> {
     uploadFileToStorage().then((documentationUrl) {
       // Once the file is uploaded, use the URL to store the incident report information in Firestore
       FirebaseFirestore.instance.collection('Order/${widget.orderId}/Delivery Reports')
-          .doc('${widget.deliveryId}').set({
+          .doc('${widget.deliveryId}-Unsuccessful').set({
 
         'TimeDate': widget.TimeAndDate,
         'reason':widget.reason,
@@ -269,7 +269,7 @@ class _UploadUnsuccessfulReportState extends State<UploadUnsuccessfulReport> {
   }
 
   void uploadTeam(){
-    String firestorePath = 'Order/${widget.orderId}/Delivery Reports/${widget.deliveryId}/Attendance';
+    String firestorePath = 'Order/${widget.orderId}/Delivery Reports/${widget.deliveryId}-Unsuccessful/Attendance';
 
     widget.team.forEach((member) {
       String staffId = member.staffId;

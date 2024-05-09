@@ -6,8 +6,9 @@ class teamMember{
   final String position;
   final String pictureUrl;
   bool isSelected;
+  final String contactNum;
 
-  teamMember(this.staffId, this.fullname, this.position, this.pictureUrl, this.isSelected) {
+  teamMember(this.staffId, this.fullname, this.position, this.pictureUrl, this.isSelected, this.contactNum) {
   }
 
 }
@@ -40,6 +41,7 @@ Future<List<teamMember>> getTeamList(String orderId) async {
         String fullname = '$firstname $lastname';
         String position = userDoc['position'];
         String pictureUrl = userDoc['pictureUrl'];
+        String contactNum = userDoc['contactNumber'];
         bool isSelected = false; // Assuming 'position' is a field in the Users collection
 
         teamMember member = teamMember(
@@ -48,6 +50,7 @@ Future<List<teamMember>> getTeamList(String orderId) async {
           position,
           pictureUrl,
           isSelected,
+          contactNum
         );
         teamList.add(member);
       });

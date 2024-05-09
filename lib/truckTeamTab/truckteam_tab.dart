@@ -6,25 +6,11 @@ import 'package:haul_a_day_mobile/staffIDController.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/truckteam_incidentreport.dart';
 
 import '../components/bottomTab.dart';
-
-class TruckInfo {
-  final String cargoType;
-  final int maxCapacity;
-  String truckStatus;
-  final String truckType;
-  final String driver;
-  final String truckPic;
+import '../components/data/teamMembers.dart';
+import '../components/data/truck_info.dart';
+import '../components/data/user_information.dart';
 
 
-  TruckInfo({
-    required this.cargoType,
-    required this.maxCapacity,
-    required this.truckStatus,
-    required this.truckType,
-    required this.driver,
-    required this.truckPic,
-  });
-}
 
 class TruckTeam extends StatefulWidget {
   @override
@@ -42,6 +28,8 @@ class _TruckTeamState extends State<TruckTeam> {
 
   List<String> truckStatuses = [];
   String? selectedItem;
+
+  List<teamMember> teamList = [];
 
   bool _isMounted = false;
 
@@ -65,11 +53,11 @@ class _TruckTeamState extends State<TruckTeam> {
     position = await getPosition(currentStaffId);
     userAssignedSchedule = await getSchedule(currentStaffId);
 
-
-
     if (truckId != "none"&& truckId !='no truck') {
       truckInfo = await getTruckInfoByTruckId(truckId);
       truckStatuses = getDropdown(truckInfo!);
+      teamList = await getTeamList(userAssignedSchedule);
+
     }
     if (_isMounted) {
       setState(() {
@@ -77,128 +65,6 @@ class _TruckTeamState extends State<TruckTeam> {
     }
   }
 
-  Future<String> getFirstName(String staffId)async{
-    String firstName = '';
-
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('staffId', isEqualTo: staffId)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      // Retrieve the firstName from the document
-      firstName = querySnapshot.docs.first['firstname'];
-    }
-    return firstName;
-  }
-
-  Future<String> getPosition(String staffId)async{
-    String position = '';
-
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('staffId', isEqualTo: staffId)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      // Retrieve the firstName from the document
-      position = querySnapshot.docs.first['position'];
-    }
-    return position;
-  }
-
-  Future<String> getTruckIdByStaffId(String staffId) async {
-    String position = '';
-    String assignedSchedule='';
-
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('staffId', isEqualTo: staffId)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      // Retrieve the position from the document
-      position = querySnapshot.docs.first['position'];
-    }
-
-    if (position == 'Driver') {
-      String truckId;
-      try {
-        truckId = querySnapshot.docs.first['truck'];
-        if(truckId=='')
-          truckId = 'no truck';
-      } catch (e) {
-        truckId = 'no truck';
-        print('truckId: ${truckId}');
-      }
-      return truckId;
-    }
-    else {
-      if (querySnapshot.docs.isNotEmpty) {
-        // Retrieve the assignedSchedule from the document
-        assignedSchedule = querySnapshot.docs.first['assignedSchedule'];
-      }
-
-      if (assignedSchedule == 'none') {
-        return "none";
-      } else {
-        DocumentSnapshot truckQuerySnapshot = await FirebaseFirestore.instance
-            .collection('Order')
-            .doc(assignedSchedule)
-            .get();
-
-        if (truckQuerySnapshot.exists) {
-          // Retrieve the assigned truck from the document
-          return truckQuerySnapshot['assignedTruck'];
-        } else {
-          // Handle the case where the document doesn't exist
-          throw Exception("Truck document not found for assigned schedule: $assignedSchedule");
-        }
-      }
-    }
-
-
-  }
-
-  Future<TruckInfo> getTruckInfoByTruckId(String truckId) async {
-    DocumentSnapshot truckSnapshot = await FirebaseFirestore.instance
-        .collection('Trucks')
-        .doc(truckId)
-        .get();
-
-    if (truckSnapshot.exists) {
-      // Retrieve truck information from the document
-      return TruckInfo(
-        cargoType: truckSnapshot['cargoType'],
-        maxCapacity: truckSnapshot['maxCapacity'],
-        truckStatus: truckSnapshot['truckStatus'],
-        truckType: truckSnapshot['truckType'],
-        driver: truckSnapshot['driver'],
-        truckPic: truckSnapshot['truckPic']
-      );
-    } else {
-      // Handle the case where the document doesn't exist
-      throw Exception("Truck document not found for truck ID: $truckId");
-    }
-  }
-
-  Future<String> getSchedule(String staffId) async {
-    String userAssignedSchedule = '';
-
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('staffId', isEqualTo: staffId)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      // Retrieve the schedule from the document
-      userAssignedSchedule = querySnapshot.docs.first['assignedSchedule'];
-
-
-    }
-
-    return userAssignedSchedule;
-  }
 
   List<String> getDropdown(TruckInfo truck) {
     if(truck.truckStatus=='Available'){
@@ -209,7 +75,6 @@ class _TruckTeamState extends State<TruckTeam> {
       return ['Available', 'On-Repair'];
     }
 }
-
 
 
   @override
@@ -270,153 +135,294 @@ class _TruckTeamState extends State<TruckTeam> {
           ],
         ),
       )
-          : Column(
-        children: [
-          Container(
-            height: 200.0,
-            margin: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-            padding: EdgeInsets.only(
-              top: 10.0,
-              bottom: 10.0,
-              left: 30.0,
-              right: 20.0,
-            ),
-            decoration: BoxDecoration(
-              color: Color(0xff2A9530),
-              borderRadius: BorderRadius.circular(25.0),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.black, // Specify the border color here
-                      width: 1, // Adjust the border width as needed
-                    ),
-                    image: DecorationImage(
-                      image: NetworkImage(
-                        truckInfo!.truckPic,
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 30),
-                    Text(
-                      truckId,
-                      style: TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      '${truckInfo?.maxCapacity ?? 'Unknown'} kgs',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      truckInfo?.cargoType ?? 'Unknown',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Container(
-                      margin: EdgeInsets.symmetric(vertical: 10.0),
-                      height: 30,
-                      width: 125,
-                      padding: EdgeInsets.symmetric(horizontal: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(
-                          color: Colors.black, // Specify the border color here
-                          width: 1, // Adjust the border width as needed
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.25),
-                            spreadRadius: 1,
-                            blurRadius: 4,
-                            offset: Offset(0, 4), // changes position of shadow
-                          ),
-                        ],
-                      ),
-                      child: DropdownButton<String>(
-                        dropdownColor: Colors.white,
-                        value: selectedItem = truckInfo?.truckStatus ?? 'Unknown',
-                        items: truckStatuses.map((String item) {
-                          return DropdownMenuItem<String>(
-                            value: item,
-                            child: Text(item),
-                          );
-                        }).toList(),
-                        onChanged: position == 'Driver'
-                            ? (String? newValue) async {
-                          if(truckInfo?.truckStatus != 'On-Repair' && newValue == 'On-Repair'){
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) =>IncidentReport(truckId: truckId, assignedSchedule:userAssignedSchedule )),
-                            );
-                          }
-                          else{
-                            if ((truckInfo?.truckStatus == 'Available' ||
-                                truckInfo?.truckStatus == 'Busy') &&
-                                newValue == 'On-Repair') {
-                              setState(() {
-                                selectedItem = newValue;
-                                truckInfo!.truckStatus = newValue!;
-                              });
-                              // Update the truckStatus in Firestore
-                              await FirebaseFirestore.instance
-                                  .collection('Trucks')
-                                  .doc(truckId)
-                                  .update({'truckStatus': newValue});
-                            }
-                            else if (truckInfo?.truckStatus == 'On-Repair') {
-                              setState(() {
-                                selectedItem = newValue;
-                                truckInfo!.truckStatus = newValue!;
-                              });
-                              // Update the truckStatus in Firestore
-                              await FirebaseFirestore.instance
-                                  .collection('Trucks')
-                                  .doc(truckId)
-                                  .update({'truckStatus': newValue});
-                            }
-                          }
-                          }
-                            : null,
+          : Stack(
+          children: [
+            Positioned(
+                top: MediaQuery.of(context).size.height * 0.15,
+                bottom: 0,
+                child: bg()),
 
-                        hint:  Text(
-                          truckInfo?.truckStatus ?? 'Unknown',
-                        ),
-                        isExpanded: true,
-                      )
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            Positioned(
+                top: 0,
+                child: truckCard()),
+
+            Positioned(
+                top: MediaQuery.of(context).size.height * 0.30,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: truckTeam(),
+            )
+          ],
+
           ),
-
-        ],
-      ),
       bottomNavigationBar: BottomTab(currIndex: _currentIndex)
     )
     );
   }
+  Widget truckCard(){
+    return Container(
+      height: 200.0,
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+      padding: EdgeInsets.only(
+        top: 10.0,
+        bottom: 10.0,
+        left: 30.0,
+        right: 20.0,
+      ),
+      decoration: BoxDecoration(
+        color: Color(0xff2A9530),
+        borderRadius: BorderRadius.circular(25.0),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 150,
+            height: 150,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.black, // Specify the border color here
+                width: 1, // Adjust the border width as needed
+              ),
+              image: DecorationImage(
+                image: NetworkImage(
+                  truckInfo!.truckPic,
+                ),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          SizedBox(width: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 30),
+              Text(
+                truckId,
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                '${truckInfo?.maxCapacity ?? 'Unknown'} kgs',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                truckInfo?.cargoType ?? 'Unknown',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.white,
+                ),
+              ),
+              Container(
+                  margin: EdgeInsets.symmetric(vertical: 10.0),
+                  height: 30,
+                  width: 125,
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Colors.black, // Specify the border color here
+                      width: 1, // Adjust the border width as needed
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.25),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: Offset(0, 4), // changes position of shadow
+                      ),
+                    ],
+                  ),
+                  child: DropdownButton<String>(
+                    dropdownColor: Colors.white,
+                    value: selectedItem = truckInfo?.truckStatus ?? 'Unknown',
+                    items: truckStatuses.map((String item) {
+                      return DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      );
+                    }).toList(),
+                    onChanged: position == 'Driver'
+                        ? (String? newValue) async {
+                      if(truckInfo?.truckStatus != 'On-Repair' && newValue == 'On-Repair'){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) =>IncidentReport(truckId: truckId, assignedSchedule:userAssignedSchedule )),
+                        );
+                      }
+                      else{
+                        if ((truckInfo?.truckStatus == 'Available' ||
+                            truckInfo?.truckStatus == 'Busy') &&
+                            newValue == 'On-Repair') {
+                          setState(() {
+                            selectedItem = newValue;
+                            truckInfo!.truckStatus = newValue!;
+                          });
+                          // Update the truckStatus in Firestore
+                          await FirebaseFirestore.instance
+                              .collection('Trucks')
+                              .doc(truckId)
+                              .update({'truckStatus': newValue});
+                        }
+                        else if (truckInfo?.truckStatus == 'On-Repair') {
+                          setState(() {
+                            selectedItem = newValue;
+                            truckInfo!.truckStatus = newValue!;
+                          });
+                          // Update the truckStatus in Firestore
+                          await FirebaseFirestore.instance
+                              .collection('Trucks')
+                              .doc(truckId)
+                              .update({'truckStatus': newValue});
+                        }
+                      }
+                    }
+                        : null,
+
+                    hint:  Text(
+                      truckInfo?.truckStatus ?? 'Unknown',
+                    ),
+                    isExpanded: true,
+                  )
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  //green background
+  Widget bg(){
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(30.0),
+          bottom: Radius.zero,
+        ),
+        color: Colors.green[300],
+      ),
+      width: MediaQuery.of(context).size.width,
+
+    );
+  }
+
+  Widget truckTeam(){
+    return Container(
+      padding: EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 3),
+      margin: EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(40.0),
+          bottom: Radius.zero,
+        ),
+        color: Colors.white,
+      ),
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(height: 3),
+            Text(
+              'Crew List',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xff2A9530), // Text color
+                fontWeight: FontWeight.bold, // Bold font style
+                fontSize: 26, // Font size
+              ),
+            ),// Title
+            SizedBox(height: 5),
+            (teamList.isNotEmpty)
+                ?SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: teamList.length,
+                    itemBuilder:(context, index) {
+                      teamMember member = teamList[index];
+                      return crewCard(member);
+                    },
+                  )
+
+                ],
+              ),
+            )
+                :Center(child: Text(
+              'No Schedule Assigned'
+
+            ))
+        ]
+      ),
+
+    );
+  }
+
+  Widget crewCard(teamMember member){
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      padding: EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.0),
+        color: Color(0xffbed8fd),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundImage: NetworkImage(member.pictureUrl),
+          ),
+          SizedBox(width: 10,),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                  member.fullname,
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[700],
+                ),
+
+              ),
+              Text(
+                member.position,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+
+              ),
+              Text(
+                member.contactNum,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.black,
+                ),
+
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
 
 }

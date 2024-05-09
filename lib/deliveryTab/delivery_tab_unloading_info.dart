@@ -435,8 +435,6 @@ class _UnloadingInformationState extends State<UnloadingInformation> {
             ),
           ),
 
-
-
           Positioned(
             top: 0,
             left: 30,

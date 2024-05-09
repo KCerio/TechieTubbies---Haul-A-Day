@@ -8,6 +8,7 @@ import 'package:haul_a_day_mobile/staffIDController.dart';
 import 'package:unicons/unicons.dart';
 import '../components/bottomTab.dart';
 import '../components/data/delivery_information.dart';
+import '../components/data/user_information.dart';
 import '../components/dateThings.dart';
 import 'delivery_tab_loading_info.dart';
 import 'delivery_tab_unloading_info.dart';
@@ -57,24 +58,7 @@ class _DeliveryTabState extends State<DeliveryTab> {
     setState(() {}); // Update the UI with the retrieved data
   }
 
-  //getting user schedule
-  Future<String> getSchedule(String staffId) async {
-    String userAssignedSchedule = '';
 
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .where('staffId', isEqualTo: staffId)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      // Retrieve the schedule from the document
-      userAssignedSchedule = querySnapshot.docs.first['assignedSchedule'];
-
-
-    }
-
-    return userAssignedSchedule;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -342,6 +326,8 @@ class _DeliveryTabState extends State<DeliveryTab> {
     }
     else if(deliveryStatus=='On Queue'){
       return Colors.green.withOpacity(0.7);
+    }else if(deliveryStatus=='Halted'){
+      return Color(0xFF3871C1);
     }
     else{
       return Colors.grey.withOpacity(0.7);
@@ -357,9 +343,9 @@ class _DeliveryTabState extends State<DeliveryTab> {
         );
       },
       child: Container(
-        height: 200.0,
+        //height: 200.0,
         margin: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-        padding: EdgeInsets.all(10.0),
+        padding: EdgeInsets.all(20.0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20.0),
@@ -377,7 +363,7 @@ class _DeliveryTabState extends State<DeliveryTab> {
             SizedBox(width: 10),
             Icon(
               UniconsLine.truck_loading,
-              size: 150,
+              size: MediaQuery.of(context).size.width*0.32,
               color: getContainerColor(loadingDelivery.deliveryStatus),
             ),
             SizedBox(width: 10),
@@ -410,64 +396,85 @@ class _DeliveryTabState extends State<DeliveryTab> {
                     style: TextStyle(fontSize: 14),
                     softWrap: true,
                   ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if(loadingDelivery.deliveryStatus=="On Route"){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) =>LoadingDeliveryReport(loadingDelivery: loadingDelivery, deliveryId: userAssignedSchedule)),
-                        );
+                  SizedBox(height: 10,),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if(loadingDelivery.deliveryStatus=="On Route"){
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) =>LoadingDeliveryReport(loadingDelivery: loadingDelivery, deliveryId: userAssignedSchedule)),
+                          );
 
-                      }
-                      else{
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Theme (
-                                data: ThemeData( // Customize the theme
-                                  dialogBackgroundColor: Colors.white, // Set the background color
-                                ),
-                                child: SimpleDialog(
-                                  children: <Widget>[
-                                    Center(
-                                      child: GestureDetector(
-                                          onTap: (){
-                                            Navigator.pop(context);
-                                          },
-                                          child:Container(
-                                              width: 200,
-                                              height: 100,
-                                              color: Colors.transparent,
-                                              child: Center(
-                                                child: Text(
-                                                  'Delivery ${loadingDelivery.loadingId} already loaded',
-                                                  textAlign: TextAlign.center, // Align text to the center
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              )
-                                          )
-                                      ),
-                                    )
-                                  ],
-                                )
-                            );
-                          },
-                        );
-                      }
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(getContainerColor(loadingDelivery.deliveryStatus)),
-                    ),
-                    child: Text(
-                      loadingDelivery.deliveryStatus,
-                      style: TextStyle(
-                        color: Colors.white,
+                        }
+                        else if(loadingDelivery.deliveryStatus=="Halted"){
+                          showHalted(loadingDelivery.loadingId);
+
+                        }
+                        else{
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Theme (
+                                  data: ThemeData( // Customize the theme
+                                    dialogBackgroundColor: Colors.white, // Set the background color
+                                  ),
+                                  child: SimpleDialog(
+                                    children: <Widget>[
+                                      Center(
+                                        child: GestureDetector(
+                                            onTap: (){
+                                              Navigator.pop(context);
+                                            },
+                                            child:Container(
+                                                padding: EdgeInsets.all(10),
+                                                color: Colors.transparent,
+                                                child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      FaIcon(FontAwesomeIcons.boxesPacking,
+                                                          size: 40,color: Colors.green ),
+                                                      Text(
+                                                        'Delivery ${loadingDelivery.loadingId}',
+                                                        textAlign: TextAlign.center, // Align text to the center
+                                                        style: TextStyle(
+                                                            fontSize: 18,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: Colors.green
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        'already loaded',
+                                                        textAlign: TextAlign.center, // Align text to the center
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.w400,
+                                                            color: Colors.black
+                                                        ),
+                                                      ),
+                                                    ]
+                                                )
+                                            )
+                                        ),
+                                      )
+                                    ],
+                                  )
+                              );
+                            },
+                          );
+                        }
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(getContainerColor(loadingDelivery.deliveryStatus)),
+                      ),
+                      child: Text(
+                        loadingDelivery.deliveryStatus,
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
@@ -490,9 +497,9 @@ class _DeliveryTabState extends State<DeliveryTab> {
 
       },
         child: Container(
-          height: 200.0,
+          //height: 200.0,
           margin: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-          padding: EdgeInsets.all(10.0),
+          padding: EdgeInsets.all(20.0),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
@@ -510,10 +517,10 @@ class _DeliveryTabState extends State<DeliveryTab> {
               SizedBox(width: 10),
               FaIcon(
                 FontAwesomeIcons.truckLoading,
-                size: 100,
+                size: MediaQuery.of(context).size.width*0.24,
                 color: getContainerColor(unloadingDelivery.deliveryStatus),
               ),
-              SizedBox(width: 40),
+              SizedBox(width: 20),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -541,122 +548,197 @@ class _DeliveryTabState extends State<DeliveryTab> {
                     Text(
                       '${unloadingDelivery.recipient}, ${unloadingDelivery.unloadingLocation}',
                       style: TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
+                      //overflow: TextOverflow.ellipsis,
                       softWrap: true,
-                      maxLines: 2,
+                      //maxLines: 2,
                     ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        //check if it is on the top of the unloading list
-                        if(unloadingDelivery.deliveryStatus=='On Route'){
-                          UnloadingDelivery? theNextDelivery = null;
-                          String nextDeliveryId = '';
-                          if(unloadingDeliveries.length-1 != index){
-                            theNextDelivery = unloadingDeliveries[index+1];
-                            nextDeliveryId = theNextDelivery.unloadingId;
-                          }
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) =>UnloadingDeliveryReport(
+                    SizedBox(height: 10,),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          //check if it is on the top of the unloading list
+                          if(unloadingDelivery.deliveryStatus=='On Route'){
+                            UnloadingDelivery? theNextDelivery = null;
+                            String nextDeliveryId = '';
+                            if(unloadingDeliveries.length-1 != index){
+                              theNextDelivery = unloadingDeliveries[index+1];
+                              nextDeliveryId = theNextDelivery.unloadingId;
+                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) =>UnloadingDeliveryReport(
                                 unloadingDelivery: unloadingDelivery,
                                 deliveryId: userAssignedSchedule, nextDeliveryId: nextDeliveryId,
-                            )),
-                          );
+                              )),
+                            );
 
-                        }
-                        else if(unloadingDelivery.deliveryStatus=='Delivered!'){
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Theme (
-                                  data: ThemeData( // Customize the theme
-                                    dialogBackgroundColor: Colors.white, // Set the background color
-                                  ),
-                                  child: SimpleDialog(
-                                    children: <Widget>[
-                                      Center(
-                                        child: GestureDetector(
-                                            onTap: (){
-                                              Navigator.pop(context);
-                                            },
-                                            child:Container(
-                                                width: 200,
-                                                height: 100,
-                                                color: Colors.transparent,
-                                                child: Center(
-                                                  child: Text(
-                                                    'Delivery ${unloadingDelivery.unloadingId} already delivered',
-                                                    textAlign: TextAlign.center, // Align text to the center
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.bold,
+                          }
+                          else if(unloadingDelivery.deliveryStatus=='Delivered!'){
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Theme (
+                                    data: ThemeData( // Customize the theme
+                                      dialogBackgroundColor: Colors.white, // Set the background color
+                                    ),
+                                    child: SimpleDialog(
+                                      children: <Widget>[
+                                        Center(
+                                          child: GestureDetector(
+                                              onTap: (){
+                                                Navigator.pop(context);
+                                              },
+                                              child: Container(
+                                                  padding: EdgeInsets.all(10),
+                                                  color: Colors.transparent,
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      FaIcon(FontAwesomeIcons.boxesPacking,
+                                                      size: 40,color: Colors.green ),
+                                                      Text(
+                                                        'Delivery ${unloadingDelivery.unloadingId}',
+                                                        textAlign: TextAlign.center, // Align text to the center
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Colors.green
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        'already delivered',
+                                                        textAlign: TextAlign.center, // Align text to the center
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.w400,
+                                                            color: Colors.black
+                                                        ),
+                                                      ),
+                                                    ]
+                                                  )
+                                              )
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                );
+                              },
+                            );
+                          }
+                          else if(unloadingDelivery.deliveryStatus=="Halted"){
+                            showHalted(unloadingDelivery.unloadingId);
+
+                          }
+                          else{
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Theme (
+                                    data: ThemeData( // Customize the theme
+                                      dialogBackgroundColor: Colors.white, // Set the background color
+                                    ),
+                                    child: SimpleDialog(
+                                      children: <Widget>[
+                                        Center(
+                                          child: GestureDetector(
+                                              onTap: (){
+                                                Navigator.pop(context);
+                                              },
+                                              child:Container(
+                                                  width: 200,
+                                                  height: 100,
+                                                  color: Colors.transparent,
+                                                  child: Center(
+                                                    child: Text(
+                                                      'Finish "On Route" Delivery first',
+                                                      textAlign: TextAlign.center, // Align text to the center
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
                                                     ),
-                                                  ),
-                                                )
-                                            )
-                                        ),
-                                      )
-                                    ],
-                                  )
-                              );
-                            },
-                          );
-                        }
-                        else{
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Theme (
-                                  data: ThemeData( // Customize the theme
-                                    dialogBackgroundColor: Colors.white, // Set the background color
-                                  ),
-                                  child: SimpleDialog(
-                                    children: <Widget>[
-                                      Center(
-                                        child: GestureDetector(
-                                            onTap: (){
-                                              Navigator.pop(context);
-                                            },
-                                            child:Container(
-                                                width: 200,
-                                                height: 100,
-                                                color: Colors.transparent,
-                                                child: Center(
-                                                  child: Text(
-                                                    'Finish "On Route" Delivery first',
-                                                    textAlign: TextAlign.center, // Align text to the center
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                )
-                                            )
-                                        ),
-                                      )
-                                    ],
-                                  )
-                              );
-                            },
-                          );
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(getContainerColor(unloadingDelivery.deliveryStatus)),
-                      ),
-                      child: Text(
-                        unloadingDelivery.deliveryStatus,
-                        style: TextStyle(
-                          color: Colors.white,
+                                                  )
+                                              )
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                );
+                              },
+                            );
+                          }
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(getContainerColor(unloadingDelivery.deliveryStatus)),
+                        ),
+                        child: Text(
+                          unloadingDelivery.deliveryStatus,
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
             ],
           ),
         )
+    );
+
+  }
+
+  void showHalted(String deliveryId){
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Theme (
+            data: ThemeData( // Customize the theme
+              dialogBackgroundColor: Colors.white, // Set the background color
+            ),
+            child: SimpleDialog(
+              children: <Widget>[
+                Center(
+                  child: GestureDetector(
+                      onTap: (){
+                        Navigator.pop(context);
+                      },
+                      child:Container(
+                          padding: EdgeInsets.all(10),
+                          color: Colors.transparent,
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                FaIcon(FontAwesomeIcons.laptop,
+                                    size: 40,color: Color(0xFF3871C1) ),
+                                Text(
+                                  'Delivery ${deliveryId}',
+                                  textAlign: TextAlign.center, // Align text to the center
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF3871C1)
+                                  ),
+                                ),
+                                Text(
+                                  'halted by management',
+                                  textAlign: TextAlign.center, // Align text to the center
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.black
+                                  ),
+                                ),
+                              ]
+                          )
+                      )
+                  ),
+                )
+              ],
+            )
+        );
+      },
     );
 
   }

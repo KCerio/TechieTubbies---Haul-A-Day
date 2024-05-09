@@ -251,6 +251,35 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),),
                           ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Don't have an account?",
+                                style: TextStyle(
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Open Sans',
+                                  color: Colors.black38,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              TextButton(onPressed: (){
+                                //navigate
+                              },
+                                  child: Text(
+                                    'Create Here',
+                                    style: TextStyle(
+                                      fontSize: 15.0,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Open Sans',
+                                      color: Colors.green[700],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ))
+                            ],
+                          )
+
 
                         ]
 
@@ -289,37 +318,55 @@ class _LoginPageState extends State<LoginPage> {
     // Check if any documents match the username query
     if (usernameQuerySnapshot.docs.isNotEmpty || staffIdQuerySnapshot.docs.isNotEmpty) {
       // Check if the password matches
-      String actualPassword = usernameQuerySnapshot.docs.isNotEmpty
-          ? usernameQuerySnapshot.docs.first['password']
-          : staffIdQuerySnapshot.docs.first['password'];
-      String usedStaffId;
-      if(usernameQuerySnapshot.docs.isNotEmpty){
-        usedStaffId = usernameQuerySnapshot.docs.isNotEmpty
-            ? usernameQuerySnapshot.docs.first['staffId']
-            : null;
+      bool isApproved =false;
 
-      }else{
-        usedStaffId = enteredUsername;
+      try {
+        isApproved = usernameQuerySnapshot.docs.isNotEmpty
+            ?usernameQuerySnapshot.docs.first['isApproved']
+            :staffIdQuerySnapshot.docs.first['isApproved'];
+      } catch (e) {
+        isApproved =false;
       }
 
-      if (actualPassword == enteredPassword) {
-        // Password matches, login successful
+      if(isApproved){
+        String actualPassword = usernameQuerySnapshot.docs.isNotEmpty
+            ? usernameQuerySnapshot.docs.first['password']
+            : staffIdQuerySnapshot.docs.first['password'];
+        String usedStaffId;
+        if(usernameQuerySnapshot.docs.isNotEmpty){
+          usedStaffId = usernameQuerySnapshot.docs.isNotEmpty
+              ? usernameQuerySnapshot.docs.first['staffId']
+              : null;
 
-        //print("staffID : $usedStaffId");
-        staffIdController.setStaffId(usedStaffId);
-        bool isLoggedIn = true;
-        try {
-          await Shared.saveLoginSharedPreference(isLoggedIn);
-          print("Login status saved successfully.");
-        } catch (e) {
-          print("Error saving login status: $e");
+        }else{
+          usedStaffId = enteredUsername;
         }
 
-        Navigator.push(context, MaterialPageRoute(builder: (context) =>  WelcomeScreen()));
-      } else {
-        // Password does not match
-        _showPrompt("Incorrect Password. Please Try Again!");
+        if (actualPassword == enteredPassword) {
+          // Password matches, login successful
+
+          //print("staffID : $usedStaffId");
+          staffIdController.setStaffId(usedStaffId);
+          bool isLoggedIn = true;
+          try {
+            await Shared.saveLoginSharedPreference(isLoggedIn);
+            print("Login status saved successfully.");
+          } catch (e) {
+            print("Error saving login status: $e");
+          }
+
+          Navigator.push(context, MaterialPageRoute(builder: (context) =>  WelcomeScreen()));
+        } else {
+          // Password does not match
+          _showPrompt("Incorrect Password. Please Try Again!");
+        }
       }
+
+      else{
+        _showPrompt("Account has not Been Approved by Management");
+      }
+
+
     } else {
       // Username or staff ID does not exist
       _showPrompt("The Username or Staff ID you've entered cannot be found. Please Try Again!");

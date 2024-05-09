@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get/get.dart';
 
 class AccomplishedDelivery {
   final String orderId;
@@ -8,6 +9,15 @@ class AccomplishedDelivery {
 
   AccomplishedDelivery(this.orderId, this.dateCompleted, this.deliveries, this.isSelected){
 
+  }
+
+  static AccomplishedDelivery noAccomplishedDelivery() {
+    return AccomplishedDelivery(
+      "null",
+      Timestamp.now(), // Set a placeholder date or any default value
+      [], // An empty list of deliveries
+      false, // isSelected set to false
+    );
   }
 }
 
@@ -38,24 +48,31 @@ Future<List<AccomplishedDelivery>> retrieveAccomplishedDeliveries(String staffId
           .collection('Accomplished Deliveries')
           .get();
 
-      // Iterate through each document in the subcollection
-      for (QueryDocumentSnapshot doc in accomplishedDeliveriesSnapshot.docs) {
-        String orderId = doc.id;
+      if(accomplishedDeliveriesSnapshot.docs.isEmpty){
+        return [AccomplishedDelivery.noAccomplishedDelivery()];
+      }else{
+        for (QueryDocumentSnapshot doc in accomplishedDeliveriesSnapshot.docs) {
+          String orderId = doc.id;
 
-        List<Delivery> deliveries = await fetchDeliveryIds(orderId, staffId);
+          List<Delivery> deliveries = await fetchDeliveryIds(orderId, staffId);
 
-        Timestamp dateCompleted = deliveries.last.dateCompleted;
-
-
-
-        AccomplishedDelivery accomplishedDelivery = AccomplishedDelivery(orderId, dateCompleted, deliveries,false);
+          Timestamp dateCompleted = deliveries.last.dateCompleted;
 
 
-        bool isPresent = isPresentInAtLeastOne(accomplishedDelivery.deliveries);
 
-        if(accomplishedDelivery.deliveries.length!=0&&isPresent)
-          accomplishedList.add(accomplishedDelivery);
+          AccomplishedDelivery accomplishedDelivery = AccomplishedDelivery(orderId, dateCompleted, deliveries,false);
+
+
+          bool isPresent = isPresentInAtLeastOne(accomplishedDelivery.deliveries);
+
+          if(accomplishedDelivery.deliveries.length!=0&&isPresent)
+            accomplishedList.add(accomplishedDelivery);
+        }
       }
+
+
+      // Iterate through each document in the subcollection
+
     }
 
     return accomplishedList;
@@ -74,7 +91,6 @@ bool isPresentInAtLeastOne(List<Delivery> deliveries){
   return false;
 }
 
-
 Future<List<Delivery>> fetchDeliveryIds(String orderId, String staffId) async {
   List<Delivery> deliveryList = [];
 
@@ -91,8 +107,8 @@ Future<List<Delivery>> fetchDeliveryIds(String orderId, String staffId) async {
 
       // Extract field 'hasDelivered' and 'dateCompleted'
       bool isPresent = await checkAttendance(docId, orderId, staffId);
-      Timestamp dateCompleted = doc['departureTimeDate'];
       bool isSuccessful = doc['isSuccessful'];
+      Timestamp dateCompleted = isSuccessful?doc['departureTimeDate']:doc['TimeDate'];
 
       // Create a Delivery object and add it to the list
       Delivery delivery = Delivery(docId, isPresent, dateCompleted);
