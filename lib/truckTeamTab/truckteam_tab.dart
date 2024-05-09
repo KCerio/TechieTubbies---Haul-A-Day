@@ -361,10 +361,7 @@ class _TruckTeamState extends State<TruckTeam> {
                 ],
               ),
             )
-                :Center(child: Text(
-              'No Schedule Assigned'
-
-            ))
+                :noCrew()
         ]
       ),
 
@@ -422,6 +419,23 @@ class _TruckTeamState extends State<TruckTeam> {
         ],
       ),
     );
+  }
+
+  Widget noCrew(){
+    return Center(child: Column(
+      children: [
+        Image.asset("assets/images/no_truckTeam_Driver.png"),
+        Text("No Team Assigned Yet",
+          textAlign: TextAlign.center, // Align text to the center
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: Colors.black45,
+          ),
+        ),
+
+      ],
+    ),);
   }
 
 

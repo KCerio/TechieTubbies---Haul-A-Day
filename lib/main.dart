@@ -93,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
         child: Container(
           decoration:BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/images/Mobile_LogIn_Page.png"), // Path to your image
+                image: AssetImage("assets/images/Mobile_LogIn_Page.png"),
                 fit: BoxFit.fill, // Adjust the image to cover the whole area
               )
           ),
@@ -363,7 +363,7 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       else{
-        _showPrompt("Account has not Been Approved by Management");
+        _notApproved();
       }
 
 
@@ -413,6 +413,60 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
   }
+
+  void _notApproved() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Theme(
+          data: ThemeData( // Customize the theme
+            dialogBackgroundColor: Colors.white, // Set the background color
+          ),
+          child: SimpleDialog(
+            children: <Widget>[
+              Center(
+                child: GestureDetector(
+                    onTap: (){
+                      Navigator.pop(context);
+                    },
+                    child:Container(
+                        padding: EdgeInsets.all(20),
+                        color: Colors.transparent,
+                        child: Column(
+                          children: [
+                            Text("Account Awaiting for \nApproval",
+                              textAlign: TextAlign.center, // Align text to the center
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700],
+                              ),
+                            ),
+                            Image.asset("assets/images/awaiting_approval.png"), //assets/images/awaiting_approval.png
+                            Text("Management is working on it",
+                              textAlign: TextAlign.center, // Align text to the center
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                    )
+                ),
+              )
+
+
+            ],
+          ),);
+      },
+    );
+  }
+
+
 
 
 

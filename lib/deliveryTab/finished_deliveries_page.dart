@@ -48,11 +48,7 @@ class _WellDonePageState extends State<WellDonePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.thumb_up,
-              size: 200,
-              color: Color(0xff3871C1),
-            ),
+            Image.asset("assets/images/wellDone.png"),
             SizedBox(height: 20),
             Text(
               "you've completed",

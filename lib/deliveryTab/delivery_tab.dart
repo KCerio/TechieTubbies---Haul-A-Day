@@ -103,37 +103,34 @@ class _DeliveryTabState extends State<DeliveryTab> {
           child: CircularProgressIndicator(color: Colors.green),
         )//if data is loading
             : userAssignedSchedule == "none"
-            ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image(
-                image: AssetImage(
-                    "assets/images/noSchedule.png"),
-                height: 200,
-                width: 200,
+            ? Padding(
+          padding: EdgeInsets.all(20),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset("assets/images/noSchedule.png"),
+                  SizedBox(height: 10),
+                  Text(
+                    "No Schedule has been assigned yet",
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Check back again for updates",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              SizedBox(height: 10),
-              Text(
-                "No Schedule has been assigned yet",
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Check back again for updates",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        )//no schedule
+        ),)//no schedule
             : Column(
           children: [
             //Counter
