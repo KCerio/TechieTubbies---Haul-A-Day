@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:haul_a_day_mobile/components/data/delivery_information.dart';
+import 'package:haul_a_day_mobile/components/data/teamMembers.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/truckteam_tab.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:image_picker/image_picker.dart';
@@ -246,7 +248,10 @@ class _UploadingReportState extends State <UploadingReport>{
         'incidentTimeDate': widget.incidentTimeDate,
       }).then((_) async {
 
+        if(widget.currentSchedule!="none"){
 
+          await createUnsuccessfulReport();
+        }
         setState(() {
           _isUploading = false; // Set _isUploading to true when upload is complete
         });
@@ -288,5 +293,58 @@ class _UploadingReportState extends State <UploadingReport>{
         );
       },
     );
+  }
+
+  Future<void> createUnsuccessfulReport() async {
+
+    String deliveryId = await getOnRouteDelivery(widget.currentSchedule);
+    List<teamMember> team = await getTeamList(widget.currentSchedule);
+
+    uploadFileToStorage().then((documentationUrl) {
+      // Once the file is uploaded, use the URL to store the incident report information in Firestore
+      FirebaseFirestore.instance.collection('Order/${widget.currentSchedule}/Delivery Reports')
+          .doc('${deliveryId}-Unsuccessful').set({
+
+        'TimeDate': widget.incidentTimeDate,
+        'reason':widget.incidentType,
+        'reasonSpecified':(widget.incidentType=="Others")?widget.incidentDescription:'',
+        'documentation': documentationUrl,
+        'isSuccessful' : false,
+
+
+      }).then((_) async {
+        uploadTeam(deliveryId, team);
+
+        await haltStatus(widget.currentSchedule);
+
+        setState(() {
+          _isUploading = false; // Set _isUploading to true when upload is complete
+        });
+
+        //updateStatus();
+
+      }).catchError((error) {
+        // Show an error message if there's an issue creating the document
+        print('Error creating incident report document: $error');
+        showErrorDialog(context);
+
+      });
+    });
+  }
+
+  void uploadTeam(String deliveryId, List<teamMember> team){
+    String firestorePath = 'Order/${widget.currentSchedule}/Delivery Reports/${deliveryId}-Unsuccessful/Attendance';
+
+
+    team.forEach((member) {
+      String staffId = member.staffId;
+      FirebaseFirestore.instance.collection(firestorePath).doc(staffId).set({
+      }).then((_) {
+        print('Team member with staffId $staffId uploaded successfully');
+      }).catchError((error) {
+        print('Error uploading team member with staffId $staffId: $error');
+      });
+    });
+
   }
 }

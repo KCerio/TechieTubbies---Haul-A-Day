@@ -260,7 +260,7 @@ class _DeliveryTabState extends State<DeliveryTab> {
                               physics: NeverScrollableScrollPhysics(),
                               itemCount: unloadingDeliveries.length + 1,
                               itemBuilder: (context, index) {
-                                if(loadingDelivery?.deliveryStatus=="On Route"){
+                                if(loadingDelivery?.deliveryStatus=="On Route"||loadingDelivery?.deliveryStatus=="Halted"){
                                   if (index == 0) {
                                     return loadingDelivery != null
                                         ? buildLoadingDeliveryContainer(loadingDelivery!)

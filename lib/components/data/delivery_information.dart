@@ -164,3 +164,66 @@ String getLoading(String unloadingId){
 
   return loadingId;
 }
+
+Future<void> haltStatus(String orderId) async {
+  LoadingDelivery? loadingDelivery = await retrieveLoadingDelivery(orderId);
+  List<UnloadingDelivery> unloadingDeliveries = await retrieveUnloadingDeliveries(orderId, loadingDelivery!.loadingId);
+
+  if(loadingDelivery.deliveryStatus!="Loaded!"){
+    //change the loadingDeliveryStatus in the Firebase
+
+    final documentReference = FirebaseFirestore.instance
+        .collection('Order')
+        .doc(orderId)
+        .collection('LoadingSchedule')
+        .doc(loadingDelivery.loadingId);
+
+    await documentReference.update({'deliveryStatus': 'Halted'});
+
+
+  }
+
+  for (UnloadingDelivery unloadingDelivery in unloadingDeliveries) {
+    if (unloadingDelivery.deliveryStatus != "Delivered!") {
+
+      final documentReference = FirebaseFirestore.instance
+          .collection('Order')
+          .doc(orderId)
+          .collection('LoadingSchedule')
+          .doc(loadingDelivery.loadingId)
+          .collection('UnloadingSchedule')
+          .doc(unloadingDelivery.unloadingId);
+
+
+      await documentReference.update({'deliveryStatus': 'Halted'});
+
+    }
+
+  }
+
+
+
+}
+
+Future<String> getOnRouteDelivery(String orderId) async {
+  try {
+    LoadingDelivery? loadingDelivery = await retrieveLoadingDelivery(orderId);
+
+    if (loadingDelivery != null && loadingDelivery.deliveryStatus == "On Route") {
+      return loadingDelivery.loadingId;
+    } else {
+      List<UnloadingDelivery> unloadingDeliveries = await retrieveUnloadingDeliveries(orderId, loadingDelivery!.loadingId);
+      for (UnloadingDelivery unloadingDelivery in unloadingDeliveries) {
+        if (unloadingDelivery.deliveryStatus == "On Route") {
+          return unloadingDelivery.unloadingId;
+        }
+      }
+    }
+  } catch (e) {
+    // Handle any errors that occur during the retrieval process
+
+    return "none"; // Return null to indicate failure
+  }
+
+  return "none"; // Return null if no delivery is found on route
+}

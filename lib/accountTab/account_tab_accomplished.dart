@@ -41,7 +41,7 @@ class _AccomplishedDeliveriesState extends State<AccomplishedDeliveries> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[300],
+      backgroundColor: Colors.green[200],
       appBar: AppBar(
         backgroundColor: Colors.green[700],
         title: Text(
@@ -70,7 +70,7 @@ class _AccomplishedDeliveriesState extends State<AccomplishedDeliveries> {
               ?Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  FaIcon(FontAwesomeIcons.hourglassEmpty, color: Colors.green[700],size: 100,),
+                  Image.asset("assets/images/no_AccomplishedDeliveries.png"),
                   SizedBox(height: 10,),
                   Text(
                     'No Accomplished \n Deliveries Found',

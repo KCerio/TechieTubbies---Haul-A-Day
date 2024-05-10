@@ -49,7 +49,6 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
 
   List<String> reasons = [
     'Road Condition',
-    'Mechanical Failure',
     'Delivery Refused',
     'Location Inaccessible',
     'Staff Shortage',

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -104,37 +105,44 @@ class _TruckTeamState extends State<TruckTeam> {
           child: CircularProgressIndicator(color: Colors.green),
       )
           : truckId == "none" ||truckId == 'no truck' //no assigned schedule
-          ? Center(
-          child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image(
-              image: AssetImage(
-                  "assets/images/noScheduleTruckTab.png"),
-              height: 200,
-              width: 200,
+          ? Padding(padding: EdgeInsets.all(20),
+            child: Center(
+              child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image(
+                  image: AssetImage(
+                      "assets/images/noScheduleTruckTab.png"),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  (truckId == "none")?"No Truck Team ":"No Truck",
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  "has been assigned yet",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Check back again for updates",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            SizedBox(height: 10),
-            Text(
-              (truckId == "none")?"No Truck Team has been assigned yet":"No Truck has been assigned to you yet",
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 10),
-            Text(
-              "Check back again for updates",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      )
+            ),)
           : Stack(
           children: [
             Positioned(
@@ -160,6 +168,7 @@ class _TruckTeamState extends State<TruckTeam> {
     )
     );
   }
+
   Widget truckCard(){
     return Container(
       height: 200.0,
@@ -329,40 +338,42 @@ class _TruckTeamState extends State<TruckTeam> {
         color: Colors.white,
       ),
       width: MediaQuery.of(context).size.width,
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 3),
-            Text(
-              'Crew List',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xff2A9530), // Text color
-                fontWeight: FontWeight.bold, // Bold font style
-                fontSize: 26, // Font size
-              ),
-            ),// Title
-            SizedBox(height: 5),
-            (teamList.isNotEmpty)
-                ?SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: teamList.length,
-                    itemBuilder:(context, index) {
-                      teamMember member = teamList[index];
-                      return crewCard(member);
-                    },
-                  )
+      child: SingleChildScrollView(
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 3),
+              Text(
+                'Crew List',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xff2A9530), // Text color
+                  fontWeight: FontWeight.bold, // Bold font style
+                  fontSize: 26, // Font size
+                ),
+              ),// Title
+              SizedBox(height: 5),
+              (teamList.isNotEmpty)
+                  ?SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: teamList.length,
+                      itemBuilder:(context, index) {
+                        teamMember member = teamList[index];
+                        return crewCard(member);
+                      },
+                    )
 
-                ],
-              ),
-            )
-                :noCrew()
-        ]
+                  ],
+                ),
+              )
+                  :noCrew()
+            ]
+        ),
       ),
 
     );
@@ -383,43 +394,44 @@ class _TruckTeamState extends State<TruckTeam> {
             backgroundImage: NetworkImage(member.pictureUrl),
           ),
           SizedBox(width: 10,),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+          Flexible(
+            flex: 1,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   member.fullname,
-                style: TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[700],
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  ),
                 ),
-
-              ),
-              Text(
-                member.position,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                Text(
+                  member.position,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-
-              ),
-              Text(
-                member.contactNum,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.black,
+                Text(
+                  member.contactNum,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.black,
+                  ),
                 ),
-
-              ),
-            ],
-          )
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
+
 
   Widget noCrew(){
     return Center(child: Column(

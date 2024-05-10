@@ -36,3 +36,12 @@ String TimeToString (TimeOfDay time){
   Timestamp temp = changeTimestamps(DateTime(1970, 1, 1), time);
   return intoTime(temp);
 }
+
+Timestamp getTimeDate(){
+  // Get the current date and time
+  DateTime now = DateTime.now();
+
+// Convert DateTime to Timestamp
+  return Timestamp.fromDate(now);
+
+}

@@ -41,7 +41,7 @@ Future<List<teamMember>> getTeamList(String orderId) async {
         String fullname = '$firstname $lastname';
         String position = userDoc['position'];
         String pictureUrl = userDoc['pictureUrl'];
-        String contactNum = userDoc['contactNumber'];
+        String contactNum = userDoc['contactNumber'] ?? "";
         bool isSelected = false; // Assuming 'position' is a field in the Users collection
 
         teamMember member = teamMember(

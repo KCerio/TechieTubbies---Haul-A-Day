@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import '../components/bottomTab.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../components/dateThings.dart';
+
 class IncidentReportNext extends StatefulWidget {
   final String truckId;
   final String currentSchedule;
@@ -505,27 +507,6 @@ class _IncidentReportNextState extends State<IncidentReportNext> {
 
         bottomNavigationBar: BottomTab(currIndex: _currentIndex)
     );
-  }
-
-  Timestamp getTimeDate(){
-    // Get the current date and time
-    DateTime now = DateTime.now();
-
-// Convert DateTime to Timestamp
-    return Timestamp.fromDate(now);
-
-  }
-
-  String intoDate (Timestamp timeStamp)  {
-    DateTime dateTime = timeStamp.toDate(); // Convert Firebase Timestamp to DateTime
-    String formattedDate = DateFormat('MMM d,yyyy').format(dateTime); // Format DateTime into date string
-    return formattedDate; // Return the formatted date string
-  }
-
-  String intoTime (Timestamp stampTime) {
-    DateTime dateTime =  stampTime.toDate();  // Convert Firebase Timestamp to DateTime
-    String formattedTime = DateFormat('h:mm a').format(dateTime); // Format DateTime into time string
-    return formattedTime; // Return the formatted time string
   }
 
   Future<String> getIncidentReportNumber(String truckId) async {

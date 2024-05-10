@@ -62,6 +62,8 @@ class _CreateSuccessfulReportState extends State<CreateSuccessfulReport> {
   late int numberCartons;
 
 
+
+
   @override
   void initState() {
     super.initState();
@@ -156,13 +158,29 @@ class _CreateSuccessfulReportState extends State<CreateSuccessfulReport> {
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           backgroundColor: Colors.blue[700],
-          title: Text(
-            'Create Successful Delivery Report',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          title:Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Create Successful Delivery',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'Report',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           centerTitle: true,
           leading: IconButton(
@@ -846,7 +864,7 @@ class _CreateSuccessfulReportState extends State<CreateSuccessfulReport> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${numberCartons} cartons loaded?',
+                    (widget.deliveryId.startsWith("L"))? '${numberCartons} cartons loaded?':'${numberCartons} cartons delivered?',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 14,
@@ -975,7 +993,8 @@ class _CreateSuccessfulReportState extends State<CreateSuccessfulReport> {
                 children: [
                   SizedBox(width: 20),
                   Text(
-                    'Cartons Loaded',
+                    (widget.deliveryId.startsWith("L"))?
+                    'Cartons Loaded': 'Cartons Delivered',
                     style: TextStyle(
                         color: Colors.black,
                         fontSize: 12,
@@ -1004,7 +1023,8 @@ class _CreateSuccessfulReportState extends State<CreateSuccessfulReport> {
                     maxLines:1, // Allow text to wrap to the next line
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Enter actual number of cartons loaded',
+                      hintText: (widget.deliveryId.startsWith("L"))?'Enter actual number of cartons loaded':
+                      'Enter actual number of cartons delivered',
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.blue, width: 1.0),
                         borderRadius: BorderRadius.vertical(

@@ -58,8 +58,6 @@ Future<List<AccomplishedDelivery>> retrieveAccomplishedDeliveries(String staffId
 
           Timestamp dateCompleted = deliveries.last.dateCompleted;
 
-
-
           AccomplishedDelivery accomplishedDelivery = AccomplishedDelivery(orderId, dateCompleted, deliveries,false);
 
 
@@ -67,6 +65,8 @@ Future<List<AccomplishedDelivery>> retrieveAccomplishedDeliveries(String staffId
 
           if(accomplishedDelivery.deliveries.length!=0&&isPresent)
             accomplishedList.add(accomplishedDelivery);
+
+
         }
       }
 
@@ -112,6 +112,8 @@ Future<List<Delivery>> fetchDeliveryIds(String orderId, String staffId) async {
 
       // Create a Delivery object and add it to the list
       Delivery delivery = Delivery(docId, isPresent, dateCompleted);
+
+      print("Deliver: ${delivery.deliveryId}, ${delivery.hasDelivered}, ${delivery.dateCompleted}");
 
       if(isSuccessful)
         deliveryList.add(delivery);

@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:haul_a_day_mobile/components/data/delivery_information.dart';
 
 
 import 'package:image_picker/image_picker.dart';
@@ -253,6 +254,8 @@ class _UploadUnsuccessfulReportState extends State<UploadUnsuccessfulReport> {
       }).then((_) async {
         uploadTeam();
 
+        await haltStatus(widget.orderId);
+
         setState(() {
           _isUploading = false; // Set _isUploading to true when upload is complete
         });
@@ -283,32 +286,7 @@ class _UploadUnsuccessfulReportState extends State<UploadUnsuccessfulReport> {
 
   }
 
-  //Future<void> updateStatus() async {
-  //     //set status of next delivery
-  //     final querySnapshot = await FirebaseFirestore.instance
-  //         .collection('Order')
-  //         .doc(widget.orderId)
-  //         .collection('LoadingSchedule')
-  //         .doc(widget.loadingDelivery.loadingId)
-  //         .collection('UnloadingSchedule')
-  //         .limit(1)
-  //         .get();
-  //
-  //     if (querySnapshot.docs.isNotEmpty) {
-  //       final documentSnapshot = querySnapshot.docs.first;
-  //       await documentSnapshot.reference.update({'deliveryStatus': 'On Route'});
-  //     }
-  //
-  //
-  //     // Update current loading delivery status in Firestore
-  //     final documentReference = FirebaseFirestore.instance
-  //         .collection('Order')
-  //         .doc(widget.orderId)
-  //         .collection('LoadingSchedule')
-  //         .doc(widget.loadingDelivery.loadingId);
-  //
-  //     await documentReference.update({'deliveryStatus': 'Loaded!'});
-  //   }
+
 
 
   void showErrorDialog(BuildContext context) {

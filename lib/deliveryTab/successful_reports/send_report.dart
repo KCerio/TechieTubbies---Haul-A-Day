@@ -78,13 +78,29 @@ class _SendSuccessfulReportState extends State<SendSuccessfulReport> {
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           backgroundColor: Colors.blue[700],
-          title: Text(
-            'Create Unsuccessful Delivery Report',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Create Successful Delivery',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'Report',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           centerTitle: true,
           leading: IconButton(
@@ -431,15 +447,17 @@ class _SendSuccessfulReportState extends State<SendSuccessfulReport> {
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(
-                    10.0), // Adjust the padding values as needed
-                child: Text(
-                  unloadingDelivery.recipient,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              Flexible( // Wrap the Text widget with Flexible
+                child: Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Text(
+                    unloadingDelivery.recipient,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -690,15 +708,17 @@ class _SendSuccessfulReportState extends State<SendSuccessfulReport> {
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(
-                    10.0), // Adjust the padding values as needed
-                child: Text(
-                  loadingDelivery.warehouse,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              Flexible( // Wrap the Text widget with Flexible
+                child: Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Text(
+                    loadingDelivery.warehouse,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import '../../components/bottomTab.dart';
 import '../../components/data/delivery_information.dart';
 import '../../components/data/teamMembers.dart';
+import '../../components/dateThings.dart';
 
 
 
@@ -64,13 +65,29 @@ class _SendUnsuccessfulReportState extends State<SendUnsuccessfulReport> {
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
           backgroundColor: Colors.blue[700],
-          title: Text(
-            'Create Unsuccessful Delivery Report',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Create Unsuccessful Delivery',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'Report',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           centerTitle: true,
           leading: IconButton(
@@ -229,18 +246,6 @@ class _SendUnsuccessfulReportState extends State<SendUnsuccessfulReport> {
     );
   }
 
-
-  String intoDate (Timestamp timeStamp)  {
-    DateTime dateTime = timeStamp.toDate(); // Convert Firebase Timestamp to DateTime
-    String formattedDate = DateFormat('MMM d,yyyy').format(dateTime); // Format DateTime into date string
-    return formattedDate; // Return the formatted date string
-  }
-
-  String intoTime (Timestamp stampTime) {
-    DateTime dateTime =  stampTime.toDate();  // Convert Firebase Timestamp to DateTime
-    String formattedTime = DateFormat('h:mm a').format(dateTime); // Format DateTime into time string
-    return formattedTime; // Return the formatted time string
-  }
 
   Widget deliveryInformation()  {
     if(widget.deliveryId.startsWith('L')){
@@ -412,15 +417,17 @@ class _SendUnsuccessfulReportState extends State<SendUnsuccessfulReport> {
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(
-                    10.0), // Adjust the padding values as needed
-                child: Text(
-                  unloadingDelivery.recipient,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              Flexible( // Wrap the Text widget with Flexible
+                child: Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Text(
+                    unloadingDelivery.recipient,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -671,15 +678,17 @@ class _SendUnsuccessfulReportState extends State<SendUnsuccessfulReport> {
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(
-                    10.0), // Adjust the padding values as needed
-                child: Text(
-                  loadingDelivery.warehouse,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              Flexible( // Wrap the Text widget with Flexible
+                child: Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Text(
+                    loadingDelivery.warehouse,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

@@ -26,7 +26,7 @@ class _IncidentReportState extends State<IncidentReport> {
   int progress = 0;
 
   //single select list for incidentType
-  List<String> incidentType =['Accident', 'Mechanical Failure', 'Roadside Incident', 'Others'];
+  List<String> incidentType =['Accident', 'Mechanical Failure', 'Others'];
   late String? selectedIncidentType;
 
 
@@ -175,7 +175,7 @@ class _IncidentReportState extends State<IncidentReport> {
                             return selectedIncidentType == incident ? Colors.green[700]! : Colors.green[300]!;
                           },
                         ),
-                        minimumSize: MaterialStateProperty.all<Size>(Size(60, 60)),
+                        minimumSize: MaterialStateProperty.all<Size>(Size(30, 50)),
                         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
@@ -183,12 +183,12 @@ class _IncidentReportState extends State<IncidentReport> {
                         ),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8), // Add horizontal padding
+                        padding:  EdgeInsets.symmetric(horizontal: 8), // Add horizontal padding
                         child: Text(
                           incident,
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center, // Align text to the center
