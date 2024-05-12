@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:haul_a_day_web/service/payrollService.dart';
 
 class ComputeDialog extends StatefulWidget {
@@ -11,15 +12,20 @@ class ComputeDialog extends StatefulWidget {
 }
 
 class _ComputeDialogState extends State<ComputeDialog> {
+  PayrollService payrollService = new PayrollService();
   List<String> _deliveries = [];
   Map<String, dynamic> staff = {};
   double salaryRate = 0;
   //Map<String,dynamic> _rates = {};
-  List<Map<String,dynamic>> deductions= [
-    {'name': 'SSS', 'amount': 0},
-    {'name': 'PhilHealth', 'amount': 0},
-    {'name': 'Pag-ibig', 'amount': 0},
-  ];
+  List<Map<String,dynamic>> deductions= [];
+  List<Map<String,dynamic>> numDays = [];
+
+  Map<String,dynamic> _staffpayroll= {};
+  double totalDays = 0;
+  double salary = 0;
+  double totalDeduction = 0;
+  double netSalary = 0;
+  bool stillFetching = true;
 
   @override
   void initState() {
@@ -31,11 +37,28 @@ class _ComputeDialogState extends State<ComputeDialog> {
   }
 
   void fetchData(String staffId)async{
-    PayrollService payrollService = new PayrollService();
     List<String> deliveries = await payrollService.accomplishedDeliveries(staffId);
-    print('Accomplished Deliveries: $deliveries');
+    //print('Accomplished Deliveries: $deliveries');
+    for(String delivery in deliveries){
+      Map<String, dynamic> deliveryDays = await payrollService.computeNoOfDays(delivery);
+      numDays.add(deliveryDays);
+      totalDays += deliveryDays['days'];
+    }
+    Map<String,dynamic> staffpayroll = await payrollService.getDeduction(staffId);
+    print(staffpayroll);
+    deductions = [
+    {'name': 'SSS', 'amount': staffpayroll['SSS']},
+    {'name': 'PhilHealth', 'amount': staffpayroll['PhilHealth']},
+    {'name': 'Pag-ibig', 'amount': staffpayroll['Pagibig']},
+    ];
+
+    print('numDays: $numDays');
     setState(() {
       _deliveries = deliveries;
+      _staffpayroll = staffpayroll;
+      salary = totalDays * salaryRate;
+      totalDeduction = _staffpayroll['SSS'] + _staffpayroll['PhilHealth'] + _staffpayroll['Pagibig'];
+      stillFetching = false;
     });
   }
 
@@ -142,7 +165,8 @@ class _ComputeDialogState extends State<ComputeDialog> {
           ),
           Expanded(
             flex:8,
-            child: LayoutBuilder(
+            child: stillFetching == true ? Center(child: CircularProgressIndicator(color: Colors.green,),)
+            : LayoutBuilder(
               builder: (context,constraints) {
                 return Row(              
                   children: [
@@ -236,7 +260,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                   )
                                 ),
                                 Text(
-                                  'Php 3,000.00',
+                                  'Php ${netSalary.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontFamily: 'InriaSans',
                                     fontSize: 40,
@@ -266,7 +290,8 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     )
                                   ),
                                   Text(
-                                    'Not Claimed',
+                                    _staffpayroll['ClaimedStatus'] == true ? 'Claimed'
+                                    : 'Not Claimed',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
                                       fontSize: 30,
@@ -546,9 +571,9 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                               ListView.builder(
                                                 shrinkWrap: true,
                                                 physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                                itemCount: 7,
+                                                itemCount: numDays.length,
                                                 itemBuilder: (context, index) {
-                                                  return accomplishedList(index);
+                                                  return accomplishedList(numDays[index]);
                                                 },
                                               ),
                                       
@@ -584,7 +609,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                                   alignment: Alignment.center,
                                                   width: width * 0.5,                                                   
                                                   child: Text(
-                                                    '10',
+                                                    totalDays.toString(),
                                                     textAlign: TextAlign.center,
                                                     style: TextStyle(
                                                       fontFamily: 'Inter',
@@ -616,7 +641,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     ),
                                     SizedBox(width: 50,),
                                     Text(
-                                      'Php 0.00',
+                                      'Php Php ${salary.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontFamily: 'InriaSans',
                                         fontSize: 25,
@@ -728,7 +753,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     ),
                                     SizedBox(width: 50,),
                                     Text(
-                                      'Php 0.00',
+                                      'Php ${totalDeduction.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontFamily: 'InriaSans',
                                         fontSize: 25,
@@ -744,7 +769,9 @@ class _ComputeDialogState extends State<ComputeDialog> {
                           const SizedBox(height:20),
                           ElevatedButton(
                             onPressed: (){
-                              
+                              setState(() {
+                                netSalary = salary - totalDeduction;
+                              });
                             }, 
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all<Color>(
@@ -779,8 +806,9 @@ class _ComputeDialogState extends State<ComputeDialog> {
       )
     );          
   }
-}
- Widget accomplishedList(int index){
+
+  Widget accomplishedList(Map<String, dynamic> order){
+  TextEditingController dayscontroller = new TextEditingController();
   return LayoutBuilder(
     builder: (context,constraints) {
       double width = constraints.maxWidth;
@@ -795,7 +823,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
             Container(
               width: width * 0.5,
               child: Text(
-                'OR00${index + 1}',
+                order['order'] ?? '',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'InriaSans'
@@ -809,10 +837,18 @@ class _ComputeDialogState extends State<ComputeDialog> {
                 border: Border(left: BorderSide(color: Colors.grey))
               ),
               child: TextField(
-                //controller: _othercontroller,
+                controller: dayscontroller,
+                onChanged: (value){
+                  setState(() {
+                    totalDays -= order['days'];
+                    order['days'] = int.parse(value);
+                    totalDays += order['days'];
+                    salary  = totalDays * salaryRate;
+                  });
+                },
                 decoration: InputDecoration(
                   //contentPadding: EdgeInsets.symmetric(vertical: 2),
-                  hintText: '2',
+                  hintText: order['days'].toString(),
                   hintStyle: TextStyle(fontFamily: 'InriaSans'),
                   border: InputBorder.none,
                 ),
@@ -828,53 +864,73 @@ class _ComputeDialogState extends State<ComputeDialog> {
   );
  }
 
- Widget deductionList(Map<String, dynamic> deduction){
-  return LayoutBuilder(
-    builder: (context,constraints) {
-      double width = constraints.maxWidth;
-      double fontSize = width * 0.1;
-      return Container(
-        height: 25,
-        decoration:BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.grey))
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: width * 0.5,
-              child: Text(
-                deduction['name'],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'InriaSans'
+  Widget deductionList(Map<String, dynamic> deduction){
+    
+    return LayoutBuilder(
+      builder: (context,constraints) {
+        double width = constraints.maxWidth;
+        double fontSize = width * 0.1;
+        return Container(
+          height: 25,
+          decoration:BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey))
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: width * 0.5,
+                child: Text(
+                  deduction['name'],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'InriaSans'
+                  ),
                 ),
               ),
-            ),
-            Container(
-              width: width * 0.5,
-              //color: Colors.yellow,
-              decoration: BoxDecoration(
-                border: Border(left: BorderSide(color: Colors.grey))
-              ),
-              child: TextField(
-                //controller: _othercontroller,
-                decoration: InputDecoration(
-                  //contentPadding: EdgeInsets.symmetric(vertical: 2),
-                  hintText: deduction['amount'].toStringAsFixed(2),
-                  hintStyle: TextStyle(fontFamily: 'InriaSans'),
-                  border: InputBorder.none,
+              Container(
+                width: width * 0.5,
+                //color: Colors.yellow,
+                decoration: BoxDecoration(
+                  border: Border(left: BorderSide(color: Colors.grey))
                 ),
-                style: TextStyle(fontSize: 13),
-                textAlign: TextAlign.center, // Center align horizontally
-                textAlignVertical: TextAlignVertical.center, // Center align vertically
-              ),
-            )
-          ],
-        )
-      );
-    }
-  );
+                child: TextField(
+                  //controller: _othercontroller,
+                  onChanged: (value){
+                  setState(() {
+                    deduction['amount'] = double.parse(value);
+                    payrollService.updateDeduction(staff['staffId'], deduction['name'], deduction['amount']);
+                    if(deduction['name']== 'SSS'){
+                      _staffpayroll['SSS'] = int.parse(value);
+                    } else if(deduction['name']== 'PhilHealth'){
+                      _staffpayroll['PhilHealth'] = int.parse(value);
+                    } else if(deduction['name']== 'Pag-ibig'){
+                      _staffpayroll['Pagibig'] = int.parse(value);
+                    }
+                    totalDeduction = _staffpayroll['SSS'] + _staffpayroll['PhilHealth'] + _staffpayroll['Pagibig']; 
+                  });
+                },
+                  decoration: InputDecoration(
+                    //contentPadding: EdgeInsets.symmetric(vertical: 2),
+                    hintText: deduction['amount'].toStringAsFixed(2),
+                    hintStyle: TextStyle(fontFamily: 'InriaSans'),
+                    border: InputBorder.none,
+                  ),
+                  style: TextStyle(fontSize: 13),
+                  textAlign: TextAlign.center, // Center align horizontally
+                  textAlignVertical: TextAlignVertical.center, // Center align vertically
+                ),
+              )
+            ],
+          )
+        );
+      }
+    );
  }
+
+}
+ 
+
+ 
 
 Widget oldComputeDialog(){
   return Center(

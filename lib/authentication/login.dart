@@ -43,94 +43,112 @@ class _LoginState extends State<Login> {
   }
 
   _checkIfUser(String username, String password) async {
-  DatabaseService databaseService = DatabaseService();
+    DatabaseService databaseService = DatabaseService();
 
-  // Declare progressContext outside the showDialog function
-      BuildContext? progressContext;
+    // Declare progressContext outside the showDialog function
+        BuildContext? progressContext;
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      // Update progressContext inside the showDialog function
-      progressContext = context;
-      return Dialog(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(color: Colors.green,),
-              SizedBox(height: 20),
-              Text('Loging in...'),
-            ],
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        // Update progressContext inside the showDialog function
+        progressContext = context;
+        return Dialog(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.green,),
+                SizedBox(height: 20),
+                Text('Loging in...'),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-  
-  QuerySnapshot usernameQuerySnapshot = await _db
-   .collection('Users')
-   .where('userName', isEqualTo: username)
-   .where('password', isEqualTo: password)
-   .get();
-
-   QuerySnapshot staffIdQuerySnapshot = await _db
+        );
+      },
+    );
+    
+    QuerySnapshot usernameQuerySnapshot = await _db
     .collection('Users')
-    .where(FieldPath.documentId, isEqualTo: username)
+    .where('userName', isEqualTo: username)
     .where('password', isEqualTo: password)
     .get();
 
-  
-   if(usernameQuerySnapshot.docs.isNotEmpty){
-      // Get the first document in the query snapshot
-    QueryDocumentSnapshot user = usernameQuerySnapshot.docs.first;
+    QuerySnapshot staffIdQuerySnapshot = await _db
+      .collection('Users')
+      .where(FieldPath.documentId, isEqualTo: username)
+      .where('password', isEqualTo: password)
+      .get();
+
     
-    // Access the document ID
-    String userId = user.id;
+    if(usernameQuerySnapshot.docs.isNotEmpty){
+        // Get the first document in the query snapshot
+      QueryDocumentSnapshot user = usernameQuerySnapshot.docs.first;
+      
+      // Access the document ID
+      String userId = user.id;
 
-    Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
+      Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
+        if (progressContext != null) {
+          Navigator.pop(progressContext!);
+        }
+        if(userInfo['accessKey'] == null){
+          showDialog(context: context, builder: 
+          (_) => AlertDialog(title: Text("Error"), content: Text("Your Account needs to be approved!"),));
+        }else if(userInfo['accessKey'] == 'Basic'){
+          showDialog(context: context, builder: 
+          (_) => AlertDialog(title: Text("Error"), content: Text("You are not authorized to access this site!"),));
+        }
+        else{
+          Navigator.push( 
+          context, 
+          MaterialPageRoute( 
+              builder: (context) => 
+                  homepage(context, userInfo))); 
+        }
+
+    }else if(staffIdQuerySnapshot.docs.isNotEmpty){
+      QueryDocumentSnapshot user = staffIdQuerySnapshot.docs.first;
+      
+      // Access the document ID
+      String userId = user.id;
+      Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
+        if (progressContext != null) {
+          Navigator.pop(progressContext!);
+        }
+
+        if(userInfo['accessKey'] == null){
+          showDialog(context: context, builder: 
+          (_) => AlertDialog(title: Text("Error"), content: Text("Your Account needs to be approved!"),));
+        }else if(userInfo['accessKey'] == 'Basic'){
+          showDialog(context: context, builder: 
+          (_) => AlertDialog(title: Text("Error"), content: Text("You are not authorized to access this site!"),));
+        }
+        else{
+          Navigator.push( 
+          context, 
+          MaterialPageRoute( 
+              builder: (context) => 
+                  homepage(context, userInfo))); 
+        }
+
+    }
+    else{
       if (progressContext != null) {
-        Navigator.pop(progressContext!);
-      }
-      Navigator.push( 
-       context, 
-       MaterialPageRoute( 
-           builder: (context) => 
-              homepage(context, userInfo))); 
-
-   }else if(staffIdQuerySnapshot.docs.isNotEmpty){
-    QueryDocumentSnapshot user = staffIdQuerySnapshot.docs.first;
-    
-    // Access the document ID
-    String userId = user.id;
-    Map<String, dynamic> userInfo = await databaseService.fetchUserDetails(userId);
-      if (progressContext != null) {
-        Navigator.pop(progressContext!);
-      }
-
-      Navigator.push( 
-       context, 
-       MaterialPageRoute( 
-           builder: (context) => 
-              homepage(context, userInfo))); 
-
-   }
-   else{
-    if (progressContext != null) {
-        Navigator.pop(progressContext!);
-      }
-     showDialog(context: context, builder: 
-     (_) => AlertDialog(title: Text("Error"), content: Text("Invalid credentials entered. Please Try Again!"),));
-   }
-}
+          Navigator.pop(progressContext!);
+        }
+      showDialog(context: context, builder: 
+      (_) => AlertDialog(title: Text("Error"), content: Text("Invalid credentials entered. Please Try Again!"),));
+    }
+  }
  
  Widget homepage(BuildContext context, Map<String, dynamic> userInfo) {
     return MaterialApp(
       title: 'Haul-A-Day Website',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,

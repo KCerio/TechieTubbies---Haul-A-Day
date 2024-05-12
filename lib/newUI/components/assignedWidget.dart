@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
-import 'package:haul_a_day_web/newUI/components/assignDialog.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/assignDialog.dart';
 
 class AssignedWidget extends StatefulWidget {
   final List<Map<String, dynamic>> orderDetails;
@@ -100,10 +100,11 @@ class _AssignedWidgetState extends State<AssignedWidget> {
       itemCount: toBeAssigned.length,
       options: CarouselOptions(
         scrollDirection: Axis.horizontal,
+        enableInfiniteScroll: false, // Set this to false
+        //height: 230,
         //aspectRatio: 16/9,
         viewportFraction: 0.3 ,// Adjust this value to change the number of items seen in every page
         initialPage: 0,
-        enableInfiniteScroll: true,
         reverse: false,
         autoPlay: false,
         autoPlayInterval: Duration(seconds: 3),

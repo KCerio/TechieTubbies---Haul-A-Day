@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'package:haul_a_day_web/newUI/components/computeDialog.dart';
-import 'package:haul_a_day_web/newUI/components/setpayrate.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/computeDialog.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/setpayrate.dart';
 import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/service/payrollService.dart';
 import 'package:intl/intl.dart';
@@ -40,7 +40,7 @@ class _PayrollState extends State<Payroll> {
     try {
       DatabaseService databaseService = DatabaseService();
       PayrollService payrollService = PayrollService();
-      List<Map<String, dynamic>> staffs = await databaseService.fetchStaffList();
+      List<Map<String, dynamic>> staffs = await databaseService.fetchOPStaffList();
       Map<String, dynamic> rates = await payrollService.getPayRate();
       setState(() {
         _staffs = staffs;
@@ -665,7 +665,7 @@ class _PayrollState extends State<Payroll> {
   void getAccomplishedDelivery(String staffId)async{
     PayrollService payrollService = new PayrollService();
     List<String> deliveries = await payrollService.accomplishedDeliveries(staffId);
-    print('Accomplished Deliveries: $deliveries');
+    //print('Accomplished Deliveries: $deliveries');
     setState(() {
       _deliveries = deliveries;
     });
@@ -676,7 +676,7 @@ class _PayrollState extends State<Payroll> {
     DateTime now = DateTime.now();
     String dateToday = DateFormat('MMMM dd, yyyy').format(now);
     Size size = MediaQuery.of(context).size;
-    getAccomplishedDelivery(aStaff['staffId']);
+    //getAccomplishedDelivery(aStaff['staffId']);
     return Container(
       width: size.width * 0.5,
       color: const Color(0xFFFF95E),

@@ -1,18 +1,32 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/accApprovalDialog.dart';
 import 'package:haul_a_day_web/service/database.dart';
+import 'package:intl/intl.dart';
 
 class StaffList extends StatefulWidget {
-  const StaffList({super.key});
+  final String userId;
+  final String accessKey;
+  const StaffList({super.key, required this.userId, required this.accessKey});
 
   @override
   State<StaffList> createState() => _StaffListState();
 }
 
 class _StaffListState extends State<StaffList> {
-
+  List<Map<String, dynamic>> filterStaff = [];
   List<Map<String, dynamic>> _staffs = [];
+  List<Map<String, dynamic>> _management = [];
   Map<String, dynamic> selectedStaff = {};
+  //List<int> sub= [1,2,3,4,5,7,8,9,3];
+  List<Map<String, dynamic>> toBeApproved = [];
   bool selectaStaff = false;
+  String _selectedFilter = 'All';
+  String _selectedSortBy = 'Name'; // Default sorting option
+  String searchQuery = '';
+  TextEditingController _searchcontroller = TextEditingController();
+  bool notExist = false;
+
 
   @override
   void initState() {
@@ -23,14 +37,126 @@ class _StaffListState extends State<StaffList> {
 
   Future<void> _initializeStaffData() async {
     try {
+      print(widget.accessKey);
       DatabaseService databaseService = DatabaseService();
-      List<Map<String, dynamic>> staffs = await databaseService.fetchStaffList();
+      List<Map<String, dynamic>> management = await databaseService.fetchManagementStaffList();
+      List<Map<String, dynamic>> staffs = await databaseService.fetchOPStaffList();
+      List<Map<String, dynamic>> allstaffs = [];
+      if(widget.accessKey == 'superAdmin'){
+        allstaffs = management + staffs;
+      }else if(widget.accessKey == 'Admin'){
+        allstaffs = staffs;
+      }
+      for(Map<String, dynamic> account in allstaffs){
+        if(account['accessKey']==null){
+          toBeApproved.add(account);
+        }
+        else{
+          if(account['position'] != 'Driver' && account['position'] != 'Helper'){
+            _management.add(account);
+          }
+        }
+      }
+      
       setState(() {
+        //_management = management;
+        filterStaff = _management + staffs;
         _staffs = staffs;
       });
+      sortList(filterStaff,_selectedSortBy);
     } catch (e) {
       print("Error fetching data: $e");
     }
+  }
+
+  void applyFilter(String filter){
+    if(filter == 'Management'){
+      setState(() {
+        filterStaff = _management;
+        sortList(filterStaff,_selectedSortBy);
+      });
+    } else if(filter == 'Operational'){
+      setState(() {
+        filterStaff = _staffs;
+        sortList(filterStaff,_selectedSortBy);
+      });
+    } else{
+      setState(() {
+        filterStaff = _management + _staffs;
+        sortList(filterStaff,_selectedSortBy);
+      });
+    }
+  }
+
+  void sortList(List<Map<String, dynamic>> list, String sortBy) {
+    print('here');
+    // Comparator function to compare two maps based on the specified key
+    if (sortBy == 'Name'){
+      sortBy = 'firstname';
+    }else if (sortBy == 'Staff ID'){
+      sortBy = 'staffId';
+    }else if(sortBy == 'Position'){
+      sortBy = 'position';
+    }
+    int compare(Map<String, dynamic> a, Map<String, dynamic> b) {
+      // Access the values of the specified key from each map
+      var aValue = a[sortBy];
+      var bValue = b[sortBy];
+
+      // Compare the values and return the result
+      if (aValue is String && bValue is String) {
+        // For string comparison
+        return aValue.compareTo(bValue);
+      } else if (aValue is int && bValue is int) {
+        // For integer comparison
+        return aValue.compareTo(bValue);
+      } else {
+        // Handle other types if needed
+        return 0;
+      }
+    }
+    // Sort the list using the comparator function
+    list.sort(compare);
+    //print('Sorted list: $list');
+    setState(() {
+      filterStaff = list;
+    });
+  }
+
+  void searchStaff(List<Map<String, dynamic>> originalList, String searchQuery) {
+    List<Map<String, dynamic>> filteredList = [];
+    if(searchQuery != ''){
+      // Convert the search query to lowercase for case-insensitive matching
+      final query = searchQuery.toLowerCase();
+
+      // Filter the original list based on the search query
+      filteredList = originalList.where((map) {
+        // Iterate through each key-value pair in the map
+        // and check if any value contains the search query
+        return map.values.any((value) {
+          if (value is String) {
+            // If the value is a string, check if it contains the search query
+            return value.toLowerCase().contains(query);
+          }
+          // If the value is not a string, convert it to a string and check if it contains the search query
+          return value.toString().toLowerCase().contains(query);
+        });
+      }).toList();
+      print("Searched List: $filteredList");
+      
+    }
+
+    if(filteredList.isEmpty){
+      setState(() {
+        notExist = true;
+      });
+    }
+    else{
+      setState(() {
+        filterStaff = filteredList;
+      });
+    }
+    
   }
 
 
@@ -41,144 +167,553 @@ class _StaffListState extends State<StaffList> {
     return SafeArea(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return Row(
-            children: [
-              // Left side
-              Expanded(
-                flex: 6,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(50, 16, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical:10),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          const Padding(
-                            padding:
-                                EdgeInsets.only(
-                                    left: 10.0),
-                            child: Text(
-                              'Staff List',
-                              style: TextStyle(
-                                  fontSize: 35,
-                                  fontFamily: 'Itim',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black),
-                            ),
-                          ),
-                          const Spacer(),
-
-                          //Search Bar
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                fillColor: const Color.fromRGBO(199, 196, 196, 0.463),
-                                filled: true,
-                                hintText: "Search Staff",
-                                border: const OutlineInputBorder(
-                                  borderSide: BorderSide.none,
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                                ),
-                                suffixIcon: InkWell(
-                                  onTap:(){},
-                                  child:const Icon(Icons.search, color: Colors.black,)
-                                )                    
-                              ),                    
-                            ),
-                          ),
-                          SizedBox(width: 20,)
-                        ],
-                      ),
-                      //const SizedBox(height: 10,),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(
-                                25, 2, 0, 0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Add truck functionality here
-                          },
-                          style:
-                              ElevatedButton.styleFrom(
-                            shape:
-                                const RoundedRectangleBorder(
-                              borderRadius: BorderRadius
-                                  .horizontal(
-                                left:
-                                    Radius.circular(2),
-                                right:
-                                    Radius.circular(2),
-                              ),
-                            ),
-                            backgroundColor: Colors
-                                    .grey[
-                                300], // Background color of the button
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Add New Staff',
-                            style: TextStyle(
-                                fontWeight:
-                                    FontWeight.bold,
-                                color: Colors.black),
+                      Container(
+                        alignment: Alignment.centerLeft,
+                        
+                        child: const Text(
+                          'Staff Directory',
+                          style: TextStyle(
+                            fontFamily: 'Itim',
+                            fontSize: 36
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Container(
-                        height: size.height*0.68,
-                        child: _staffs.isEmpty 
-                          ? Container(
-                            alignment: Alignment.center,
-                            child: CircularProgressIndicator()
-                            ) 
-                        : Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                //thy list creates the containers for all the trucks
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                  itemCount: _staffs.length,
-                                  itemBuilder: (context, index) {
-                                    return buildStaffContainer(_staffs[index]);
-                                  },
-                                ),
-                              ],
-                            )
-                          ),
-                        )
-                      ),
-                      //const SizedBox(height: 20),
-                                          
                     ],
                   ),
                 ),
-              ),
-              // Right panel for Truck
-              Expanded(
-                flex: 4,
-                child: selectaStaff == true 
-                ? Container(
-                  height: size.height*0.87,
-                  color: Colors.green.shade50,
-                  child: staffPanel(selectedStaff)
-                  )
-                :Container(
-                  height: size.height*0.87,
-                  padding: EdgeInsets.symmetric(horizontal: 100, vertical:50),
-                  child: unselectedRightPanel()
-                  )
-              ),
-            ],
+                Expanded(
+                  flex: 9,
+                  child: LayoutBuilder(
+                   builder: (context,constraints) {
+                    double width = constraints.maxWidth;
+                    double height = constraints.maxHeight;
+                    //print('$width , $height');
+                     return _staffs.isEmpty && _management.isEmpty ? const Center(child: CircularProgressIndicator(),)
+                    :SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(100, 0, 100, 10),
+                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                         children: [
+                            Divider(),
+                            Row( //Account Approval Text and counter
+                              children: [
+                                Container(
+                                padding: const EdgeInsets.only(bottom: 10, top:10),
+                                  alignment: Alignment.centerLeft,
+                                  child: const Text(
+                                    'Account Approval',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 20,),
+                                Container(
+                                  width: 30,
+                                  height: 30,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.green,
+
+                                  ),
+                                  child: Text(
+                                    toBeApproved.length.toString(),
+                                    style: const TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                            const SizedBox(height:12),
+                            // Account Approval Carousel
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              height: 250, // Set a fixed height for the container
+                              width: double.infinity, // Make the container expand horizontally
+                              decoration: const BoxDecoration(color: Color.fromARGB(109, 223, 222, 222)),
+                              child: toBeApproved.length == 0 
+                              ? Container(
+                                height: 300,
+                                child: const Center(
+                                  child: Text(
+                                    'No accounts to be approved',
+                                    style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold
+                                      ),  
+                                    )
+                                  ),
+                                )          
+                              : CarouselSlider.builder(
+                                itemCount: toBeApproved.length,
+                                options: CarouselOptions(
+                                  scrollDirection: Axis.horizontal,
+                                  enableInfiniteScroll: false, // Set this to false
+                                  height: 300,
+                                  //aspectRatio: 16/9,
+                                  viewportFraction: 0.3 ,// Adjust this value to change the number of items seen in every page
+                                  initialPage: 0,
+                                  reverse: false,
+                                  autoPlay: false,
+                                  autoPlayInterval: Duration(seconds: 3),
+                                  autoPlayAnimationDuration: Duration(milliseconds: 800),
+                                  autoPlayCurve: Curves.fastOutSlowIn,
+                                  enlargeCenterPage: true,
+                                  onPageChanged: (index, reason) {
+                                    // Your callback
+                                  },
+                                  scrollPhysics: BouncingScrollPhysics(),
+                                // itemMargin: 10.0, // Adjust this value to change the distance between widgets
+                                ),
+                                itemBuilder: (BuildContext context, int index, int realIndex) {
+                                  return accountApproval(toBeApproved[index]);
+                                },
+                              )
+                            ),
+
+
+                            const SizedBox(height:12),
+                            Divider(),
+                            const SizedBox(height:12),
+
+                            Container(
+                              width: width,
+                              height: 1000,
+                              padding: EdgeInsets.all(16),
+                              color: Color.fromARGB(109, 223, 222, 222),
+                              child: LayoutBuilder(
+                                builder: (context,constraints) {
+                                  double width = constraints.maxWidth;
+                                  double height = constraints.maxHeight;
+                                  return Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      //Filter Container
+                                      Expanded(
+                                        flex: 2,
+                                        child: LayoutBuilder(
+                                            builder: (context,constraints) {
+                                              double width = constraints.maxWidth;
+                                              double height = constraints.maxHeight;
+                                              return Container(
+                                                height: height*0.36,
+                                                decoration: BoxDecoration(
+                                                  color: Color.fromARGB(109, 223, 222, 222),
+                                                  border: Border.all(color: Colors.green)
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      width: width,
+                                                      color: Color.fromARGB(255, 87, 189, 90),
+                                                      padding: EdgeInsets.all(8.0),
+                                                      child: Text('Filters',
+                                                        style: TextStyle(
+                                                          color:Colors.white,
+                                                          fontFamily: 'Inter',
+                                                          fontSize: 22,
+                                                          fontWeight: FontWeight.bold
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      padding: EdgeInsets.all(10),
+                                                      color: Colors.white,
+                                                      width: width,
+                                                      height: height *0.25,
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          const Text(
+                                                            'Filter list by:',
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              fontStyle: FontStyle.italic,
+                                                              color: Colors.grey
+                                                            )
+                                                          ),
+                                                          const SizedBox(height: 10),
+                                                          Row(
+                                                        children: [
+                                                          Radio<String>(
+                                                            value: 'All',
+                                                            groupValue: _selectedFilter,
+                                                            onChanged: (value) {
+                                                              setState(() {
+                                                                _selectedFilter = value!;
+                                                              });
+                                                              print(_selectedFilter);
+                                                            },
+                                                          ),
+                                                          Text('All'),
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Radio<String>(
+                                                            value: 'Management',
+                                                            groupValue: _selectedFilter,
+                                                            onChanged: (value) {
+                                                              setState(() {
+                                                                _selectedFilter = value!;
+                                                              });
+                                                              print(_selectedFilter);
+                                                            },
+                                                          ),
+                                                          Text('Management'),
+                                                        ],
+                                                      ),
+                                                      
+                                                      Row(
+                                                        children: [
+                                                          Radio<String>(
+                                                            value: 'Operational',
+                                                            groupValue: _selectedFilter,
+                                                            onChanged: (value) {
+                                                              setState(() {
+                                                                _selectedFilter = value!;
+                                                              });
+                                                              print(_selectedFilter);
+                                                            },
+                                                          ),
+                                                          Text('Operational'),
+                                                        ],
+                                                      )
+                                                        ],
+                                                      ),
+                                                    ),                                                    
+                                                    Container(
+                                                      padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                                                      height: height *0.055,
+                                                      width: width,
+                                                      color: Color.fromARGB(109, 223, 222, 222),
+                                                      child: ElevatedButton(
+                                                        onPressed: (){
+                                                         applyFilter(_selectedFilter);
+                                                        }, 
+                                                        style: ButtonStyle(
+                                                          backgroundColor: MaterialStateProperty.all<Color>(
+                                                              Color.fromARGB(220, 92, 201, 95)
+                                                            ),
+                                                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                            RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius.circular(8),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        child: const Text(
+                                                          'Apply Filter',
+                                                          style: TextStyle(
+                                                            fontFamily: 'InriaSans',
+                                                            fontSize: 16,
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.bold                                             
+                                                          ),
+                                                        ),
+                                                      )                  ,
+                                                    )
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                      ),
+                                      Expanded(
+                                        flex: 8,
+                                        child: LayoutBuilder(
+                                          builder: (context,constraints) {
+                                            double width = constraints.maxWidth;
+                                            double height = constraints.maxHeight;
+                                            return Container(
+                                              padding: EdgeInsets.only(left: 16),
+                                              //color: Colors.green,
+                                              child: Column(
+                                                children: [
+                                                  Container(
+                                                    width: width,
+                                                    child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Row(
+                                                          children: [
+                                                            const SizedBox(width: 10,),
+                                                            Text('Sort by: '),
+                                                            SizedBox(width: 8),
+                                                            DropdownButton<String>(
+                                                              value: _selectedSortBy,
+                                                              onChanged: (String? newValue) {
+                                                                setState(() {
+                                                                  _selectedSortBy = newValue!;
+                                                                  sortList(filterStaff,_selectedSortBy);
+                                                                  // Implement sorting logic here based on the selected option
+                                                                });
+                                                              },
+                                                              items: <String>['Name', 'Staff ID', 'Position']
+                                                                  .map<DropdownMenuItem<String>>((String value) {
+                                                                return DropdownMenuItem<String>(
+                                                                  value: value,
+                                                                  child: Text(value),
+                                                                );
+                                                              }).toList(),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              width: width*0.25,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white, // White background color
+                                                                borderRadius: BorderRadius.circular(8),
+                                                              ),
+                                                              child: TextField(
+                                                                controller: _searchcontroller,
+                                                                onSubmitted: (_){
+                                                                  searchStaff(filterStaff, _searchcontroller.text);
+                                                                },
+                                                                onChanged: (value){
+                                                                  if(value == ''){
+                                                                    setState(() {
+                                                                      //if(_selectedFilter == ''){_selectedFilter = 'All';}
+                                                                      applyFilter(_selectedFilter);
+                                                                      notExist = false;
+                                                                    });
+                                                                  }
+                                                                },
+                                                                decoration: InputDecoration(
+                                                                  hintText: 'Search...',
+                                                                  border: OutlineInputBorder(
+                                                                    borderRadius: BorderRadius.circular(8),
+                                                                    borderSide: BorderSide.none, // Hide border
+                                                                  ),
+                                                                  contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            SizedBox(width: 10),
+                                                            Container(
+                                                              decoration: BoxDecoration(
+                                                                color: Color.fromARGB(255, 87, 189, 90), // Blue color for the search icon button
+                                                                borderRadius: BorderRadius.circular(8),
+                                                              ),
+                                                              child: IconButton(
+                                                                onPressed: () {
+                                                                  // Implement search functionality here
+                                                                  searchStaff(filterStaff, _searchcontroller.text);
+                                                                },
+                                                                icon: Icon(Icons.search),
+                                                                color: Colors.white, // White color for the search icon
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+
+                                                  const SizedBox(height: 16),
+                                                  
+                                                  Expanded(
+                                                    child: Container(
+                                                      padding: EdgeInsets.all(16),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        //border: Border.all(color: Colors.grey)
+                                                      ),
+                                                      child: notExist == true 
+                                                      ? Container(
+                                                        alignment: Alignment.topCenter,
+                                                        padding: EdgeInsets.only(top: 50),
+                                                        width: width,
+                                                        child: Text('Employee does not exist.',
+                                                            style: TextStyle(
+                                                              fontFamily: 'Inter',
+                                                              fontSize: 20,
+                                                              fontWeight: FontWeight.bold
+                                                            ), 
+                                                          ),
+                                                      )
+                                                      : LayoutBuilder(
+                                                        builder: (BuildContext context, BoxConstraints constraints) {
+                                                          return SingleChildScrollView(
+                                                            child: Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                              children: [
+                                                                // The list creates the containers for all the trucks
+                                                                GridView.builder(
+                                                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                                                    crossAxisCount: 4,
+                                                                    mainAxisSpacing: 10,
+                                                                    crossAxisSpacing: 10,
+                                                                  ),
+                                                                  shrinkWrap: true,
+                                                                  physics: const NeverScrollableScrollPhysics(),
+                                                                  itemCount: filterStaff.length,
+                                                                  itemBuilder: (context, index) {
+                                                                    return ConstrainedBox(
+                                                                      constraints: BoxConstraints(
+                                                                        minHeight: 250, // Adjust the height as per your requirement
+                                                                      ),
+                                                                      child: buildStaffContainer(filterStaff[index]),
+                                                                    );
+                                                                  },
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                      
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                }
+                              ),
+                            )
+                          ]
+                        )
+                      );
+                    }
+                  ),
+                )
+              ],
+            ),
           );
         }
       ),
     );
                       
+  }
+
+  Widget accountApproval(Map<String, dynamic> account){
+    String registeredDate;
+    if (account['registeredDate'] is String) {
+      registeredDate = account['registeredDate'] ?? ' ';
+    } else if(account['registeredDate'] == null){
+      registeredDate = ' ';
+    }
+    else {
+      registeredDate = DateFormat('MMM dd, yyyy').format(account['registeredDate'].toDate());
+    }
+
+    return InkWell(
+      onTap: ()async {
+        Map<String, dynamic>? approval = await showDialog<Map<String, dynamic>>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              contentPadding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+              content: AccountApprovalDialog(
+                account: account,
+                userId: widget.userId,
+                access: (value) {
+                  Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                },
+              ),
+            );
+          },
+        );
+
+        if (approval != null) {
+          print(approval);
+          if (approval['accessKey'] != null) {
+            print('Account: ${approval['accessKey']}');
+            setState(() {
+              account['accessKey'] = approval['accessKey'];
+              filterStaff.add(account);
+              if(approval['accessKey'] =='Basic') {
+                _staffs.add(account);
+              }else{
+                _management.add(account);
+              }
+              applyFilter(_selectedFilter);
+              sortList(filterStaff, _selectedSortBy);
+              toBeApproved.remove(account);
+            });
+          } else if (approval['remove'] == true) {
+            toBeApproved.remove(account);
+          }
+        }
+
+      },
+      child: Container(
+        width: 200,
+        height: 220,
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 87, 189, 90),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.black)
+        ),
+        child: Column(
+          children: [
+            Text(
+              account['position'],
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.bold
+              ),
+            ),
+            Container(
+              width:200,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.white, 
+                border: Border(
+                  top: BorderSide(color: Colors.black, width: 1.0,),
+                  bottom: BorderSide(color: Colors.black, width: 1.0,),
+                ),
+              ),
+              child: Image.network(account['pictureUrl'],fit: BoxFit.scaleDown,)
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '${account['firstname']} ${account['lastname']}',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 18,
+                fontWeight: FontWeight.bold
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              registeredDate,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 14,
+                
+              ),
+            ),
+          ],
+        )
+      ),
+    );
   }
 
   //for the list
@@ -201,26 +736,30 @@ class _StaffListState extends State<StaffList> {
         });
       },
       child: Container(
-        width: 500,
+        width: 200,
+        
         margin: const EdgeInsets.fromLTRB(
             40, 10, 40, 10),
-        padding: const EdgeInsets.fromLTRB(
-            10, 0, 0, 0),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-              color: Colors.black),
+              color: Colors.grey,
+              width: 2),
+          borderRadius: BorderRadius.circular(15)
         ),
-        child: Row(
+        child: Column(
           children: [
             //truckPicture
             CircleAvatar(
-              radius: 40,
+              radius: 50,
               backgroundColor:
               Colors.white,
-              backgroundImage: aStaff['pictureUrl'] != null ? NetworkImage(aStaff['pictureUrl']): Image.asset('images/user_pic.png').image,
+              backgroundImage: aStaff['pictureUrl'] != null
+                ? NetworkImage(aStaff['pictureUrl'])
+                : Image.asset('images/user_pic.png').image,
             ),
-            const SizedBox(width: 5),
+            const Spacer(),
             Column(
               crossAxisAlignment:
               CrossAxisAlignment
@@ -254,7 +793,9 @@ class _StaffListState extends State<StaffList> {
               ],
             ),
             const Spacer(),
-            Column(
+            aStaff['position'] != 'Driver' && aStaff['position'] != 'Helper'
+            ? Container()
+            : Column(
                 crossAxisAlignment:
                 CrossAxisAlignment.end,
                 children: [
@@ -262,30 +803,18 @@ class _StaffListState extends State<StaffList> {
                     aStaff['assignedSchedule'] == 'none' || aStaff['assignedSchedule'] == null
                         ? 'Available'        
                           : 'Busy',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight:
                             FontWeight.bold,
                         color:
-                            Colors.green,
+                            aStaff['assignedSchedule'] == 'none' || aStaff['assignedSchedule'] == null
+                            ? Colors.green        
+                            : Colors.blue,
                         fontSize: 20
                         ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    aStaff['assignedSchedule'] == 'none' || aStaff['assignedSchedule'] == null
-                        ? ''        
-                          : aStaff['assignedSchedule'] ,
-                    style: const TextStyle(
-                        fontWeight:
-                            FontWeight.bold,
-                        color:
-                            Colors.black),
-                  ),
-                  const SizedBox(height: 10),
-                  IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: (){},
-                  ),
+                  
                 ]),
             const SizedBox(width: 5),
           ],
@@ -293,7 +822,7 @@ class _StaffListState extends State<StaffList> {
       ),
     );
   }
-
+  
   // unselected Right Panel
   Widget unselectedRightPanel(){
     return Expanded(

@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 class PayrollService{
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+  DatabaseService _databaseService = DatabaseService();
   List<String> cebuRoutes = [
     'Tuburan',
     'Bantayan Island',
@@ -37,15 +37,21 @@ class PayrollService{
     }
   }
 
-  Future<double> computeNoOfDays(String route)async{
+  Future<Map<String, dynamic>> computeNoOfDays(String order)async{
+    Map<String,dynamic> orderData = await _databaseService.fetchOrderDetails(order);
+    String route = orderData['route'];
     Map<String,dynamic> rates = await getPayRate();
     double days = rates['loadingRate'];
+    print(route);
     if(cebuRoutes.contains(route)){
+      print('cenbuRoutes');
       days += rates['cebuRate'];
     }else if(nonCebuRoutes.contains(route)){
+      print('noncenbuRoutes');
       days += rates['noncebuRate'];
     }
-    return days;
+    Map<String,dynamic> numDays = {'order': '$order - $route', 'days': days};
+    return numDays;
   }
 
   void updatePayRate(int driverRate, int helperRate, int cebuRate, int loadingRate, int otherRate){
@@ -65,7 +71,63 @@ class PayrollService{
     }
   }
 
+  Future<Map<String, dynamic>> getDeduction(String staffId) async {
+    Map<String, dynamic> staffDeduction = {};
+    try {
+      DocumentSnapshot staffquery = await _firestore.collection('Payroll').doc(staffId).get();
+      // Handle the document snapshot
+      if (staffquery.exists) {
+        Map<String, dynamic> document = staffquery.data() as Map<String, dynamic>;
+        staffDeduction['staffId'] = staffquery.id;
+        staffDeduction.addAll(document);
+      } else {
+        print('no document');
+        // Set default values and create new document
+        await _firestore
+            .collection('Payroll')
+            .doc(staffId)
+            .set({
+              'SSS': 0,
+              'PhilHealth': 0, 
+              'Pagibig': 0,
+              'ClaimedStatus' : false,
+              'NetSalary': 0, 
+            });
 
+        // Fetch newly created document
+        DocumentSnapshot newStaffquery = await _firestore.collection('Payroll').doc(staffId).get();
+        Map<String, dynamic> newDocument = newStaffquery.data() as Map<String, dynamic>;
+        staffDeduction['staffId'] = newStaffquery.id;
+        staffDeduction.addAll(newDocument);
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error fetching document: $e');
+    }
+    return staffDeduction;
+  }
+
+
+  void updateDeduction(String staffId, String name, double amount)async{
+    try {
+      DocumentSnapshot staffquery = await _firestore.collection('Payroll').doc(staffId).get();
+      // Handle the document snapshot
+      if(staffquery.exists){
+        if(name == 'Pag-ibig'){
+          name = 'Pagibig';
+        }
+        await _firestore
+            .collection('Payroll')
+            .doc(staffId)
+            .update({
+             name : amount,
+            });
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error fetching document: $e');
+    }
+  }
 
   Future<List<String>> accomplishedDeliveries(String staffId) async {
     List<String> deliveries = [];
@@ -118,6 +180,12 @@ class PayrollService{
     //print('$orderId: ${weekDifference + 1}');
     // Week number is the difference plus one
     return weekDifference + 1;
+  }
+
+  Future<Map<String, int>> getWeekClass(String order)async{
+    Map<String, int> weekClass = {};
+    
+    return weekClass;
   }
 
   Future<Map<int, List<Map<String, dynamic>>>> groupOrders(List<Map<String, dynamic>> orders) async {

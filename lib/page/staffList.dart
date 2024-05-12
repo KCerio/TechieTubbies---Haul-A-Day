@@ -96,7 +96,7 @@ class _StaffListState extends State<StaffList> with SingleTickerProviderStateMix
   Future<void> _initializeStaffData() async {
     try {
       DatabaseService databaseService = DatabaseService();
-      List<Map<String, dynamic>> staffs = await databaseService.fetchStaffList();
+      List<Map<String, dynamic>> staffs = await databaseService.fetchOPStaffList();
       setState(() {
         _staffs = staffs;
       });

@@ -5,7 +5,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
-import 'package:haul_a_day_web/newUI/components/assignDialog.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/assignDialog.dart';
 import 'package:haul_a_day_web/newUI/components/deliveryReports.dart';
 import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:haul_a_day_web/page/orderscreen.dart';
@@ -818,7 +818,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                     width: (width/2 -16)/2-50,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
-                                      driver,
+                                     driver,
                                       style: const TextStyle(
                                         //fontFamily: 'InriaSans',
                                         fontSize: 15,
@@ -1447,7 +1447,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       height:tileheight,
       child: TimelineTile(
         endChild: statusContainer(
-            isAssigned? "Order Assigned": "Order Not Yet Assigned",
+            isAssigned? "Order Assigned - ${_order['assignedTruck']}": "Order Not Yet Assigned",
             assignedDate ?? "assignment in process",
             isAssigned? true: false),
         indicatorStyle: IndicatorStyle(

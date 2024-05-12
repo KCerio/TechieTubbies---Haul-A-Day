@@ -473,7 +473,7 @@ class DatabaseService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchStaffList() async {
+  Future<List<Map<String, dynamic>>> fetchOPStaffList() async {
     try {
       QuerySnapshot userSnapshots = await _firestore
           .collection('Users')
@@ -495,6 +495,29 @@ class DatabaseService {
       throw Exception('Failed to fetch users: $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> fetchManagementStaffList() async {
+    try {
+      QuerySnapshot userSnapshots = await _firestore
+          .collection('Users')
+          .where('position', whereNotIn: ['Driver', 'Helper'])
+          .get();
+
+      List<Map<String, dynamic>> users = [];
+      userSnapshots.docs.forEach((DocumentSnapshot userSnapshot) {
+        if (userSnapshot.exists) {
+          Map<String, dynamic> userData = userSnapshot.data() as Map<String, dynamic>;
+          userData['id'] = userSnapshot.id; // Include the document ID
+          users.add(userData);
+        }
+      });
+
+      return users;
+    } catch (e) {
+      throw Exception('Failed to fetch users: $e');
+    }
+  }
+
 
   Future<List<Map<String, dynamic>>> fetchUnloadingSchedules(String orderID) async {
     try {

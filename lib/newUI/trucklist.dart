@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:haul_a_day_web/newUI/components/addTruckDialog.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/addTruckDialog.dart';
 import 'package:haul_a_day_web/service/database.dart';
 
 class TruckList extends StatefulWidget {

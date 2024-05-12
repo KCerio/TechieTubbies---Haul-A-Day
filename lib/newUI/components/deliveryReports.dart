@@ -66,10 +66,10 @@ class _DeliveryReportsState extends State<DeliveryReports> {
                 child: Text(
                   'No reports yet',
                   style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold
-                            ),  
+                      fontFamily: 'Inter',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold
+                    ),  
                   )
                 ),
             )
