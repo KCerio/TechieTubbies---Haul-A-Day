@@ -41,7 +41,7 @@ class _OrderDashboardState extends State<OrderDashboard> {
       if (widget.fetchOrderDetails == true) {
         setState(() {
           _filteredOrderDetails = widget.orderDetails;
-          print('${widget.fetchOrderDetails}, $_filteredOrderDetails');
+          //print('${widget.fetchOrderDetails}, $_filteredOrderDetails');
         });
       } else {
         _waitForFetchOrderDetails(); // Call the function again if fetchOrderDetails is not true
@@ -50,7 +50,7 @@ class _OrderDashboardState extends State<OrderDashboard> {
   }
 
   void searchOrder(List<Map<String, dynamic>> originalList, String searchQuery) {
-    List<Map<String, dynamic>> filteredList = [];
+    List<Map<String, dynamic>> filteredList = widget.orderDetails;
     if(searchQuery != ''){
       // Convert the search query to lowercase for case-insensitive matching
       final query = searchQuery.toLowerCase();
@@ -181,15 +181,14 @@ class _OrderDashboardState extends State<OrderDashboard> {
                                                   onSubmitted: (_){
                                                     searchOrder(_filteredOrderDetails, _searchcontroller.text);
                                                   },
-                                                  onChanged: (value){
-                                                    if(value == ''){
-                                                      setState(() {
-                                                        //if(_selectedFilter == ''){_selectedFilter = 'All';}
-                                                        // applyFilter(_selectedFilter);
-                                                        // notExist = false;
-                                                        _filteredOrderDetails = widget.orderDetails;
-                                                      });
-                                                    }
+                                                  onChanged: (value){                                            
+                                                    setState(() {
+                                                      //if(_selectedFilter == ''){_selectedFilter = 'All';}
+                                                      // applyFilter(_selectedFilter);
+                                                        notExist = false;
+                                                      _filteredOrderDetails = widget.orderDetails;
+                                                    });
+                                                    searchOrder(_filteredOrderDetails, _searchcontroller.text);
                                                   },
                                                   decoration: InputDecoration(
                                                     hintText: 'Search...',
