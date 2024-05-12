@@ -8,6 +8,8 @@ import 'package:haul_a_day_mobile/staffIDController.dart';
 import 'package:haul_a_day_mobile/truckTeamTab/truckteam_tab.dart';
 import 'package:haul_a_day_mobile/welcome_screen.dart';
 
+import 'create_account.dart';
+
 
 
 
@@ -265,7 +267,7 @@ class _LoginPageState extends State<LoginPage> {
                                 textAlign: TextAlign.center,
                               ),
                               TextButton(onPressed: (){
-                                //navigate
+                                Navigator.push(context, MaterialPageRoute(builder: (context) =>  CreateAccount()));
                               },
                                   child: Text(
                                     'Create Here',

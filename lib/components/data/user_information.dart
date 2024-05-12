@@ -1,5 +1,8 @@
 //getting user schedule
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class AccountInfo {
   final String pictureUrl;
@@ -16,6 +19,32 @@ class AccountInfo {
     required this.position,
     required this.registeredDate,
     required this.contactNumber,
+  });
+}
+
+class User {
+  final String pictureUrl;
+  final String staffID;
+  final String firstName;
+  final String lastName;
+  final String username;
+  final String departmentId;
+  final String position;
+  final String registeredDate;
+  final String contactNumber;
+  final String password;
+
+  User( {
+    required this.firstName,
+    required this.lastName,
+    required this.username,
+    required this.departmentId,
+    required this.pictureUrl,
+    required this.staffID,
+    required this.position,
+    required this.registeredDate,
+    required this.contactNumber,
+    required this.password,
   });
 }
 
@@ -94,4 +123,23 @@ Future<String> getPosition(String staffId)async{
     position = querySnapshot.docs.first['position'];
   }
   return position;
+}
+
+void createNewUser(User newUser)  {
+  FirebaseFirestore.instance.collection('Users').doc('${newUser.staffID}').set({
+   'assignedSchedule' : 'none',
+    'staffId' : newUser.staffID,
+    'firstname' : newUser.firstName,
+    'lastname' : newUser.lastName,
+    'userName' :newUser.username,
+    'password' :newUser.password,
+    'pictureUrl':newUser.pictureUrl,
+    'position':newUser.position,
+    'depart_id':newUser.departmentId,
+    'isApproved':false,
+    'registeredDate':newUser.registeredDate,
+    'contactNumber':newUser.contactNumber,
+    if(newUser.position=="Driver")
+      'truck':'',
+  });
 }
