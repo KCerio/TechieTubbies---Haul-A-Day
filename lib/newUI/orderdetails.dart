@@ -570,14 +570,14 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                       //Loading Info
                       Container(
                         alignment: Alignment.center,
-                        margin: EdgeInsets.fromLTRB(0, 0, 16, 0),
+                        margin: EdgeInsets.fromLTRB(0, 0, 8, 0),
                         //padding: EdgeInsets.fromLTRB(0, 10, 100, 10),
                         // decoration: BoxDecoration(
                         //   border: Border.all(color: Colors.grey),
                         //   borderRadius: BorderRadius.circular(15)
                         // ),
                         //color: Colors.brown,
-                        width: width/2 -16,
+                        width: width/2 -8,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -593,12 +593,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             ),
                             const SizedBox(height: 5),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: const Text(
                                       'Cargo Type',
@@ -612,7 +612,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   ),
                                   //const SizedBox(width: 50,),
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2)/2,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
                                       order['cargoType'],
@@ -627,12 +627,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: const Text(
                                       'Warehouse',
@@ -646,7 +646,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                   ),
                                   //const SizedBox(width: 50,),
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2)/2,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
                                       order['warehouse'],
@@ -661,12 +661,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: const Text(
                                       'Location',
@@ -678,9 +678,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       )
                                     ),
                                   ),
-                                  //const SizedBox(width: 50,),
+                                  //const SizedBox(width: 20,),
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2)/2,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
                                       order['loadingLocation'],
@@ -695,12 +695,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: const Text(
                                       'Date & Time',
@@ -712,9 +712,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       )
                                     ),
                                   ),
-                                  //const SizedBox(width: 50,),
+                                  //const SizedBox(width: 20,),
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2)/2,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
                                       '${order['loadingDate']} at ${order['loadingTime']}',
@@ -760,13 +760,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             ),
                             const SizedBox(height: 5),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: (width/2 -16)/2-50,
-                                    padding: EdgeInsets.only(left: 100),
+                                    width: (width/2 -16)/2-20,
+                                    padding: EdgeInsets.only(left: 50),
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: const Text(
                                       'Route',
@@ -778,9 +778,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       )
                                     ),
                                   ),
-                                  //const SizedBox(width: 50,),
+                                  //const SizedBox(width: 20,),
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
                                       order['route'],
@@ -795,13 +795,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: (width/2 -16)/2-50,
-                                    padding: EdgeInsets.only(left: 100),
+                                    width: (width/2 -16)/2-20,
+                                    padding: EdgeInsets.only(left: 50),
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: const Text(
                                       'Driver',
@@ -813,9 +813,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       )
                                     ),
                                   ),
-                                  //const SizedBox(width: 50,),
+                                  //const SizedBox(width: 20,),
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
                                       driver,
@@ -830,13 +830,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: (width/2 -16)/2-50,
-                                    padding: EdgeInsets.only(left: 100),
+                                    width: (width/2 -16)/2-20,
+                                    padding: EdgeInsets.only(left: 50),
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: const Text(
                                       'Helper',
@@ -848,9 +848,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       )
                                     ),
                                   ),
-                                  //const SizedBox(width: 50,),
+                                  //const SizedBox(width: 20,),
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
                                       Helper1,
@@ -865,12 +865,12 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: const Text(
                                       '',
@@ -881,9 +881,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                       )
                                     ),
                                   ),
-                                  //const SizedBox(width: 50,),
+                                  //const SizedBox(width: 20,),
                                   Container(
-                                    width: (width/2 -16)/2-50,
+                                    width: (width/2 -16)/2-20,
                                     //decoration: BoxDecoration(border: Border.all(color: Colors.black)),
                                     child: Text(
                                       Helper2,
@@ -1234,7 +1234,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                     Text(
                       unload['recipient'],
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1347,7 +1347,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     }
     
     return SizedBox(
-      height: constraints.maxHeight*0.8, // Constrain the height
+      height: constraints.maxHeight*0.77, // Constrain the height
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

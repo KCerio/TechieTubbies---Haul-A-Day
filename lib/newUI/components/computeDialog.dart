@@ -64,7 +64,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
   Widget build(BuildContext context) {
     return Container(
       width: 1250,
-      height: 800,
+      height: 820,
       //color: Colors.blue,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15.0),
@@ -141,13 +141,13 @@ class _ComputeDialogState extends State<ComputeDialog> {
             ),
           ),
           Expanded(
-            flex:8,
+            flex:10,
             child: LayoutBuilder(
               builder: (context,constraints) {
                 return Row(              
                   children: [
                     Container(
-                      margin: EdgeInsets.symmetric(horizontal: 20, vertical:16),
+                      margin: EdgeInsets.symmetric(horizontal: 20, vertical:10),
                       padding: EdgeInsets.symmetric(horizontal: 16, vertical:10),
                       width: constraints.maxWidth/2-41,
                       color: Colors.white,
@@ -166,7 +166,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 CircleAvatar(
-                                  radius: 50,
+                                  radius: 40,
                                   backgroundColor:
                                   Colors.white,
                                   backgroundImage: staff['pictureUrl'] != null
@@ -217,7 +217,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                           const SizedBox(height:10),
                           Container(
                             width: 350,
-                            height: 100,
+                            height: 95,
                             padding: EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
@@ -239,7 +239,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                   'Php 3,000.00',
                                   style: TextStyle(
                                     fontFamily: 'InriaSans',
-                                    fontSize: 40,
+                                    fontSize: 35,
                                     fontWeight: FontWeight.bold,
                                     color: Color.fromRGBO(56, 113, 193, 1)
                                   )
@@ -277,7 +277,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                 ],
                               ),
                           ),
-                          const SizedBox(height: 16,),
+                          const SizedBox(height: 12,),
 
                           Container(
                             width: 450,
@@ -307,7 +307,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                 ],
                               ),
                           ),
-                          const SizedBox(height: 16,),
+                          const SizedBox(height: 12,),
 
                           Container(
                             width: 450,
@@ -337,7 +337,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                 ],
                               ),
                           ),
-                          const SizedBox(height: 16,),
+                          const SizedBox(height: 12,),
 
                           Container(
                             width: 450,
@@ -385,7 +385,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                 ],
                               ),
                           ),
-                          const SizedBox(height: 50),
+                          const SizedBox(height: 30),
                           ElevatedButton(
                             onPressed: (){
                               
@@ -427,7 +427,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          //const SizedBox(height: 16),
+                          const SizedBox(height: 5),
                 
                           Container(
                             width: 500,
@@ -630,7 +630,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                               ],
                             ),
                           ),
-                          const SizedBox(height:20),
+                          const SizedBox(height:10),
                           
                           // total salary based from salary rate and no. of days
                           
@@ -741,7 +741,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                               ],
                             ),
                           ),
-                          const SizedBox(height:20),
+                          const SizedBox(height:8),
                           ElevatedButton(
                             onPressed: (){
                               

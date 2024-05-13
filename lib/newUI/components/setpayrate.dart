@@ -52,7 +52,7 @@ class _RateDialogState extends State<RateDialog> {
       )
     : Container(
       width: 700,
-      height: 750,
+      height: 800,
       //color: Colors.blue,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15.0),
@@ -115,7 +115,7 @@ class _RateDialogState extends State<RateDialog> {
             ),
           ),
           Expanded(
-            flex:7,
+            flex:8,
             child: Column(
               children: [
                 Container(
@@ -373,7 +373,7 @@ class _RateDialogState extends State<RateDialog> {
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   alignment: Alignment.center,
                   width: 700,
-                  height: 280,
+                  height: 258,
                   //color: Colors.blue,
                   // decoration: BoxDecoration(
                   //   border: Border(top: BorderSide(color:Colors.grey))
@@ -391,7 +391,7 @@ class _RateDialogState extends State<RateDialog> {
                       const SizedBox(height: 5,),
                       Container(                        
                         width: 600,
-                        height: 210,
+                        height: 200,
                         margin: EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
                           //color: Colors.yellow,

@@ -54,36 +54,36 @@ class _PayrollState extends State<Payroll> {
   
 
   Future<String> generateAndSavePDF() async {
-  final pdf = pdfLib.Document();
+    final pdf = pdfLib.Document();
 
-  // Add content to the PDF document
-  pdf.addPage(
-    pdfLib.Page(
-      build: (pdfLib.Context context) {
-        return pdfLib.Center(
-          child: pdfLib.Text('Hello World'),
-        );
-      },
-    ),
-  );
+    // Add content to the PDF document
+    pdf.addPage(
+      pdfLib.Page(
+        build: (pdfLib.Context context) {
+          return pdfLib.Center(
+            child: pdfLib.Text('Hello World'),
+          );
+        },
+      ),
+    );
 
-  // Get the document directory using path_provider package
-  final directory = await getApplicationDocumentsDirectory();
-  final String dirPath = directory.path;
+    // Get the document directory using path_provider package
+    final directory = await getApplicationDocumentsDirectory();
+    final String dirPath = directory.path;
 
-  // Construct the file path
-  final String filePath = path.join(dirPath, 'example.pdf');
+    // Construct the file path
+    final String filePath = path.join(dirPath, 'example.pdf');
 
-  // Save the PDF document to the document directory
-  final File file = File(filePath);
-  await file.writeAsBytes(await pdf.save());
+    // Save the PDF document to the document directory
+    final File file = File(filePath);
+    await file.writeAsBytes(await pdf.save());
 
-  // Print the file path for debugging
-  print('PDF saved at: $filePath');
+    // Print the file path for debugging
+    print('PDF saved at: $filePath');
 
-  // Return the file path
-  return filePath;
-}
+    // Return the file path
+    return filePath;
+  }
 
   void getLoadingDateRanges(Map<int, List<Map<String, dynamic>>> groupedOrders) {
     List<String> loadingDateRanges = [];
@@ -184,52 +184,49 @@ class _PayrollState extends State<Payroll> {
                         padding: const EdgeInsets.fromLTRB(25, 2, 0, 0),
                         child: Row(
                           children: [
-                            const Text(
-                              'Week: ',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            ElevatedButton(
-                                onPressed: () {
-                                  // Add truck functionality here
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.horizontal(
-                                      left: Radius.circular(2),
-                                      right: Radius.circular(2),
-                                    ),
-                                  ),
-                                  backgroundColor: Colors.grey[
-                                      300], // Background color of the button
-                                  elevation: 0,
-                                ),
-                                child: DropdownButton<String>(
-                                  value:
-                                      'From March 4 to March 9 2024', // Initially selected value
-                                  onChanged: (String? newValue) {
-                                    // Handle dropdown value change here
-                                  },
-                                  underline: Container(),
-                                  items: <String>[
-                                    'From March 4 to March 9 2024', // You can add more items here
-                                    // Add more dropdown items here
-                                  ].map<DropdownMenuItem<String>>(
-                                      (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(
-                                        value,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                )),
+                            // const Text(
+                            //   'Week: ',
+                            //   style: TextStyle(
+                            //     fontWeight: FontWeight.bold,
+                            //     color: Colors.black,
+                            //   ),
+                            // ),
+                            // ElevatedButton(
+                            //           onPressed: () {
+                            //             // Add truck functionality here
+                            //           },
+                            //           style: ElevatedButton.styleFrom(
+                            //             shape: const RoundedRectangleBorder(
+                            //               borderRadius: BorderRadius.horizontal(
+                            //                 left: Radius.circular(2),
+                            //                 right: Radius.circular(2),
+                            //               ),
+                            //             ),
+                            //             // backgroundColor: Colors.grey[
+                            //             //     300], // Background color of the button
+                            //             elevation: 0,
+                            //           ),
+                            //           child: DropdownButton<String>(
+                            //             value:
+                            //                 dateRange, // Initially selected value
+                            //             onChanged: (String? newValue) {
+                            //               dateRange = newValue;
+                            //             },
+                            //             underline: Container(),
+                            //             items: _loadingDateRanges.map<DropdownMenuItem<String>>(
+                            //                 (String value) {
+                            //               return DropdownMenuItem<String>(
+                            //                 value: value,
+                            //                 child: Text(
+                            //                   value,
+                            //                   style: const TextStyle(
+                            //                     fontWeight: FontWeight.bold,
+                            //                     color: Colors.black,
+                            //                   ),
+                            //                 ),
+                            //               );
+                            //             }).toList(),
+                            //           )),
                             const Spacer(),
                             ElevatedButton(
                               onPressed: () {
@@ -269,7 +266,7 @@ class _PayrollState extends State<Payroll> {
                       ),
                       const SizedBox(height: 20),
                       Container(
-                          height: size.height * 0.68,
+                          height: size.height * 0.66,
                           child: _staffs.isEmpty
                               ? Container(
                                   alignment: Alignment.center,
@@ -285,7 +282,7 @@ class _PayrollState extends State<Payroll> {
                                         //thy list creates the containers for all the trucks
                                         GridView.builder(
                                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 4,
+                                            crossAxisCount: 3,
                                             mainAxisSpacing: 8,
                                             crossAxisSpacing: 8,
                                           ),
@@ -399,49 +396,49 @@ class _PayrollState extends State<Payroll> {
                               padding: const EdgeInsets.fromLTRB(25, 2, 0, 0),
                               child: Row(
                                 children: [
-                                  const Text(
-                                    'Week: ',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        // Add truck functionality here
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.horizontal(
-                                            left: Radius.circular(2),
-                                            right: Radius.circular(2),
-                                          ),
-                                        ),
-                                        // backgroundColor: Colors.grey[
-                                        //     300], // Background color of the button
-                                        elevation: 0,
-                                      ),
-                                      child: DropdownButton<String>(
-                                        value:
-                                            dateRange, // Initially selected value
-                                        onChanged: (String? newValue) {
-                                          dateRange = newValue;
-                                        },
-                                        underline: Container(),
-                                        items: _loadingDateRanges.map<DropdownMenuItem<String>>(
-                                            (String value) {
-                                          return DropdownMenuItem<String>(
-                                            value: value,
-                                            child: Text(
-                                              value,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      )),
+                                  // const Text(
+                                  //   'Week: ',
+                                  //   style: TextStyle(
+                                  //     fontWeight: FontWeight.bold,
+                                  //     color: Colors.black,
+                                  //   ),
+                                  // ),
+                                  // ElevatedButton(
+                                  //     onPressed: () {
+                                  //       // Add truck functionality here
+                                  //     },
+                                  //     style: ElevatedButton.styleFrom(
+                                  //       shape: const RoundedRectangleBorder(
+                                  //         borderRadius: BorderRadius.horizontal(
+                                  //           left: Radius.circular(2),
+                                  //           right: Radius.circular(2),
+                                  //         ),
+                                  //       ),
+                                  //       // backgroundColor: Colors.grey[
+                                  //       //     300], // Background color of the button
+                                  //       elevation: 0,
+                                  //     ),
+                                  //     child: DropdownButton<String>(
+                                  //       value:
+                                  //           dateRange, // Initially selected value
+                                  //       onChanged: (String? newValue) {
+                                  //         dateRange = newValue;
+                                  //       },
+                                  //       underline: Container(),
+                                  //       items: _loadingDateRanges.map<DropdownMenuItem<String>>(
+                                  //           (String value) {
+                                  //         return DropdownMenuItem<String>(
+                                  //           value: value,
+                                  //           child: Text(
+                                  //             value,
+                                  //             style: const TextStyle(
+                                  //               fontWeight: FontWeight.bold,
+                                  //               color: Colors.black,
+                                  //             ),
+                                  //           ),
+                                  //         );
+                                  //       }).toList(),
+                                  //     )),
                                   const Spacer(),
                                   ElevatedButton(
                                     onPressed: () {
@@ -493,7 +490,7 @@ class _PayrollState extends State<Payroll> {
                                   //thy list creates the containers for all the trucks
                                   GridView.builder(
                                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 5,
+                                      crossAxisCount: 4,
                                       mainAxisSpacing: 15,
                                       crossAxisSpacing: 15,
                                     ),
