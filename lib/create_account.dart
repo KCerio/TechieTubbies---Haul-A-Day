@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:haul_a_day_mobile/components/data/user_information.dart';
+import 'package:haul_a_day_mobile/components/dateThings.dart';
 import 'package:haul_a_day_mobile/main.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart'; // Import 'package:flutter/services.dart' for TextInputFormatter
@@ -23,9 +24,7 @@ class _CreateAccountState extends State<CreateAccount> {
   TextEditingController staffId = TextEditingController();
   TextEditingController userName = TextEditingController();
   TextEditingController contactNumber = TextEditingController();
-  TextEditingController _dateController = TextEditingController(
-    text: DateFormat('MM/dd/yyyy').format(DateTime.now()),
-  );
+
 
 
   //form field
@@ -272,7 +271,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: Icon(FontAwesomeIcons.idCard,
                                 color: Colors.green[500]),
                             contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                            hintText: 'CUC-XXX', // Placeholder text
+                            hintText: 'CUC-xxx', // Placeholder text
                             hintStyle: TextStyle(
                                 color: Colors.grey[300],
                                 fontWeight: FontWeight.normal),
@@ -328,7 +327,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             if(value!.isEmpty){
                               return "Enter username";
                             }else{
-                              bool  isValidName = RegExp(r'^[a-zA-Z0-9]+(?:[._-]?[a-zA-Z0-9]+)*$').hasMatch(value);
+                              bool  isValidName = RegExp(r'^[a-zA-Z0-9]+(?:[._ -]?[a-zA-Z0-9]+)*$').hasMatch(value);
                               if(!isValidName){
                                 return "Invalid username";
                               }
@@ -340,7 +339,9 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: Icon(FontAwesomeIcons.at,
                                 color: Colors.green[500]),
                             contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                            hintText: 'john_doe', // Placeholder text
+                            hintText: (firstName.text.isEmpty || lastName.text.isEmpty)
+                                ?'Enter username'
+                                :'${firstName.text.isNotEmpty ? firstName.text[0].toLowerCase() : ''}${lastName.text.toLowerCase()}', // Placeholder text
                             hintStyle: TextStyle(
                                 color: Colors.grey[300],
                                 fontWeight: FontWeight.normal),
@@ -495,75 +496,7 @@ class _CreateAccountState extends State<CreateAccount> {
                         ),
                       ),
                       SizedBox(height: 20),
-                      Row(
-                        children: [
-                          SizedBox(width: 20),
-                          Text(
-                            'Registration Date',
-                            style: TextStyle(
-                              color: Colors.green[500],
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Visibility(
-                            visible: _dateController.text.isEmpty,
-                            child: Text(
-                              '*',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
 
-                      //date
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                        child: TextFormField(
-                          validator: (value){
-                            if(value!.isEmpty){
-                              return "Enter date of registration";
-                            }else{
-                              bool isDateValid = RegExp(r'^(0[1-9]|1[0-2])/(0[1-9]|[12]\d|3[01])/\d{4}$').hasMatch(value);
-                              if(!isDateValid){
-                                return "Date should be in a MM/DD/YYYY format";
-                              }
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                            });
-                          },
-                          controller: _dateController,
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(
-                              Icons.calendar_today,
-                              color: Colors.green[500],
-                            ),
-                            hintText: 'mm/dd/yyyy',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[300],
-                              fontWeight: FontWeight.normal,
-                            ),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.green[500]!),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                          ),
-                        )
-                      ),
-
-
-                      SizedBox(height: 20),
                       Row(
                         children: [
                           SizedBox(width: 20),
@@ -728,36 +661,60 @@ class _CreateAccountState extends State<CreateAccount> {
                       ElevatedButton(
                         onPressed: () async {
                           if(_formField.currentState!.validate()){
-                              User newUser = User(
-                                  firstName: firstName.text.trim(),
-                                  lastName: lastName.text.trim(),
-                                  username: userName.text.trim(),
-                                  departmentId: (_selectedRole=='Driver')?'OT_001':'OT_002',
-                                  pictureUrl: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png',
-                                  staffID: staffId.text.trim(),
-                                  position: _selectedRole,
-                                  registeredDate: _dateController.text.trim(),
-                                  contactNumber: contactNumber.text.trim(),
-                                  password: _passwordController.text.trim()
-                              );
 
-                              QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+                              QuerySnapshot staffIdSnapshot = await FirebaseFirestore.instance
                                   .collection('Users')
-                                  .where('staffId', isEqualTo: newUser.staffID)
+                                  .where('staffId', isEqualTo: staffId.text.trim())
                                   .get();
 
-                              if(querySnapshot.docs.isNotEmpty){
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      Icon(Icons.sim_card_alert_outlined, color: Colors.red,),
-                                      SizedBox(width: 5),
-                                      Text('Account already exists'),
-                                    ],
-                                  ),
-                                  duration: Duration(seconds: 2),
-                                );
+                              QuerySnapshot usernameSnapshot = await FirebaseFirestore.instance
+                                  .collection('Users')
+                                  .where('userName', isEqualTo: userName.text.trim())
+                                  .get();
+
+                              if(staffIdSnapshot.docs.isNotEmpty){
+                                showDialog(context: context, builder:
+                                    (_) =>  AlertDialog(title: Text("Error",
+                                        style: TextStyle(
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.w600,
+                                        fontSize: 20)),
+                                        content:  Row(
+                                          children: [
+                                            Icon(Icons.sim_card_alert_outlined, color: Colors.red,),
+                                            SizedBox(width: 5),
+                                            Text('Account already exists for \n${staffId.text.trim()}'),
+                                          ],
+                                        ),));
+
+                              }else if(usernameSnapshot.docs.isNotEmpty){
+                                showDialog(context: context, builder:
+                                    (_) =>  AlertDialog(title: Text("Error",
+                                    style: TextStyle(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 20)),
+                                  content:  Row(
+                                      children: [
+                                        Icon(Icons.sim_card_alert_outlined, color: Colors.red,),
+                                        SizedBox(width: 5),
+                                        Text('Account already exists for \n'
+                                            '${userName.text.trim()}'),
+                                      ],
+                                  ),));
                               }else{
+                                User newUser = User(
+                                    firstName: firstName.text.trim(),
+                                    lastName: lastName.text.trim(),
+                                    username: userName.text.trim(),
+                                    departmentId: (_selectedRole=='Driver')?'OT_001':'OT_002',
+                                    pictureUrl: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_640.png',
+                                    staffID: staffId.text.trim(),
+                                    position: _selectedRole,
+                                    registeredDate: getTimeDate(),
+                                    contactNumber: contactNumber.text.trim(),
+                                    password: _passwordController.text.trim()
+                                );
 
                                 createNewUser(newUser);
                                 Navigator.push(

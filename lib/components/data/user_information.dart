@@ -9,7 +9,7 @@ class AccountInfo {
   final String staffID;
   final String fullName;
   final String position;
-  final String registeredDate;
+  final Timestamp registeredDate;
   final String contactNumber;
 
   AccountInfo({
@@ -30,7 +30,7 @@ class User {
   final String username;
   final String departmentId;
   final String position;
-  final String registeredDate;
+  final Timestamp registeredDate;
   final String contactNumber;
   final String password;
 
@@ -136,7 +136,7 @@ void createNewUser(User newUser)  {
     'pictureUrl':newUser.pictureUrl,
     'position':newUser.position,
     'depart_id':newUser.departmentId,
-    'isApproved':false,
+    'accessKey':'null',
     'registeredDate':newUser.registeredDate,
     'contactNumber':newUser.contactNumber,
     if(newUser.position=="Driver")

@@ -318,6 +318,9 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
             updateAssignedSchedulesToNone(widget.orderId);
           }
         }
+
+        addComplete();
+
         setState(() {
           _isUploading = false; // Set _isUploading to true when upload is complete
         });
@@ -380,6 +383,18 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
     await documentReference.update({'deliveryStatus': 'Loaded!'});
   }
 
+  void addComplete() {
+    String loadingId = getLoading(widget.deliveryId);
+    if (widget.deliveryId.startsWith("L")) {
+      FirebaseFirestore.instance.collection('Order/${widget.orderId}/LoadingSchedule')
+          .doc('${widget.deliveryId}')
+          .update({'isComplete': true});
+    } else {
+      FirebaseFirestore.instance.collection('Order/${widget.orderId}/LoadingSchedule/$loadingId/UnloadingSchedule')
+          .doc('${widget.deliveryId}')
+          .update({'isComplete': true});
+    }
+  }
 
   Future<void> updateStatusUnloading() async {
     String loadingId = getLoading(widget.deliveryId);
@@ -419,7 +434,6 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
 
 
   }
-
 
   Future<void> updateAssignedSchedulesToNone(String orderId) async {
     try {

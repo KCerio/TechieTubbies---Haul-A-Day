@@ -320,17 +320,17 @@ class _LoginPageState extends State<LoginPage> {
     // Check if any documents match the username query
     if (usernameQuerySnapshot.docs.isNotEmpty || staffIdQuerySnapshot.docs.isNotEmpty) {
       // Check if the password matches
-      bool isApproved =false;
+      String isApproved ="null";
 
       try {
         isApproved = usernameQuerySnapshot.docs.isNotEmpty
-            ?usernameQuerySnapshot.docs.first['isApproved']
-            :staffIdQuerySnapshot.docs.first['isApproved'];
+            ?usernameQuerySnapshot.docs.first['accessKey']
+            :staffIdQuerySnapshot.docs.first['accessKey'];
       } catch (e) {
-        isApproved =false;
+        isApproved ="null";
       }
 
-      if(isApproved){
+      if(isApproved=="Basic"){
         String actualPassword = usernameQuerySnapshot.docs.isNotEmpty
             ? usernameQuerySnapshot.docs.first['password']
             : staffIdQuerySnapshot.docs.first['password'];
@@ -364,12 +364,16 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
 
-      else{
+      else if(isApproved=="null") {
         _notApproved();
+      }else{
+        _notOP();
+
       }
 
 
-    } else {
+    }
+    else {
       // Username or staff ID does not exist
       _showPrompt("The Username or Staff ID you've entered cannot be found. Please Try Again!");
     }
@@ -456,6 +460,58 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ],
                         ),
+
+                    )
+                ),
+              )
+
+
+            ],
+          ),);
+      },
+    );
+  }
+
+  void _notOP() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Theme(
+          data: ThemeData( // Customize the theme
+            dialogBackgroundColor: Colors.white, // Set the background color
+          ),
+          child: SimpleDialog(
+            children: <Widget>[
+              Center(
+                child: GestureDetector(
+                    onTap: (){
+                      Navigator.pop(context);
+                    },
+                    child:Container(
+                      padding: EdgeInsets.all(20),
+                      color: Colors.transparent,
+                      child: Column(
+                        children: [
+                          Text("Access Denied!",
+                            textAlign: TextAlign.center, // Align text to the center
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green[700],
+                            ),
+                          ),
+                          Image.asset("assets/images/unauthorizedAccess.png"), //assets/images/awaiting_approval.png
+                          Text("Account is not authorized to \n access haul-a-day mobile",
+                            textAlign: TextAlign.center, // Align text to the center
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
 
                     )
                 ),

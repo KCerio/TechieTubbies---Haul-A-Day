@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:haul_a_day_mobile/accountTab/account_tab_accomplished.dart';
+import 'package:haul_a_day_mobile/components/dateThings.dart';
 import 'package:haul_a_day_mobile/staffIDController.dart';
 import '../AuthController.dart';
 import '../components/bottomTab.dart';
@@ -119,7 +120,7 @@ class _AccountTabState extends State<AccountTab> {
                                         staffID: accountInfo.staffID,
                                         fullName: accountInfo.fullName,
                                         position: accountInfo.position,
-                                        registeredDate: accountInfo.registeredDate,
+                                        registeredDate: intoDate(accountInfo.registeredDate),
                                         contactNumber: accountInfo.contactNumber,
                                       ),
                                     ),
