@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Delivery{
-  final String orderId;
-  final String company_name;
-  final String customer_email;
-  final Timestamp dateFiled;
-  final String phone;
-  final String point_person;
-  final String note;
-  final LoadingDelivery loadingDelivery;
-  final List<UnloadingDelivery> unloadingList;
+   String orderId;
+   String company_name;
+   String customer_email;
+   Timestamp dateFiled;
+   String phone;
+   String point_person;
+   String note;
+   LoadingDelivery loadingDelivery;
+   List<UnloadingDelivery> unloadingList;
 
   Delivery(
       this.company_name,
@@ -22,16 +22,28 @@ class Delivery{
       this.orderId,
       this.unloadingList);
 
+   Delivery.nullDelivery()
+       : orderId = '',
+         company_name = '',
+         customer_email = '',
+         dateFiled = Timestamp(0, 0),
+         phone = '',
+         point_person = '',
+         note = '',
+         loadingDelivery = LoadingDelivery.nullDelivery(),
+         unloadingList = [];
+
+
 }
 
 class LoadingDelivery{
-  final Timestamp loadingTimeDate;
-  final String cargoType;
-  final String loadingLocation;
-  final String route;
-  final String warehouse;
-  final int totalCartons;
-  final int weight;
+   Timestamp loadingTimeDate;
+   String cargoType;
+   String loadingLocation;
+   String route;
+   String warehouse;
+   int totalCartons;
+   int weight;
 
   LoadingDelivery(
       this.cargoType,
@@ -41,16 +53,26 @@ class LoadingDelivery{
       this.totalCartons,
       this.loadingTimeDate,
       this.weight);
+
+   LoadingDelivery.nullDelivery()
+       : cargoType ='',
+         loadingLocation='',
+         route='',
+         warehouse='',
+         totalCartons=-1,
+         loadingTimeDate =Timestamp(0, 0),
+         weight=-1;
+
 }
 
 class UnloadingDelivery{
-  final Timestamp unloadingTimeDate;
-  final int reference_num;
-  final String unloadingLocation;
-  final String route;
-  final String recipient;
-  final int quantity;
-  final int weight;
+   Timestamp unloadingTimeDate;
+   int reference_num;
+   String unloadingLocation;
+   String route;
+   String recipient;
+   int quantity;
+   int weight;
 
 
   UnloadingDelivery(
@@ -61,6 +83,17 @@ class UnloadingDelivery{
       this.quantity,
       this.unloadingTimeDate,
       this.weight);
+
+   UnloadingDelivery.nullDelivery()
+       :reference_num=-1,
+       unloadingLocation='',
+       route='',
+       recipient='',
+       quantity=-1,
+       unloadingTimeDate= Timestamp(0, 0),
+       weight=-1;
+
+
 }
 
 void submitDelivery(Delivery delivery){
