@@ -1,6 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:haul_a_day_web/homepage/deliveryInformation.dart';
+import 'package:haul_a_day_web/homepage/unloadingDelivery.dart';
+import 'addUnloadingDelivery.dart';
+import 'editUnloadingDelivery.dart';
 import 'tabs.dart';
 
 
@@ -31,9 +35,11 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
   TextEditingController _loadingRoute = TextEditingController();
   TextEditingController _loadingLocation = TextEditingController();
   TextEditingController _loadingWarehouse = TextEditingController();
-  TextEditingController _loadingCargoType = TextEditingController();
+  String _loadingCargoType = '';
   TextEditingController _loadingCartons = TextEditingController();
   TextEditingController _loadingWeight = TextEditingController();
+
+ 
 
 
   @override
@@ -141,10 +147,13 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
           labelColor: Colors.blue[700],
 
         )),
-        if(_orderTabs.index==0)
+        if(_orderTabs.index==2)
           deliveryInformation(context),
         if(_orderTabs.index==1)
           loadingInformation(context),
+        if(_orderTabs.index==0)
+          unloadingDeliveryList(context),
+
 
 
         //INSERT HERE
@@ -539,6 +548,13 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                 ),
               ),
               TextFormField(
+                validator: (value){
+                  if(value!.isEmpty){
+                    return "Enter loading location";
+                  }
+                  return null;
+                },
+                controller: _loadingLocation,
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.location_city),
                   hintText: 'loading location',
@@ -610,7 +626,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                 child: DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.local_shipping),
-                    hintText: 'Type of Cargo',
+                    hintText: 'select type of cargo',
                     hintStyle: TextStyle(
                       color: Color(0xff5A5A5A),
                     ),
@@ -622,18 +638,27 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                   ),
                   items: [
                     DropdownMenuItem(
-                      value: 'option1',
-                      child: Text('Option 1'),
+                      value: 'cgl',
+                      child: Text('Canned Coods'),
                     ),
                     DropdownMenuItem(
-                      value: 'option2',
-                      child: Text('Option 2'),
+                      value: 'fgl',
+                      child: Text('Frozen Goods'),
                     ),
                     // Add more items here
                   ],
-                  onChanged: (String? newValue) {
-                    // Handle the value change
+                  onChanged: (newValue) {
+                    setState(() {
+                      _loadingCargoType = newValue as String;
+                    });
                   },
+                  validator: (value) {
+                    if (value == null || value == '') {
+                      return 'Please select a position';
+                    }
+                    return null;
+                  },
+
                 ),
               ),
               SizedBox(height: 30),
@@ -752,18 +777,21 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                     ElevatedButton(
                       onPressed: () {
                         if(_formField2.currentState!.validate()){
-                          delivery.company_name= _customerName.text.trim();
-                          delivery.phone= _contactInformation.text.trim();
-                          delivery.point_person= _pointPerson.text.trim();
-                          delivery.customer_email= _emailAddress.text.trim();
-                          delivery.note= (_note.text.isEmpty)?'none':_note.text.trim();
+
+                          delivery.loadingDelivery.loadingLocation=_loadingLocation.text.trim();
+                          delivery.loadingDelivery.cargoType=_loadingCargoType;
+                          delivery.loadingDelivery.warehouse=_loadingWarehouse.text.trim();
+                          delivery.loadingDelivery.route=_loadingRoute.text.trim();
+                          delivery.loadingDelivery.totalCartons=int.parse(_loadingCartons.text.trim());
+                          delivery.loadingDelivery.weight=int.parse(_loadingWeight.text.trim());
+                          delivery.loadingDelivery.loadingTimeDate=convertIntoTimestamp(_loadingDate.text.trim(), _loadingTime.text.trim());
 
                           //make next tab true
-                          _isDisabled[1]= true;
+                          _isDisabled[2]= true;
 
                           setState(() {
-                            _orderTabs.animateTo(1);
-                            _orderTabs.index =1;
+                            _orderTabs.animateTo(2);
+                            _orderTabs.index =2;
                           });
 
                         }else{
@@ -813,6 +841,2398 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
         ),
       ),
     );
+  }
+
+  Widget unloadingDeliveryList(BuildContext context){
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+      height: MediaQuery.of(context).size.height * 0.57,
+      width: MediaQuery.of(context).size.width * 0.95,
+      decoration: BoxDecoration(
+        color: Color(0xffCEDCF0),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 30),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                titleCard(),
+                SizedBox(width: 25),
+                Center(
+                  child: IconButton(
+                    icon: Icon(
+                        Icons.add,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AddUnloadingDelivery(
+                            onSave: (UnloadingDelivery newUnload) {
+                              delivery.unloadingList.add(newUnload);
+                            },
+                          );
+                        },
+                      );
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor:
+                      Colors.blue,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 25)
+              ],
+            ),
+
+
+            SizedBox(height: 10),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10.0),
+                        topRight: Radius.circular(10.0),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 106)
+              ],
+            ),
+
+            // KANI RA NGA ROW I-LIST BUILDER OR SUMN or ikaw gud bahala ka
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(10.0),
+                                    bottomLeft: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      'MCR Bles Foods Trading',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Center(
+                                    child: Text(
+                                      '3456789',
+                                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '20',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '120',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Consolacion, Cebu',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                color: Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      'Cebu City',
+                                      style: TextStyle(
+
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(10.0),
+                                    bottomRight: Radius.circular(10.0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(
+                                      10.0), // Optional inner padding
+                                  child: Center(
+                                    child: Text(
+                                      '05/12/2024',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.grey[500]),
+                                      overflow: TextOverflow.ellipsis,
+                                    ), // Replace with your content
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5), // Adjust the height of the line spacing
+                        Container(
+                          height: 1, // Height of the line
+                          margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                          color: Colors.grey[400], // Color of the line
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 7),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.edit), // Icon to display
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditUnloadingDelivery();
+                        },
+                      );
+                    },
+                    color: Colors.grey[700], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Edit', // Tooltip text displayed on long press
+                  ),
+                ),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever), // Icon to display
+                    onPressed: () {
+                      // Define the action when the button is pressed
+                    },
+                    color: Colors.red[900], // Color of the icon
+                    iconSize: 30.0, // Size of the icon
+                    tooltip: 'Delete', // Tooltip text displayed on long press
+                  ),
+                ),
+                SizedBox(width: 7)
+              ],
+            ),
+
+
+            Row(
+              children: [
+                SizedBox(width: 30),
+                Expanded(
+                  child: Container(
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(10.0),
+                        bottomRight: Radius.circular(10.0),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 106)
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget titleCard(){
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(5.0),
+        ),
+        child: Row(
+          children: [
+            titles('RECIPIENT'),
+            titles('REF NO.'),
+            titles('QUANTITY'),
+            titles('WEIGHT(kg)'),
+            titles('ROUTE'),
+            titles('LOCATION'),
+            titles('DATE'),
+            titles('TIME'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget titles(String title){
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(
+            10.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(10.0),
+            bottomLeft: Radius.circular(10.0),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            title,
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16),
+            overflow: TextOverflow.ellipsis,
+          ), // Replace with your content
+        ),
+
+      ),
+    );
+  }
+
+  Widget unloadContainer(UnloadingDelivery unload){
+    return Row(
+      children: [
+        SizedBox(width: 30),
+        Expanded(
+          child: Container(
+            color: Colors.white,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10.0),
+                            bottomLeft: Radius.circular(10.0),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Center(
+                            child: Text(
+                              'MCR Bles Foods Trading',
+                              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Center(
+                            child: Text(
+                              '3456789',
+                              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(
+                              10.0), // Optional inner padding
+                          child: Center(
+                            child: Text(
+                              '20',
+                              style: TextStyle(
+
+                                  fontSize: 16, color: Colors.grey[500]),
+                              overflow: TextOverflow.ellipsis,
+                            ), // Replace with your content
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(
+                              10.0), // Optional inner padding
+                          child: Center(
+                            child: Text(
+                              '120',
+                              style: TextStyle(
+
+                                  fontSize: 16, color: Colors.grey[500]),
+                              overflow: TextOverflow.ellipsis,
+                            ), // Replace with your content
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(
+                              10.0), // Optional inner padding
+                          child: Center(
+                            child: Text(
+                              'Consolacion, Cebu',
+                              style: TextStyle(
+
+                                  fontSize: 16, color: Colors.grey[500]),
+                              overflow: TextOverflow.ellipsis,
+                            ), // Replace with your content
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(
+                              10.0), // Optional inner padding
+                          child: Center(
+                            child: Text(
+                              'Cebu City',
+                              style: TextStyle(
+
+                                  fontSize: 16, color: Colors.grey[500]),
+                              overflow: TextOverflow.ellipsis,
+                            ), // Replace with your content
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(10.0),
+                            bottomRight: Radius.circular(10.0),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(
+                              10.0), // Optional inner padding
+                          child: Center(
+                            child: Text(
+                              '05/12/2024',
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.grey[500]),
+                              overflow: TextOverflow.ellipsis,
+                            ), // Replace with your content
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 5), // Adjust the height of the line spacing
+                Container(
+                  height: 1, // Height of the line
+                  margin: EdgeInsets.symmetric(horizontal: 60.0), // Horizontal margin to control line width
+                  color: Colors.grey[400], // Color of the line
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(width: 7),
+        Center(
+          child: IconButton(
+            icon: Icon(Icons.edit), // Icon to display
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return EditUnloadingDelivery();
+                },
+              );
+            },
+            color: Colors.grey[700], // Color of the icon
+            iconSize: 30.0, // Size of the icon
+            tooltip: 'Edit Delivery', // Tooltip text displayed on long press
+          ),
+        ),
+        Center(
+          child: IconButton(
+            icon: Icon(Icons.delete_forever), // Icon to display
+            onPressed: () {
+              // Define the action when the button is pressed
+            },
+            color: Colors.red[900], // Color of the icon
+            iconSize: 30.0, // Size of the icon
+            tooltip: 'Delete Delivery', // Tooltip text displayed on long press
+          ),
+        ),
+        SizedBox(width: 7)
+      ],
+    );
+  }
+
+  Timestamp convertIntoTimestamp(String date, String time){
+    try {
+      List<String> dateParts = date.split('/'); // Split the string into parts
+      int month = int.parse(dateParts[0]);
+      int day = int.parse(dateParts[1]);
+      int year = int.parse(dateParts[2]);
+
+      // Parse the time string
+      List<String> timeParts = time.split(':');
+      int hour = int.parse(timeParts[0]);
+      int minute = int.parse(timeParts[1].split(' ')[0]);
+      String meridiem = timeParts[1].split(' ')[1];
+
+      if (meridiem == 'PM') {
+        hour += 12; // Add 12 hours for PM times
+      }
+
+      DateTime dateTime = DateTime(year, month, day, hour, minute); // Create a DateTime object
+      Timestamp timestamp = Timestamp.fromDate(dateTime);
+
+      print("Timestamp: $timestamp");
+
+      return timestamp;
+
+
+    } catch (e) {
+      print("Error parsing date: $e");
+    }
+    return Timestamp(0,0);
+
   }
 
 
