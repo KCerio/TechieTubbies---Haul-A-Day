@@ -274,7 +274,7 @@ class _EditUnloadingDeliveryState extends State<EditUnloadingDelivery> {
                         controller: _unloadingDate,
                         decoration: InputDecoration(
                           hintText:
-                          'unloading date', // Change labelText to hintText
+                          'MM/DD/YYYY', // Change labelText to hintText
                           hintStyle: TextStyle(
                               fontSize: 12,
                               color: Colors
@@ -327,7 +327,7 @@ class _EditUnloadingDeliveryState extends State<EditUnloadingDelivery> {
                         controller: _unloadingTime,
                         decoration: InputDecoration(
                           hintText:
-                          'unloading time', // Change labelText to hintText
+                          'HH:MM AM', // Change labelText to hintText
                           hintStyle: TextStyle(
                               fontSize: 12,
                               color: Colors

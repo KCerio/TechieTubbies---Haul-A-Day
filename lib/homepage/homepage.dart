@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/homepage/createOrder.dart';
 import '../authentication/login_screen.dart';
-import 'tabs.dart';
+
 
 class CustomerHomePage extends StatefulWidget {
   @override
@@ -74,7 +74,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
         controller: _tabController,
         children: [
           homePage(),
-          DeliveryHomePage(),
+          DeliveryHomePage(tabController: _tabController),
           Center(
             child: Text('PAGE ONE'),
           ),

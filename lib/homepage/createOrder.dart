@@ -8,10 +8,15 @@ import 'package:haul_a_day_web/homepage/unloadingDelivery.dart';
 import 'package:intl/intl.dart';
 import 'addUnloadingDelivery.dart';
 import 'editUnloadingDelivery.dart';
-import 'tabs.dart';
+import 'homepage.dart';
+
 
 
 class DeliveryHomePage extends StatefulWidget {
+  final TabController tabController;
+
+  DeliveryHomePage({required this.tabController});
+
   @override
   _DeliveryHomePageState createState() => _DeliveryHomePageState();
 }
@@ -57,12 +62,11 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
   @override
   void dispose() {
     super.dispose();
-    Delivery delivery= Delivery.nullDelivery();
-    List<bool> _isDisabled = [true, false, false, false];
+    delivery= Delivery.nullDelivery();
+    _isDisabled = [true, false, false, false];
   }
 
   void onTap() {
-    delivery.unloadingList.add(UnloadingDelivery(123456, 'KADJFKAJFKJA', 'DFAFAFAFA', 'DFAFAAF', 2, Timestamp.now(), 23));
     int index = _orderTabs.previousIndex;
     if (!_isDisabled[_orderTabs.index]) {
       setState(() {
@@ -88,6 +92,9 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
       );
     }
     else if(index==0&&!_formField.currentState!.validate()){
+      setState(() {
+        _orderTabs.index = index;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -102,6 +109,9 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
       );
     }
     else if(index==1&&!_formField2.currentState!.validate()){
+      setState(() {
+        _orderTabs.index = index;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -115,7 +125,10 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
         ),
       );
     }
-    else if(index==2&&!list.isEmpty){
+    else if(index==2&&list.isEmpty){
+      setState(() {
+        _orderTabs.index = index;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -214,13 +227,13 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
           labelColor: Colors.blue[700],
 
         )),
-        if(_orderTabs.index==3)
+        if(_orderTabs.index==0)
           deliveryInformation(context),
         if(_orderTabs.index==1)
           loadingInformation(context),
         if(_orderTabs.index==2)
           unloadingDeliveryList(context),
-        if(_orderTabs.index==0)
+        if(_orderTabs.index==3)
           submitDelivery(context),
 
 
@@ -1388,12 +1401,10 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                                 TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                    setState(() {
-                                      _isDisabled = [true, false, false, false];
-                                      delivery= Delivery.nullDelivery();
-                                      list = [];
-                                      _orderTabs.index=0;
-                                    });
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => CustomerHomePage()),
+                                    );
 
                                   },
                                   child: Text('OK'),
