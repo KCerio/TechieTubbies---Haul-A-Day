@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
+import 'package:haul_a_day_web/homepage/homepage.dart';
 import 'package:haul_a_day_web/newUI/components/addTruck.dart';
 import 'package:haul_a_day_web/newUI/components/dialogs/setpayrate.dart';
 import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: login_screen() //AddTruck()
+      home: CustomerHomePage()//login_screen() //AddTruck()
     );
   }
 }
