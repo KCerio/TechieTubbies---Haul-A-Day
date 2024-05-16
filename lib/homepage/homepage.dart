@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/homepage/createOrder.dart';
+import '../authentication/login_screen.dart';
 import 'tabs.dart';
 
 class CustomerHomePage extends StatefulWidget {
@@ -55,6 +56,15 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.blue[700],
+                onTap: (index) {
+                  if (index == 3) {
+                    // If the "MANAGEMENT" tab is clicked, navigate to the login screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => login_screen()),
+                    );
+                  }
+                },
               ),
             ),
           ],
@@ -67,17 +77,6 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
           DeliveryHomePage(),
           Center(
             child: Text('PAGE ONE'),
-          ),
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('images/homepageBackground.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Center(child: Text('MANAGEMENT')), // Placeholder content
           ),
         ],
       ),
