@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:haul_a_day_web/homepage/deliveryInformation.dart';
+import 'package:haul_a_day_web/homepage/submitDeliveryWidgets.dart';
+
 import 'package:haul_a_day_web/homepage/unloadingDelivery.dart';
 import 'package:intl/intl.dart';
 import 'addUnloadingDelivery.dart';
@@ -38,11 +40,10 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
   TextEditingController _loadingRoute = TextEditingController();
   TextEditingController _loadingLocation = TextEditingController();
   TextEditingController _loadingWarehouse = TextEditingController();
-  String _loadingCargoType = '';
+  String _loadingCargoType='';
   TextEditingController _loadingCartons = TextEditingController();
   TextEditingController _loadingWeight = TextEditingController();
 
- 
 
 
   @override
@@ -50,12 +51,20 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
     super.initState();
     _orderTabs = TabController(length: 4, vsync: this);
     _orderTabs.addListener(() {onTap();});
+
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    Delivery delivery= Delivery.nullDelivery();
+    List<bool> _isDisabled = [true, false, false, false];
   }
 
   void onTap() {
-    list.add(UnloadingDelivery(123456, 'KADJFKAJFKJA', 'DFAFAFAFA', 'DFAFAAF', 2, Timestamp.now(), 23));
+    delivery.unloadingList.add(UnloadingDelivery(123456, 'KADJFKAJFKJA', 'DFAFAFAFA', 'DFAFAAF', 2, Timestamp.now(), 23));
+    int index = _orderTabs.previousIndex;
     if (!_isDisabled[_orderTabs.index]) {
-      int index = _orderTabs.previousIndex;
       setState(() {
         _orderTabs.index = index;
       });
@@ -77,6 +86,53 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
           );
         },
       );
+    }
+    else if(index==0&&!_formField.currentState!.validate()){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.sim_card_alert_outlined, color: Colors.red,),
+              SizedBox(width: 5),
+              Text('Please correctly fill out all necessary fields to continue'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+    else if(index==1&&!_formField2.currentState!.validate()){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.sim_card_alert_outlined, color: Colors.red,),
+              SizedBox(width: 5),
+              Text('Please correctly fill out all necessary fields to continue'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+    else if(index==2&&!list.isEmpty){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.sim_card_alert_outlined, color: Colors.red,),
+              SizedBox(width: 5),
+              Text('Enter at least one unloading delivery'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+    else{
+      setState(() {
+        _orderTabs.index;
+      });
     }
   }
 
@@ -158,12 +214,14 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
           labelColor: Colors.blue[700],
 
         )),
-        if(_orderTabs.index==2)
+        if(_orderTabs.index==3)
           deliveryInformation(context),
         if(_orderTabs.index==1)
           loadingInformation(context),
-        if(_orderTabs.index==0)
+        if(_orderTabs.index==2)
           unloadingDeliveryList(context),
+        if(_orderTabs.index==0)
+          submitDelivery(context),
 
 
 
@@ -491,7 +549,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                         if(value!.isEmpty){
                           return "Enter Loading Time";
                         }else{
-                          bool  isValid = RegExp(r'^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$').hasMatch(value);
+                          bool  isValid = RegExp(r'^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM|am|pm)$').hasMatch(value);
                           if(!isValid){
                             return "Invalid loading time must be in 00:00 MM format";
                           }
@@ -647,16 +705,16 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                   ),
+                  value: _loadingCargoType.isEmpty ? null : _loadingCargoType,
                   items: [
                     DropdownMenuItem(
-                      value: 'cgl',
+                      value: 'Canned Coods',
                       child: Text('Canned Coods'),
                     ),
                     DropdownMenuItem(
-                      value: 'fgl',
+                      value: 'Frozen Goods',
                       child: Text('Frozen Goods'),
                     ),
-                    // Add more items here
                   ],
                   onChanged: (newValue) {
                     setState(() {
@@ -1073,7 +1131,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
       ),
     );
   }
-
+  
   Widget titleCard(){
     return Expanded(
       child: Container(
@@ -1171,6 +1229,214 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
       ),
     );
   }
+
+
+  Widget submitDelivery(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+      height:MediaQuery.sizeOf(context).height*0.57,
+      width:MediaQuery.sizeOf(context).width*0.95,
+      decoration:BoxDecoration(
+        color: Color(0xffCEDCF0),
+        borderRadius:BorderRadius.only(
+          bottomLeft: Radius.circular(20), // Round the top-left corner
+          bottomRight: Radius.circular(20), // Round the top-right corner
+        ),
+      ),
+      child: SingleChildScrollView(
+        child:Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+            children:[
+              Row(
+                children: [
+                  Flexible(
+                    flex: 1, // Adjust the flex value as needed
+                    child:Container(
+                      child:Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.archive_outlined,
+                                  size: 30, color: Colors.blue[700],),
+                              Text('Delivery Information',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue[700]
+                                  )
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 5,),
+                          Container(
+                            decoration:BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:BorderRadius.circular(20)
+                            ),
+                            child: deliveryInfo(delivery, context),
+                          ),
+                        ],
+                      )
+                    )
+                  ),
+
+                  SizedBox(width: 10),
+
+                  Flexible(
+                    flex: 2, // Adjust the flex value as needed
+                    child:Container(
+                        child:Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.local_shipping_outlined,
+                                  size: 30, color: Colors.blue[700],),
+                                Text('Loading Information',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue[700]
+                                    )
+                                ),
+                              ],
+                            ),
+                            Container(
+                              decoration:BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius:BorderRadius.circular(20)
+                              ),
+                              child: loadingInfo(delivery, context),
+                            ),
+                          ],
+                        )
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 20,),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.local_shipping_rounded,
+                    size: 30, color: Colors.blue[700],),
+                  Text('Unloading Information',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[700]
+                      )
+                  ),
+                ],
+              ),
+              Container(
+                child: unloadingList(delivery, context),
+              ),
+
+              Align(
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _orderTabs.animateTo(2);
+                          _orderTabs.index = 2;
+                        });
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
+                          Text(
+                            'Back',
+                            style:TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xff3871C1),
+                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10,),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await addDelivery(delivery);
+
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Order Complete'),
+                              backgroundColor: Colors.white,
+                              content: Text('CUC will give you a confirmation on the order'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    setState(() {
+                                      _isDisabled = [true, false, false, false];
+                                      delivery= Delivery.nullDelivery();
+                                      list = [];
+                                      _orderTabs.index=0;
+                                    });
+
+                                  },
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Submit',
+                            style:TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xff3871C1),
+                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ]
+        ),
+      ),
+
+    );
+  }
+
+
 
   Timestamp convertIntoTimestamp(String date, String time){
     try {

@@ -96,7 +96,9 @@ class UnloadingDelivery{
 
 }
 
-void submitDelivery(Delivery delivery){
+Future<void> addDelivery(Delivery delivery) async {
+  delivery.orderId=await getOrderNumber();
+
   FirebaseFirestore.instance.collection('Order').doc('${delivery.orderId}').set({
     'company_name':delivery.company_name,
     'customer_email':delivery.customer_email,
@@ -109,7 +111,7 @@ void submitDelivery(Delivery delivery){
   });
 
   FirebaseFirestore.instance.collection('Order/${delivery.orderId}/LoadingSchedule').doc('LS-${getDeliveryId(delivery.orderId)}').set({
-    'cargoType':delivery.loadingDelivery.cargoType,
+    'cargoType':(delivery.loadingDelivery.cargoType=='Frozen Goods')?'fgl':'cgl',
     'loadingLocation':delivery.loadingDelivery.loadingLocation,
     'loadingTime_Date' :delivery.loadingDelivery.loadingTimeDate,
     'route':delivery.loadingDelivery.route,
@@ -120,7 +122,7 @@ void submitDelivery(Delivery delivery){
   for(var unloading in delivery.unloadingList){
     FirebaseFirestore.instance.collection('Order/${delivery.orderId}/LoadingSchedule/'
         'LS-${getDeliveryId(delivery.orderId)}/UnloadingSchedule')
-        .doc('US-${getDeliveryId(delivery.orderId)}-$index+').set({
+        .doc('US-${getDeliveryId(delivery.orderId)}-$index').set({
       'quantity':unloading.quantity,
       'recipient' :unloading.recipient,
       'reference_num':unloading.reference_num,
@@ -130,7 +132,6 @@ void submitDelivery(Delivery delivery){
     });
     index++;
   }
-
 
 }
 
@@ -142,7 +143,7 @@ Future<String> getOrderNumber() async {
 
   if (querySnapshot.docs.isNotEmpty) {
     int nextNumber = querySnapshot.docs.length + 1;
-    String nextId = 'OR-${nextNumber.toString().padLeft(3, '0')}';
+    String nextId = 'OR${nextNumber.toString().padLeft(3, '0')}';
     return nextId;
   } else {
 
@@ -152,7 +153,7 @@ Future<String> getOrderNumber() async {
 }
 
 String getDeliveryId(String orderId){
-  return orderId.substring(3);
+  return orderId.substring(2);
 }
 
 
