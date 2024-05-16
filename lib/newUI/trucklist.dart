@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:haul_a_day_web/newUI/components/addTruckDialog.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/addTruckDialog.dart';
 import 'package:haul_a_day_web/service/database.dart';
+import 'package:haul_a_day_web/service/userService.dart';
 
 class TruckList extends StatefulWidget {
   const TruckList({super.key});
@@ -292,7 +293,40 @@ class _TruckListState extends State<TruckList> {
                   const SizedBox(height: 10),
                   IconButton(
                     icon: Icon(Icons.delete),
-                    onPressed: (){},
+                    onPressed: (){
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Confirm Deletion'),
+                            content:  Text('Do you wish to remove this truck?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () async{
+                                  //confirmApproval();
+                                  setState(() {
+                                    selectaTruck = false;
+                                    selectedTruck = {};
+                                    _trucks.remove(aTruck);
+                                  });
+                                  UserService userService = UserService();
+                                  userService.removeTruck(aTruck['id']);
+                                  Navigator.of(context).pop(); // Close the dialog
+                                },
+                                child: Text('Yes'),
+                              ),
+                              const SizedBox(width: 8,),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Close the dialog
+                                },
+                                child: Text('No'),
+                              ),
+                            ]
+                          );
+                        },
+                      );
+                    },
                   ),
                 ]),
             const SizedBox(width: 5),

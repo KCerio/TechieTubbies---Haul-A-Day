@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:haul_a_day_web/authentication/constant.dart';
+import 'package:haul_a_day_web/authentication/login_screen.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
+import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -37,7 +40,7 @@ class NavigationTopBar extends StatelessWidget {
               //user Container
               InkWell(
                 onTap: () {
-                  
+                  showSettingsMenu(context);
                 },
                 child: Container(
                   //margin: const EdgeInsets.only(left: 24),
@@ -71,6 +74,52 @@ class NavigationTopBar extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+
+  void showSettingsMenu(BuildContext context) {
+    final RenderBox overlay = Overlay.of(context)!.context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromLTRB(MediaQuery.of(context).size.width - 60, 60, 25, 0);
+
+    showMenu(
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem(
+          child: ListTile(
+            leading: Icon(Icons.person),
+            title: Text('Profile'),
+            onTap: () {
+              // Handle Profile option
+              Navigator.pop(context); // Close the menu
+            },
+          ),
+        ),
+        PopupMenuItem(
+          child: ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Settings'),
+            onTap: () {
+              // Handle Settings option
+              Navigator.pop(context); // Close the menu
+            },
+          ),
+        ),
+        PopupMenuItem(
+          child: ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Log-out'),
+            onTap: () {
+              Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Home);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const login_screen()),
+                );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

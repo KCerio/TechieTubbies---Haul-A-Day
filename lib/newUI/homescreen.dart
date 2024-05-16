@@ -56,13 +56,13 @@ class _HomepageState extends State<Homepage> {
   }
 
   Future<void> _fetchGroupData(List<Map<String, dynamic>> _orderDetails)async{
-    print(_orderDetails);
+    //print(_orderDetails);
     Map<int, List<Map<String, dynamic>>> groupedOrders = await payrollService.groupOrders(_orderDetails);
     // Print group
-    groupedOrders.forEach((key, value) {
-      print('Year: ${key ~/ 10000}, Month: ${(key % 10000) ~/ 100}, Week: ${key % 100}, Orders: $value');
-    });
-    print(groupedOrders);
+    // groupedOrders.forEach((key, value) {
+    //   print('Year: ${key ~/ 10000}, Month: ${(key % 10000) ~/ 100}, Week: ${key % 100}, Orders: $value');
+    // });
+    //print(groupedOrders);
     setState(() {
       _groupedOrders = groupedOrders;
     });
@@ -106,7 +106,7 @@ class _HomepageState extends State<Homepage> {
                               selectedWidget = Home(userFirstName: widget.userInfo['firstname'],);
                               break;
                             case TabSelection.StaffList:
-                              selectedWidget = StaffList();
+                              selectedWidget = StaffList(userId: widget.userInfo['staffId'], accessKey: widget.userInfo['accessKey'], );
                               break;
                             case TabSelection.TruckList:
                               selectedWidget = TruckList();

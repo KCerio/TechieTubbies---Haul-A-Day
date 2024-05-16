@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 class PayrollService{
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+  DatabaseService _databaseService = DatabaseService();
   List<String> cebuRoutes = [
     'Tuburan',
     'Bantayan Island',
@@ -37,15 +37,21 @@ class PayrollService{
     }
   }
 
-  Future<double> computeNoOfDays(String route)async{
+  Future<Map<String, dynamic>> computeNoOfDays(String order)async{
+    Map<String,dynamic> orderData = await _databaseService.fetchOrderDetails(order);
+    String route = orderData['route'];
     Map<String,dynamic> rates = await getPayRate();
     double days = rates['loadingRate'];
+    print(route);
     if(cebuRoutes.contains(route)){
+      print('cenbuRoutes');
       days += rates['cebuRate'];
     }else if(nonCebuRoutes.contains(route)){
+      print('noncenbuRoutes');
       days += rates['noncebuRate'];
     }
-    return days;
+    Map<String,dynamic> numDays = {'order': '$order - $route', 'days': days};
+    return numDays;
   }
 
   void updatePayRate(int driverRate, int helperRate, int cebuRate, int loadingRate, int otherRate){
@@ -65,6 +71,87 @@ class PayrollService{
     }
   }
 
+  Future<Map<String, dynamic>> getDeduction(String staffId) async {
+    Map<String, dynamic> staffDeduction = {};
+    try {
+      DocumentSnapshot staffquery = await _firestore.collection('Payroll').doc(staffId).get();
+      // Handle the document snapshot
+      if (staffquery.exists) {
+        Map<String, dynamic> document = staffquery.data() as Map<String, dynamic>;
+        staffDeduction['staffId'] = staffquery.id;
+        staffDeduction.addAll(document);
+      } else {
+        print('no document');
+        // Set default values and create new document
+        await _firestore
+            .collection('Payroll')
+            .doc(staffId)
+            .set({
+              'SSS': 0,
+              'PhilHealth': 0, 
+              'Pagibig': 0,
+              'ClaimedStatus' : false,
+              'NetSalary': 0, 
+            });
+
+        // Fetch newly created document
+        DocumentSnapshot newStaffquery = await _firestore.collection('Payroll').doc(staffId).get();
+        Map<String, dynamic> newDocument = newStaffquery.data() as Map<String, dynamic>;
+        staffDeduction['staffId'] = newStaffquery.id;
+        staffDeduction.addAll(newDocument);
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error fetching document: $e');
+    }
+    return staffDeduction;
+  }
+
+
+  void updateDeduction(String staffId, String name, double amount)async{
+    try {
+      DocumentSnapshot staffquery = await _firestore.collection('Payroll').doc(staffId).get();
+      // Handle the document snapshot
+      if(staffquery.exists){
+        if(name == 'Pag-ibig'){
+          name = 'Pagibig';
+        }
+        await _firestore
+            .collection('Payroll')
+            .doc(staffId)
+            .update({
+             name : amount,
+            });
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error fetching document: $e');
+    }
+  }
+
+  void updatePayroll(String path, //Payroll/2024_01/1/CUC-007
+  String staffId,
+  double netSalary,
+  double numDays,
+  Map<String, dynamic> staffInfo
+  )async{
+    try {
+      double SSS = staffInfo['SSS'];
+      double PhilHealth = staffInfo['PhilHealth'];
+      double Pagibig = staffInfo['Pagibig'];
+      _firestore..collection(path).doc(staffId).update({
+        'netSalary' : netSalary,
+        'numDays' : numDays,
+        'SSS' : SSS,
+        'PhilHealth' : PhilHealth,
+        'Pagibig' : Pagibig
+      });
+      
+    } catch (e) {
+      // Handle errors
+      print('Error updating payroll: $e');
+    }
+  }
 
 
   Future<List<String>> accomplishedDeliveries(String staffId) async {
@@ -101,6 +188,91 @@ class PayrollService{
     return deliveries;
   }
 
+  Future<List<Map<String, dynamic>>> weekPayroll(int year, int month, int week) async {
+    List<Map<String, dynamic>> weekPayroll = [];
+    print('Week: $week');
+
+    try {
+      // Convert the month into a two-digit number
+      String numberString = month.toString();
+      if (numberString.length == 1) {
+        numberString = '0$numberString';
+      }
+
+      // Construct the Firestore path
+      String path = 'Payroll/$year' + '_' + numberString + '/$week';
+      print(path);
+      QuerySnapshot payrollSnapshots = await _firestore.collection(path).get();
+
+      for (DocumentSnapshot payrollSnapshot in payrollSnapshots.docs) {
+        if (payrollSnapshot.exists) {
+          Map<String, dynamic> payrollData = payrollSnapshot.data() as Map<String, dynamic>;
+          payrollData['staffId'] = payrollSnapshot.id;
+
+          QuerySnapshot staffInfo = await _firestore.collection('Users').where('staffId', isEqualTo: payrollSnapshot.id)
+          .get();
+          if (staffInfo.docs.isNotEmpty) {
+            Map<String, dynamic> staffInfoData = staffInfo.docs.first.data() as Map<String, dynamic>;
+            payrollData['position'] = staffInfoData['position'];
+            payrollData['firstname'] = staffInfoData['firstname'];
+            payrollData['lastname']= staffInfoData['lastname'];
+            payrollData['pictureUrl'] = staffInfoData['pictureUrl'] ?? '';
+          }
+          weekPayroll.add(payrollData);
+        }
+      }
+    } catch (e) {
+      print('Payroll error: $e');
+    }
+
+    return weekPayroll;
+  }
+
+
+
+  Future<List<Map<String, dynamic>>> fetchAccomplished() async {
+    try {
+      QuerySnapshot userSnapshots = await _firestore.collection('Users').get();
+      List<Map<String, dynamic>> accomplished = [];
+
+      for (DocumentSnapshot userSnapshot in userSnapshots.docs) {
+        // Get the reference to the "accomplished deliveries" subcollection
+        CollectionReference deliveriesRef = userSnapshot.reference.collection('Accomplished Deliveries');
+        
+        // Query the subcollection to check if it exists
+        QuerySnapshot deliveriesSnapshots = await deliveriesRef.get();
+        
+        // If the subcollection exists, process the user document
+        if (deliveriesSnapshots.docs.isNotEmpty) {
+          Map<String, dynamic> accomplishedMap = userSnapshot.data() as Map<String, dynamic>;
+          
+          if (accomplishedMap.containsKey('staffId')) {
+            String staffId = accomplishedMap['staffId'];
+
+            Map<String, dynamic> staffAccomplished = {};
+            staffAccomplished['staffId'] = staffId;
+
+            List<String> deliveries = await accomplishedDeliveries(staffId);
+            if (deliveries.isEmpty) {
+              staffAccomplished['accomplished'] = 'No deliveries';
+            } else {
+              staffAccomplished['accomplished'] = deliveries;
+            }
+            accomplished.add(staffAccomplished);
+          }
+        } else {
+          //print('No accomplished deliveries for user: ${userSnapshot.id}');
+        }
+      }
+
+      return accomplished;
+    } catch (e) {
+      throw Exception('Failed to fetch accomplished: $e');
+    }
+  }
+
+
+
   Future<int> getWeekNumber(String loadDate)async {
     DateTime date = DateFormat('MMM dd, yyyy').parse(loadDate);
 
@@ -118,6 +290,20 @@ class PayrollService{
     //print('$orderId: ${weekDifference + 1}');
     // Week number is the difference plus one
     return weekDifference + 1;
+  }
+
+  void computePay()async{
+    try{
+
+    } catch(e){
+      print('Failed to compute: $e');
+    }
+  }
+
+  Future<Map<String, int>> getWeekClass(String order)async{
+    Map<String, int> weekClass = {};
+    
+    return weekClass;
   }
 
   Future<Map<int, List<Map<String, dynamic>>>> groupOrders(List<Map<String, dynamic>> orders) async {
@@ -148,6 +334,35 @@ class PayrollService{
     
     return groupedOrders;
   }
+
+  // void addPayroll() async {
+  //   String loadDate = order['loadingDate'];
+  //   DateTime dateTime = DateFormat('MMM dd, yyyy').parse(loadDate);
+  //   int year = dateTime.year;
+  //   int month = dateTime.month;
+  //   int week = await getWeekNumber(loadDate);
+
+  //   String documentId = '$year-$month'; // Form document ID
+  //   String documentPath = 'Payroll/$documentId/$week/$staffId';
+
+  //   DocumentSnapshot staff = await _firestore.doc(documentPath).get();
+
+  //   if (staff.exists) {
+  //     Map<String, dynamic> staffDoc = staff.data() as Map<String, dynamic>;
+  //     if (staffDoc.containsKey('accomplishedDeliveries')) {
+  //       List<String> accomplishedDeliveries = List.from(staffDoc['accomplishedDeliveries']);
+  //       accomplishedDeliveries.add(orderId);
+  //       await _firestore.doc(documentPath).update({
+  //         'accomplishedDeliveries': accomplishedDeliveries,
+  //       });
+  //     }
+  //   } else {
+  //     await _firestore.doc(documentPath).set({
+  //       'accomplishedDeliveries': [orderId],
+  //     });
+  //   }
+  // }
+
 
 
 

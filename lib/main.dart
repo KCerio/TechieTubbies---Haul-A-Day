@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
 import 'package:haul_a_day_web/newUI/components/addTruck.dart';
-import 'package:haul_a_day_web/newUI/components/setpayrate.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/setpayrate.dart';
 import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:haul_a_day_web/newUI/homescreen.dart';
 import 'package:haul_a_day_web/newUI/orderdashboard.dart';
@@ -13,6 +13,7 @@ import 'package:haul_a_day_web/page/orderpage.dart';
 import 'package:haul_a_day_web/page/staffList.dart';
 import 'package:haul_a_day_web/page/truck_list.dart';
 import 'package:haul_a_day_web/trial_pages/ImageUploadTrial.dart';
+import 'package:haul_a_day_web/trial_pages/trialPage.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';

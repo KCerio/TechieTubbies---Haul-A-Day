@@ -177,6 +177,8 @@ class SideMenu extends StatelessWidget {
               title: 'Log out',
               svgSrc: Icons.exit_to_app,
               press: () {
+                Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Home);
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const login_screen()),

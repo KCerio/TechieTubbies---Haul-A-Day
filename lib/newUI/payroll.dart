@@ -1,13 +1,18 @@
 
 import 'package:flutter/material.dart';
-import 'package:haul_a_day_web/newUI/components/computeDialog.dart';
-import 'package:haul_a_day_web/newUI/components/setpayrate.dart';
+import 'package:flutter/widgets.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/computeDialog.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/setpayrate.dart';
 import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/service/payrollService.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/widgets.dart' as pdfLib;
+// import 'package:path_provider/path_provider.dart';
+// import 'package:pdf/widgets.dart' as pdfLib;
+// import 'package:pdf/pdf.dart';
+import 'dart:typed_data' as html;
+import 'dart:html' as html;
 import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io';
@@ -21,514 +26,1421 @@ class Payroll extends StatefulWidget {
 }
 
 class _PayrollState extends State<Payroll> {
+  PayrollService payrollService = PayrollService();
+  List<Map<String, dynamic>> allstaffs = [];
   List<Map<String, dynamic>> _staffs = [];
   Map<String, dynamic> selectedStaff = {};
   Map<String,dynamic> _rates = {};
   bool selectaStaff = false;
   double totalSalary = 0;
-  List<String> _loadingDateRanges = [];
-  String? dateRange;
+
+  String _selectedSortBy = 'Staff ID'; // Default sorting option
+  String searchQuery = '';
+  TextEditingController _searchcontroller = TextEditingController();
+  bool notExist = false;
+  bool? isCheck = false;
+  bool stillFetching = true;
+
+  int driverRate = 0;
+  int helperRate = 0;
+  int loadingRate = 0;
+  int cebuRate = 0;
+  int otherRate = 0;
+
+  double netSalary=0;
+  double salary=0;
+  double numDays=0;
+  double salaryRate=0;
+  double totalDeduct =0;
+  double SSS =0;
+  double PhilHealth=0;
+  double Pag_ibig=0;
+
+  int year = 0;
+  int month = 0;
+  int week = 0;
 
   @override
   void initState() {
     super.initState();
     _initializeStaffData();
-    getLoadingDateRanges(widget.groupedOrders);
+    _initializeCurrentWeek();
   }
 
   Future<void> _initializeStaffData() async {
     try {
       DatabaseService databaseService = DatabaseService();
-      PayrollService payrollService = PayrollService();
-      List<Map<String, dynamic>> staffs = await databaseService.fetchStaffList();
+      //List<Map<String, dynamic>> staffs = await databaseService.fetchOPStaffList();
       Map<String, dynamic> rates = await payrollService.getPayRate();
+      // List<Map<String, dynamic>> accomplished = await payrollService.fetchAccomplished();
+      // print(accomplished);
       setState(() {
-        _staffs = staffs;
+        //_staffs = staffs;
         _rates = rates;
+        driverRate = _rates['driverRate'];
+        helperRate = _rates['helperRate'];
+        loadingRate = _rates['loadingRate'];
+        cebuRate = _rates['cebuRate'];
+        otherRate = _rates['noncebuRate'];
       });
-      print(_rates);
+      //print(_rates);
     } catch (e) {
       print("Error fetching data: $e");
     }
   }
   
 
-  Future<String> generateAndSavePDF() async {
-    final pdf = pdfLib.Document();
-
-    // Add content to the PDF document
+  Future<String?> generateAndSavePDF() async {
+  try {
+    final pdf = pw.Document();
+    
+     // Draw the container widget to the PDF document
     pdf.addPage(
-      pdfLib.Page(
-        build: (pdfLib.Context context) {
-          return pdfLib.Center(
-            child: pdfLib.Text('Hello World'),
-          );
-        },
+      pw.Page(
+        build: (pw.Context context) => pw.Center(
+          child: pw.Container(
+            width: 200,
+            height: 200,
+            color: PdfColor.fromHex('#FF5733'), // Example color
+          ),
+        ),
       ),
     );
 
-    // Get the document directory using path_provider package
-    final directory = await getApplicationDocumentsDirectory();
-    final String dirPath = directory.path;
+    // Save the PDF document to a Uint8List
+    final pdfBytes = pdf.save();
 
-    // Construct the file path
-    final String filePath = path.join(dirPath, 'example.pdf');
+    // Provide the PDF as a download
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      ..setAttribute('download', 'document.pdf')
+      ..click();
 
-    // Save the PDF document to the document directory
-    final File file = File(filePath);
-    await file.writeAsBytes(await pdf.save());
+    //Open
+    html.window.open(url, '_blank');
 
-    // Print the file path for debugging
-    print('PDF saved at: $filePath');
+    // Clean up
+    html.Url.revokeObjectUrl(url);
 
-    // Return the file path
-    return filePath;
+    // Return the URL where the PDF can be downloaded from
+    return url;
+  } catch (e) {
+    print('Error generating PDF: $e');
+    // Handle the error as needed
+    return null;
   }
+}
 
-  void getLoadingDateRanges(Map<int, List<Map<String, dynamic>>> groupedOrders) {
-    List<String> loadingDateRanges = [];
 
-    groupedOrders.forEach((key, orders) {
-      int year = key ~/ 10000;
-      int month = (key % 10000) ~/ 100;
-      int week = key % 100;
+  DateTime? _startOfWeek;
+  DateTime? _endOfWeek;
 
-      // Find the minimum and maximum loading dates for the current week
-      DateTime minDate = DateTime(year, month, 1); // Initialize minDate to the first day of the month
-      DateTime maxDate = DateTime(year, month + 1, 0); // Initialize maxDate to the last day of the month
+  void _initializeCurrentWeek()async {
+    DateTime today = DateTime.now();
+    _startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+    _endOfWeek = _startOfWeek!.add(Duration(days: 6));
 
-      orders.forEach((order) {
-        DateTime loadingDate = DateFormat('MMM dd, yyyy').parse(order['loadingDate']);
-        if (loadingDate.isBefore(minDate)) {
-          minDate = loadingDate;
-        }
-        if (loadingDate.isAfter(maxDate)) {
-          maxDate = loadingDate;
-        }
-      });
-
-      // Format the minimum and maximum dates into the desired string format
-      String range = 'From ${DateFormat('MMMM dd').format(minDate)} to ${DateFormat('MMMM dd').format(maxDate)} $year';
-      loadingDateRanges.add(range);
-    });
-
+    String date = DateFormat('MMM dd, yyyy').format(today);
+    int tempweek = await payrollService.getWeekNumber(date);
+      
     setState(() {
-      _loadingDateRanges = loadingDateRanges;
+      year = today.year;
+      month = today.month;
+      week = tempweek % 4;
+    });
+
+    List<Map<String, dynamic>> accomplished = await payrollService.weekPayroll(year, month, week);
+    print(accomplished);
+    setState(() {
+      _staffs = accomplished;
+      allstaffs = _staffs;
+      stillFetching = false;
     });
   }
 
-  
+
+  Future<void> _pickDate() async {
+    setState(() {
+      stillFetching = true;
+    });
+
+    DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (selectedDate != null) {
+      String date = DateFormat('MMM dd, yyyy').format(selectedDate);
+      int tempweek = await payrollService.getWeekNumber(date);
+      
+      setState(() {
+        _startOfWeek = selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
+        _endOfWeek = _startOfWeek!.add(Duration(days: 6));
+        year = selectedDate.year;
+        month = selectedDate.month;
+        week = tempweek % 4;
+        
+        //stillFetching = false;
+      });
+      print('Week: $week');
+
+      List<Map<String, dynamic>> accomplished = await payrollService.weekPayroll(year, month, week);
+      print(accomplished);
+      setState(() {
+        _staffs = accomplished;
+        allstaffs = _staffs;
+        stillFetching = false;
+      });
+    }    
+  }
+
+  void sortList(List<Map<String, dynamic>> list, String sortBy) {
+    print('here');
+    // Comparator function to compare two maps based on the specified key
+    if (sortBy == 'Name'){
+      sortBy = 'firstname';
+    }else if (sortBy == 'Staff ID'){
+      sortBy = 'staffId';
+    }else if(sortBy == 'Position'){
+      sortBy = 'position';
+    }else if(sortBy == 'Claimed Status'){
+      sortBy = 'ClaimedStatus';
+    }
+    int compare(Map<String, dynamic> a, Map<String, dynamic> b) {
+      // Access the values of the specified key from each map
+      var aValue = a[sortBy];
+      var bValue = b[sortBy];
+
+      // Compare the values and return the result
+      if (aValue is String && bValue is String) {
+        // For string comparison
+        return aValue.compareTo(bValue);
+      } else if (aValue is int && bValue is int) {
+        // For integer comparison
+        return aValue.compareTo(bValue);
+      } else {
+        // Handle other types if needed
+        return 0;
+      }
+    }
+    // Sort the list using the comparator function
+    list.sort(compare);
+    //print('Sorted list: $list');
+    setState(() {
+      _staffs = list;
+    });
+  }
+
+  void searchStaff(List<Map<String, dynamic>> originalList, String searchQuery) {
+    List<Map<String, dynamic>> filteredList = [];
+    if(searchQuery != ''){
+      // Convert the search query to lowercase for case-insensitive matching
+      final query = searchQuery.toLowerCase();
+
+      // Filter the original list based on the search query
+      filteredList = originalList.where((map) {
+        // Iterate through each key-value pair in the map
+        // and check if any value contains the search query
+        return map.values.any((value) {
+          if (value is String) {
+            // If the value is a string, check if it contains the search query
+            return value.toLowerCase().contains(query);
+          }
+          // If the value is not a string, convert it to a string and check if it contains the search query
+          return value.toString().toLowerCase().contains(query);
+        });
+      }).toList();
+      print("Searched List: $filteredList");
+      
+    }
+
+    if(filteredList.isEmpty){
+      setState(() {
+        notExist = true;
+      });
+    }
+    else{
+      setState(() {
+        _staffs = filteredList;
+      });
+    }
+    
+  }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
     return SafeArea(
-        child: LayoutBuilder(builder: (context, constraints) {
-          // If a staff is selected, right panel will appear
-          if(selectaStaff == true && selectaStaff){
-            return Row(
-            children: [
-              // Left side
-              Expanded(
-                flex: 7,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(50, 16, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 10.0),
-                            child: Text(
-                              'Payroll',
-                              style: TextStyle(
-                                  fontSize: 35,
-                                  fontFamily: 'Itim',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if(selectaStaff == false){
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50, vertical:10),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          alignment: Alignment.centerLeft,
+                          
+                          child: const Text(
+                            'Payroll',
+                            style: TextStyle(
+                              fontFamily: 'Itim',
+                              fontSize: 36
                             ),
                           ),
-                          const Spacer(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 9,
+                    child: LayoutBuilder(
+                    builder: (context,constraints) {
+                      double width = constraints.maxWidth;
+                      double height = constraints.maxHeight;
+                      //print('$width , $height');
+                      return 
+                      // _staffs.isEmpty && stillFetching == true ? const Center(child: CircularProgressIndicator(),)
+                      // : 
+                      SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Container(
+                              //color: Colors.blue,
+                              width: width * 0.9,
+                              color: Color.fromARGB(109, 223, 222, 222),
+                              padding: selectaStaff == true ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
+                              :const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
+                              child:Container(
+                                  height: 800,
+                                  //padding: EdgeInsets.all(16),
+                                  // : Color.fromARGB(109, 223, 222, 222),
+                                  child: LayoutBuilder(
+                                    builder: (context,constraints) {
+                                      double width = constraints.maxWidth;
+                                      double height = constraints.maxHeight;
+                                      return Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          //Filter Container
+                                          Expanded(
+                                            flex: 2,
+                                            child: LayoutBuilder(
+                                                builder: (context,constraints) {
+                                                  double width = constraints.maxWidth;
+                                                  double height = constraints.maxHeight;
+                                                  return Column(
+                                                    children: [
+                                                      Container(
+                                                        height: height*0.38,
+                                                        decoration: BoxDecoration(
+                                                          color: Color.fromARGB(109, 223, 222, 222),
+                                                          border: Border.all(color: Colors.green)
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Container(
+                                                              width: width,
+                                                              color: Color.fromARGB(255, 87, 189, 90),
+                                                              padding: EdgeInsets.all(8.0),
+                                                              child: Text('Filters',
+                                                                style: TextStyle(
+                                                                  color:Colors.white,
+                                                                  fontFamily: 'Inter',
+                                                                  fontSize: 22,
+                                                                  fontWeight: FontWeight.bold
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            Container(
+                                                              padding: EdgeInsets.all(10),
+                                                              color: Colors.white,
+                                                              width: width,
+                                                              height: height *0.26,
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  const Text(
+                                                                    'Filter list by:',
+                                                                    style: TextStyle(
+                                                                      fontSize: 14,
+                                                                      fontStyle: FontStyle.italic,
+                                                                      color: Colors.grey
+                                                                    )
+                                                                  ),
+                                                                  
+                                                                  
+                                                                  SizedBox(height: 20),
+                                                                  if (_startOfWeek != null && _endOfWeek != null) ...[
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('From:'),
+                                                                        Text(DateFormat('MMM dd, yyyy').format(_startOfWeek!))
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('To:'),
+                                                                        Text(DateFormat('MMM dd, yyyy').format(_endOfWeek!))
+                                                                      ]
+                                                                    ),
+                                                                    const Spacer(),
+                                                                    const SizedBox(height: 10),
+                                                                    const Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Pick a Week'),
+                                                                        //SizedBox(width: 15),
+                                                                        
+                                                                      ],
+                                                                    ),
+                                                                  ],
+                                                                ],
+                                                              ),
+                                                            ),                                                    
+                                                            Container(
+                                                              padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                                                              height: height *0.055,
+                                                              width: width,
+                                                              color: Color.fromRGBO(251, 250, 239, 0.782),
+                                                              child: ElevatedButton(
+                                                                onPressed: _pickDate,
+                                                                style: ButtonStyle(
+                                                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                                                      Color.fromARGB(220, 92, 201, 95)
+                                                                    ),
+                                                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                                    RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(8),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                child: const Text(
+                                                                  'Week',
+                                                                  style: TextStyle(
+                                                                    fontFamily: 'InriaSans',
+                                                                    fontSize: 16,
+                                                                    color: Colors.white,
+                                                                    fontWeight: FontWeight.bold                                             
+                                                                  ),
+                                                                ),
+                                                              )                  ,
+                                                            )
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height:16),
+                                                      Container(
+                                                        height: height*0.38,
+                                                        decoration: BoxDecoration(
+                                                          color: Color.fromARGB(109, 223, 222, 222),
+                                                          border: Border.all(color: Colors.green)
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Container(
+                                                              width: width,
+                                                              color: Color.fromARGB(255, 87, 189, 90),
+                                                              padding: EdgeInsets.all(8.0),
+                                                              child: Text('Pay Rate',
+                                                                style: TextStyle(
+                                                                  color:Colors.white,
+                                                                  fontFamily: 'Inter',
+                                                                  fontSize: 22,
+                                                                  fontWeight: FontWeight.bold
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            Container(
+                                                              padding: EdgeInsets.all(10),
+                                                              color: Colors.white,
+                                                              width: width,
+                                                              height: height *0.26,
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  const Text(
+                                                                    'Recorded Pay Rate:',
+                                                                    style: TextStyle(
+                                                                      fontSize: 14,
+                                                                      fontStyle: FontStyle.italic,
+                                                                      color: Colors.grey
+                                                                    )
+                                                                  ),
+                                                                  const SizedBox(height: 10),
+                                                                  Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Driver Rate:'),
+                                                                        Text('Php ${driverRate.toStringAsFixed(2)}')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Helper Rate:'),
+                                                                        Text('Php ${helperRate.toStringAsFixed(2)}')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Loading Trip Rate:'),
+                                                                        Text('${loadingRate.toString()} days')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Cebu Trip Rate:'),
+                                                                        Text('${cebuRate.toString()} days')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Other Trips Rate:'),
+                                                                        Text('${otherRate.toString()} days')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                ],
+                                                              ),
+                                                            ),                                                    
+                                                            Container(
+                                                              padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                                                              height: height *0.055,
+                                                              width: width,
+                                                              color: Color.fromRGBO(251, 250, 239, 0.782),
+                                                              child: ElevatedButton(
+                                                                onPressed: ()async{
+                                                                  Map<String, dynamic>? rates = await showDialog<Map<String, dynamic>>(
+                                                                    context: context,
+                                                                    builder: (BuildContext context) {
+                                                                      return AlertDialog(
+                                                                        contentPadding: EdgeInsets.zero,
+                                                                        shape: RoundedRectangleBorder(
+                                                                          borderRadius: BorderRadius.circular(15.0),
+                                                                        ),
+                                                                        content: RateDialog(
+                                                                          newrates: (value) {
+                                                                            Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                                                                          },
+                                                                        ),
+                                                                      );
+                                                                    },
+                                                                  );
 
-                          //Search Bar
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                  fillColor: const Color.fromRGBO(
-                                      199, 196, 196, 0.463),
-                                  filled: true,
-                                  hintText: "Search Staff",
-                                  border: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
+                                                                  if(rates != null){
+                                                                    setState(() {
+                                                                      driverRate = rates['driverRate'];
+                                                                      helperRate = rates['helperRate'];
+                                                                      loadingRate = rates['loadingRate'];
+                                                                      cebuRate = rates['cebuRate'];
+                                                                      otherRate = rates['otherRate'];
+                                                                    });
+                                                                  }
+                                                                }, 
+                                                                style: ButtonStyle(
+                                                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                                                      Color.fromARGB(220, 92, 201, 95)
+                                                                    ),
+                                                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                                    RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(8),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                child: const Text(
+                                                                  'Update Pay Rate',
+                                                                  style: TextStyle(
+                                                                    fontFamily: 'InriaSans',
+                                                                    fontSize: 16,
+                                                                    color: Colors.white,
+                                                                    fontWeight: FontWeight.bold                                             
+                                                                  ),
+                                                                ),
+                                                              )                  ,
+                                                            )
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
+                                          ),
+                                          Expanded(
+                                            flex: 8,
+                                            child: LayoutBuilder(
+                                              builder: (context,constraints) {
+                                                double width = constraints.maxWidth;
+                                                double height = constraints.maxHeight;
+                                                return Container(
+                                                  padding: EdgeInsets.only(left: 16),
+                                                  //color: Colors.green,
+                                                  child: Column(
+                                                    children: [
+                                                      Container(
+                                                        width: width,
+                                                        child: Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          children: [
+                                                            Row(
+                                                              children: [
+                                                                const SizedBox(width: 10,),
+                                                                Text('Sort by: '),
+                                                                SizedBox(width: 8),
+                                                                DropdownButton<String>(
+                                                                  value: _selectedSortBy,
+                                                                  onChanged: (String? newValue) {
+                                                                    setState(() {
+                                                                      _selectedSortBy = newValue!;
+                                                                      sortList(_staffs,_selectedSortBy);
+                                                                      // Implement sorting logic here based on the selected option
+                                                                    });
+                                                                  },
+                                                                  items: <String>['Staff ID', 'Name', 'Position', 'Claimed Status']
+                                                                      .map<DropdownMenuItem<String>>((String value) {
+                                                                    return DropdownMenuItem<String>(
+                                                                      value: value,
+                                                                      child: Text(value),
+                                                                    );
+                                                                  }).toList(),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                Container(
+                                                                  width: width*0.25,
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.white, // White background color
+                                                                    borderRadius: BorderRadius.circular(8),
+                                                                  ),
+                                                                  child: TextField(
+                                                                    controller: _searchcontroller,
+                                                                    onSubmitted: (_){
+                                                                      searchStaff(_staffs, _searchcontroller.text);
+                                                                    },
+                                                                    onChanged: (value){
+                                                                      if(value == ''){
+                                                                        setState(() {
+                                                                          //if(_selectedFilter == ''){_selectedFilter = 'All';}
+                                                                          _staffs = allstaffs;
+                                                                          notExist = false;
+                                                                        });
+                                                                      }
+                                                                    },
+                                                                    decoration: InputDecoration(
+                                                                      hintText: 'Search...',
+                                                                      border: OutlineInputBorder(
+                                                                        borderRadius: BorderRadius.circular(8),
+                                                                        borderSide: BorderSide.none, // Hide border
+                                                                      ),
+                                                                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                SizedBox(width: 10),
+                                                                Container(
+                                                                  decoration: BoxDecoration(
+                                                                    color: Color.fromARGB(255, 87, 189, 90), // Blue color for the search icon button
+                                                                    borderRadius: BorderRadius.circular(8),
+                                                                  ),
+                                                                  child: IconButton(
+                                                                    onPressed: () {
+                                                                      // Implement search functionality here
+                                                                      //searchStaff(filterStaff, _searchcontroller.text);
+                                                                    },
+                                                                    icon: Icon(Icons.search),
+                                                                    color: Colors.white, // White color for the search icon
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            )
+                                                          ],
+                                                        ),
+                                                      ),
+                            
+                                                      const SizedBox(height: 16),
+                                                      
+                                                      Expanded(
+                                                        child: Container(
+                                                          padding: EdgeInsets.all(16),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.white,
+                                                            //border: Border.all(color: Colors.grey)
+                                                          ),
+                                                          child: Column(
+                                                            children: [
+                                                              LayoutBuilder(
+                                                                builder: (context, constraints){
+                                                                  double width = constraints.maxWidth;
+                                                                  return Container(
+                                                                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                                                    decoration: BoxDecoration(
+                                                                      border: Border(bottom: BorderSide(color: Colors.grey)),
+                                                                    ),
+                                                                    child: Row(
+                                                                      children: [
+                                                                        Expanded(
+                                                                          child: Container(
+                                                                            //width:width *(1/6),
+                                                                            child: Text(
+                                                                              'Staff ID',
+                                                                              textAlign: TextAlign.center,
+                                                                              style: TextStyle(
+                                                                                    fontSize: 18, 
+                                                                                    fontWeight: FontWeight.bold, 
+                                                                                    color: Colors.green
+                                                                                  ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        Expanded(
+                                                                          flex:2,
+                                                                          child: Container(
+                                                                            //width:width *(2/6),
+                                                                            child: Text(
+                                                                              'Name',
+                                                                              textAlign: TextAlign.center,
+                                                                              style: TextStyle(
+                                                                                    fontSize: 18, 
+                                                                                    fontWeight: FontWeight.bold, 
+                                                                                    color: Colors.green
+                                                                                  ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        Expanded(
+                                                                          
+                                                                          child: Container(
+                                                                            //width:width *(1/6),
+                                                                            child: Text(
+                                                                              'Job Position',
+                                                                              textAlign: TextAlign.center,
+                                                                              style: TextStyle(
+                                                                                    fontSize: 18, 
+                                                                                    fontWeight: FontWeight.bold, 
+                                                                                    color: Colors.green
+                                                                                  ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                        Expanded(
+                                                                          flex:2,
+                                                                          child: Container(
+                                                                            //color: Colors.grey,
+                                                                            width:width *(2/7),
+                                                                            child: Text(
+                                                                              'Claim Status',
+                                                                              textAlign: TextAlign.center,
+                                                                              style: TextStyle(
+                                                                                    fontSize: 18, 
+                                                                                    fontWeight: FontWeight.bold, 
+                                                                                    color: Colors.green
+                                                                                  ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  );
+                                                                }
+                                                              ),
+                                                              notExist == true 
+                                                              ? Container(
+                                                                alignment: Alignment.topCenter,
+                                                                padding: EdgeInsets.only(top: 50),
+                                                                width: width,
+                                                                child: Text('Employee does not have a payroll for this week or does not exist.',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Inter',
+                                                                      fontSize: 20,
+                                                                      fontWeight: FontWeight.bold
+                                                                    ), 
+                                                                  ),
+                                                              )
+                                                              : _staffs.isEmpty && stillFetching == false 
+                                                              ? Container(
+                                                                alignment: Alignment.topCenter,
+                                                                padding: EdgeInsets.only(top: 50),
+                                                                width: width,
+                                                                child: Text('No payroll for this week.',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Inter',
+                                                                      fontSize: 20,
+                                                                      fontWeight: FontWeight.bold
+                                                                    ), 
+                                                                  ),
+                                                              )
+                                                              : _staffs.isEmpty && stillFetching == true
+                                                              ? Container(
+                                                                height: constraints.maxHeight * 0.4,
+                                                                child: Center(
+                                                                  child: CircularProgressIndicator(),
+                                                                ),
+                                                              )
+                                                              : Expanded(
+                                                                child: SingleChildScrollView(
+                                                                  child: Column(
+                                                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                                    children: [
+                                                                      // The list creates the containers for all the trucks
+                                                                      ListView.builder(
+                                                                        shrinkWrap: true,
+                                                                        physics: const NeverScrollableScrollPhysics(), // you can try to delete this
+                                                                        itemCount: _staffs.length,
+                                                                        itemBuilder: (context, index) {
+                                                                          return staffContainer(_staffs[index]);
+                                                                        },
+                                                                      ),
+                                                                      // GridView.builder(
+                                                                      //   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                                                      //     crossAxisCount: selectaStaff == true ? 2 :3,
+                                                                      //     mainAxisSpacing: 5,
+                                                                      //     crossAxisSpacing: 5,
+                                                                      //   ),
+                                                                      //   shrinkWrap: true,
+                                                                      //   physics: const NeverScrollableScrollPhysics(),
+                                                                      //   itemCount: _staffs.length,
+                                                                      //   itemBuilder: (context, index) {
+                                                                      //     return ConstrainedBox(
+                                                                      //       constraints: BoxConstraints(
+                                                                      //         minHeight: 250, // Adjust the height as per your requirement
+                                                                      //       ),
+                                                                      //       child: buildStaffContainer(_staffs[index]),
+                                                                      //     );
+                                                                      //   },
+                                                                      // ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                );
+                                              }
+                                            ),
+                                          ),
+                                        
+                                        ],
+                                      );
+                                    }
                                   ),
-                                  suffixIcon: InkWell(
-                                      onTap: () {},
-                                      child: const Icon(
-                                        Icons.search,
-                                        color: Colors.black,
-                                      ))),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          )
-                        ],
-                      ),
-                      //const SizedBox(height: 10,),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(25, 2, 0, 0),
+                                )
+                              ),
+                          ],
+                        ),
+                      );
+                      }
+                    ),
+                  )
+                ],
+              ),
+            );
+          }
+          else{
+            return Row(
+              children: [
+                Expanded(
+                  flex:7,
+                  child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical:10),
+                  child: Column(
+                    children: [
+                      Expanded(
                         child: Row(
                           children: [
-                            // const Text(
-                            //   'Week: ',
-                            //   style: TextStyle(
-                            //     fontWeight: FontWeight.bold,
-                            //     color: Colors.black,
-                            //   ),
-                            // ),
-                            // ElevatedButton(
-                            //           onPressed: () {
-                            //             // Add truck functionality here
-                            //           },
-                            //           style: ElevatedButton.styleFrom(
-                            //             shape: const RoundedRectangleBorder(
-                            //               borderRadius: BorderRadius.horizontal(
-                            //                 left: Radius.circular(2),
-                            //                 right: Radius.circular(2),
-                            //               ),
-                            //             ),
-                            //             // backgroundColor: Colors.grey[
-                            //             //     300], // Background color of the button
-                            //             elevation: 0,
-                            //           ),
-                            //           child: DropdownButton<String>(
-                            //             value:
-                            //                 dateRange, // Initially selected value
-                            //             onChanged: (String? newValue) {
-                            //               dateRange = newValue;
-                            //             },
-                            //             underline: Container(),
-                            //             items: _loadingDateRanges.map<DropdownMenuItem<String>>(
-                            //                 (String value) {
-                            //               return DropdownMenuItem<String>(
-                            //                 value: value,
-                            //                 child: Text(
-                            //                   value,
-                            //                   style: const TextStyle(
-                            //                     fontWeight: FontWeight.bold,
-                            //                     color: Colors.black,
-                            //                   ),
-                            //                 ),
-                            //               );
-                            //             }).toList(),
-                            //           )),
-                            const Spacer(),
-                            ElevatedButton(
-                              onPressed: () {
-                                showDialog<String>(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      contentPadding: EdgeInsets.zero,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(15.0),
-                                      ),
-                                      content: RateDialog()
-                                    );
-                                  },
-                                );
-                              }, 
-                              style: ElevatedButton.styleFrom(
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.horizontal(
-                                    left: Radius.circular(2),
-                                    right: Radius.circular(2),
-                                  ),
-                                ),
-                                backgroundColor: Colors.grey[
-                                    300], // Background color of the button
-                                elevation: 0,
-                              ),
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              
                               child: const Text(
-                                'Update Payrate',
+                                'Payroll',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
+                                  fontFamily: 'Itim',
+                                  fontSize: 36
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Container(
-                          height: size.height * 0.66,
-                          child: _staffs.isEmpty
-                              ? Container(
-                                  alignment: Alignment.center,
-                                  child: const CircularProgressIndicator())
-                              : Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    child: SingleChildScrollView(
-                                        child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        //thy list creates the containers for all the trucks
-                                        GridView.builder(
-                                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 3,
-                                            mainAxisSpacing: 8,
-                                            crossAxisSpacing: 8,
-                                          ),
-                                          shrinkWrap: true, // Add this line
-                                          physics: const NeverScrollableScrollPhysics(), // Add this line if needed
-                                          itemCount: _staffs.length,
-                                          itemBuilder: (context, index) {
-                                            return buildStaffContainer(
-                                              _staffs[index]);
-                                          },
-                                        ),
-                                        // ListView.builder(
-                                        //   shrinkWrap: true,
-                                        //   physics:
-                                        //       const NeverScrollableScrollPhysics(), // you can try to delete this
-                                        //   itemCount: _staffs.length,
-                                        //   itemBuilder: (context, index) {
-                                        //     return buildStaffContainer(
-                                        //         _staffs[index]);
-                                        //   },
-                                        // ),
-                                      ],
-                                    )),
-                                  ),
-                                )),
-                      //const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ),
-              // Right panel for Truck
-              Expanded(
-                  flex: 3,
-                  child: selectaStaff == true
-                      ? Container(
-                          height: size.height * 0.87,
-                          color: Colors.green.shade50,
-                          child: staffPanel(selectedStaff))
-                      : Container(
-                          height: size.height * 0.87,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 100, vertical: 50),
-                          child: unselectedRightPanel())),
-            ],
-          );
-        
-          }
-          // if no staff is selected, right panel is hidden
-          return Container(
-                height: size.height -500,
-                
-                //flex: 6,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(50, 16, 50, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 10.0),
-                            child: Text(
-                              'Payroll',
-                              style: TextStyle(
-                                  fontSize: 35,
-                                  fontFamily: 'Itim',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black),
-                            ),
-                          ),
-                          const Spacer(),
+                      Expanded(
+                        flex: 9,
+                        child: LayoutBuilder(
+                        builder: (context,constraints) {
+                          double width = constraints.maxWidth;
+                          double height = constraints.maxHeight;
+                          //print('$width , $height');
+                          return _staffs.isEmpty ? const Center(child: CircularProgressIndicator(),)
+                          : SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Container(
+                                  //color: Colors.blue,
+                                  width: width * 0.95,
+                                  color: Color.fromARGB(109, 223, 222, 222),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),                                 
+                                  child:Container(
+                                      height: 800,
+                                      //padding: EdgeInsets.all(16),
+                                      // : Color.fromARGB(109, 223, 222, 222),
+                                      child: LayoutBuilder(
+                                        builder: (context,constraints) {
+                                          double width = constraints.maxWidth;
+                                          double height = constraints.maxHeight;
+                                          return Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              //Filter Container
+                                              Expanded(
+                                                flex: 3,
+                                                child: LayoutBuilder(
+                                                    builder: (context,constraints) {
+                                                      double width = constraints.maxWidth;
+                                                      double height = constraints.maxHeight;
+                                                      return Column(
+                                                    children: [
+                                                      Container(
+                                                        height: height*0.38,
+                                                        decoration: BoxDecoration(
+                                                          color: Color.fromARGB(109, 223, 222, 222),
+                                                          border: Border.all(color: Colors.green)
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Container(
+                                                              width: width,
+                                                              color: Color.fromARGB(255, 87, 189, 90),
+                                                              padding: EdgeInsets.all(8.0),
+                                                              child: Text('Filters',
+                                                                style: TextStyle(
+                                                                  color:Colors.white,
+                                                                  fontFamily: 'Inter',
+                                                                  fontSize: 22,
+                                                                  fontWeight: FontWeight.bold
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            Container(
+                                                              padding: EdgeInsets.all(10),
+                                                              color: Colors.white,
+                                                              width: width,
+                                                              height: height *0.26,
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  const Text(
+                                                                    'Filter list by:',
+                                                                    style: TextStyle(
+                                                                      fontSize: 14,
+                                                                      fontStyle: FontStyle.italic,
+                                                                      color: Colors.grey
+                                                                    )
+                                                                  ),
+                                                                  
+                                                                  SizedBox(height: 20),
+                                                                  if (_startOfWeek != null && _endOfWeek != null) ...[
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('From:'),
+                                                                        Text(DateFormat('MMM dd, yyyy').format(_startOfWeek!))
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('To:'),
+                                                                        Text(DateFormat('MMM dd, yyyy').format(_endOfWeek!))
+                                                                      ]
+                                                                    ),
+                                                                    const Spacer(),
+                                                                    const Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Pick a Week'),
+                                                                        //SizedBox(width: 15),
+                                                                        
+                                                                      ],
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                  ],
+                                                                ],
+                                                              ),
+                                                            ),                                                    
+                                                            Container(
+                                                              padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                                                              height: height *0.055,
+                                                              width: width,
+                                                              color: Color.fromRGBO(251, 250, 239, 0.782),
+                                                              child: ElevatedButton(
+                                                                onPressed: _pickDate, 
+                                                                style: ButtonStyle(
+                                                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                                                      Color.fromARGB(220, 92, 201, 95)
+                                                                    ),
+                                                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                                    RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(8),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                child: const Text(
+                                                                  'Week',
+                                                                  style: TextStyle(
+                                                                    fontFamily: 'InriaSans',
+                                                                    fontSize: 16,
+                                                                    color: Colors.white,
+                                                                    fontWeight: FontWeight.bold                                             
+                                                                  ),
+                                                                ),
+                                                              )                  ,
+                                                            )
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height:16),
+                                                      Container(
+                                                        height: height*0.38,
+                                                        decoration: BoxDecoration(
+                                                          color: Color.fromARGB(109, 223, 222, 222),
+                                                          border: Border.all(color: Colors.green)
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Container(
+                                                              width: width,
+                                                              color: Color.fromARGB(255, 87, 189, 90),
+                                                              padding: EdgeInsets.all(8.0),
+                                                              child: Text('Pay Rate',
+                                                                style: TextStyle(
+                                                                  color:Colors.white,
+                                                                  fontFamily: 'Inter',
+                                                                  fontSize: 22,
+                                                                  fontWeight: FontWeight.bold
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            Container(
+                                                              padding: EdgeInsets.all(10),
+                                                              color: Colors.white,
+                                                              width: width,
+                                                              height: height *0.26,
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  const Text(
+                                                                    'Recorded Pay Rate:',
+                                                                    style: TextStyle(
+                                                                      fontSize: 14,
+                                                                      fontStyle: FontStyle.italic,
+                                                                      color: Colors.grey
+                                                                    )
+                                                                  ),
+                                                                  const SizedBox(height: 10),
+                                                                  Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Driver Rate:'),
+                                                                        Text('Php ${driverRate.toStringAsFixed(2)}')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Helper Rate:'),
+                                                                        Text('Php ${helperRate.toStringAsFixed(2)}')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Loading Trip Rate:'),
+                                                                        Text('${loadingRate.toString()} days')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Cebu Trip Rate:'),
+                                                                        Text('${cebuRate.toString()} days')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text('Other Trips Rate:'),
+                                                                        Text('${otherRate.toString()} days')
+                                                                      ]
+                                                                    ),
+                                                                    const SizedBox(height: 10,),
+                                                                ],
+                                                              ),
+                                                            ),                                                    
+                                                            Container(
+                                                              padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                                                              height: height *0.055,
+                                                              width: width,
+                                                              color: Color.fromRGBO(251, 250, 239, 0.782),
+                                                              child: ElevatedButton(
+                                                                onPressed: ()async{
+                                                                  Map<String, dynamic>? rates = await showDialog<Map<String, dynamic>>(
+                                                                    context: context,
+                                                                    builder: (BuildContext context) {
+                                                                      return AlertDialog(
+                                                                        contentPadding: EdgeInsets.zero,
+                                                                        shape: RoundedRectangleBorder(
+                                                                          borderRadius: BorderRadius.circular(15.0),
+                                                                        ),
+                                                                        content: RateDialog(
+                                                                          newrates: (value) {
+                                                                            Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                                                                          },
+                                                                        ),
+                                                                      );
+                                                                    },
+                                                                  );
 
-                          //Search Bar
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                  fillColor: const Color.fromRGBO(
-                                      199, 196, 196, 0.463),
-                                  filled: true,
-                                  hintText: "Search Staff",
-                                  border: const OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
-                                  ),
-                                  suffixIcon: InkWell(
-                                      onTap: () {},
-                                      child: const Icon(
-                                        Icons.search,
-                                        color: Colors.black,
-                                      ))),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          )
-                        ],
-                      ),
-                      //const SizedBox(height: 10,),
-                      _staffs.isEmpty && widget.groupedOrders.isEmpty
-                        ? Container(
-                            alignment: Alignment.center,
-                            height: size.height - 300,
-                            
-                            child: const CircularProgressIndicator())
-                            //:Container()
-                        : Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(25, 2, 0, 0),
-                              child: Row(
-                                children: [
-                                  // const Text(
-                                  //   'Week: ',
-                                  //   style: TextStyle(
-                                  //     fontWeight: FontWeight.bold,
-                                  //     color: Colors.black,
-                                  //   ),
-                                  // ),
-                                  // ElevatedButton(
-                                  //     onPressed: () {
-                                  //       // Add truck functionality here
-                                  //     },
-                                  //     style: ElevatedButton.styleFrom(
-                                  //       shape: const RoundedRectangleBorder(
-                                  //         borderRadius: BorderRadius.horizontal(
-                                  //           left: Radius.circular(2),
-                                  //           right: Radius.circular(2),
-                                  //         ),
-                                  //       ),
-                                  //       // backgroundColor: Colors.grey[
-                                  //       //     300], // Background color of the button
-                                  //       elevation: 0,
-                                  //     ),
-                                  //     child: DropdownButton<String>(
-                                  //       value:
-                                  //           dateRange, // Initially selected value
-                                  //       onChanged: (String? newValue) {
-                                  //         dateRange = newValue;
-                                  //       },
-                                  //       underline: Container(),
-                                  //       items: _loadingDateRanges.map<DropdownMenuItem<String>>(
-                                  //           (String value) {
-                                  //         return DropdownMenuItem<String>(
-                                  //           value: value,
-                                  //           child: Text(
-                                  //             value,
-                                  //             style: const TextStyle(
-                                  //               fontWeight: FontWeight.bold,
-                                  //               color: Colors.black,
-                                  //             ),
-                                  //           ),
-                                  //         );
-                                  //       }).toList(),
-                                  //     )),
-                                  const Spacer(),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      showDialog<String>(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            contentPadding: EdgeInsets.zero,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(15.0),
-                                            ),
-                                            content: RateDialog()
+                                                                  if(rates != null){
+                                                                    setState(() {
+                                                                      driverRate = rates['driverRate'];
+                                                                      helperRate = rates['helperRate'];
+                                                                      loadingRate = rates['loadingRate'];
+                                                                      cebuRate = rates['cebuRate'];
+                                                                      otherRate = rates['otherRate'];
+                                                                    });
+                                                                  }
+                                                                }, 
+                                                                style: ButtonStyle(
+                                                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                                                      Color.fromARGB(220, 92, 201, 95)
+                                                                    ),
+                                                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                                                    RoundedRectangleBorder(
+                                                                      borderRadius: BorderRadius.circular(8),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                child: const Text(
+                                                                  'Update Pay Rate',
+                                                                  style: TextStyle(
+                                                                    fontFamily: 'InriaSans',
+                                                                    fontSize: 16,
+                                                                    color: Colors.white,
+                                                                    fontWeight: FontWeight.bold                                             
+                                                                  ),
+                                                                ),
+                                                              )                  ,
+                                                            )
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                    },
+                                                  ),
+                                              ),
+                                              Expanded(
+                                                flex: 8,
+                                                child: LayoutBuilder(
+                                                  builder: (context,constraints) {
+                                                    double width = constraints.maxWidth;
+                                                    double height = constraints.maxHeight;
+                                                    return Container(
+                                                      padding: EdgeInsets.only(left: 16),
+                                                      //color: Colors.green,
+                                                      child: Column(
+                                                        children: [
+                                                          Container(
+                                                            width: width,
+                                                            child: Row(
+                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                              children: [
+                                                                Row(
+                                                                  children: [
+                                                                    const SizedBox(width: 10,),
+                                                                    Text('Sort by: '),
+                                                                    SizedBox(width: 8),
+                                                                    DropdownButton<String>(
+                                                                      value: _selectedSortBy,
+                                                                      onChanged: (String? newValue) {
+                                                                        // setState(() {
+                                                                        //   _selectedSortBy = newValue!;
+                                                                        //   sortList(filterStaff,_selectedSortBy);
+                                                                        //   // Implement sorting logic here based on the selected option
+                                                                        // });
+                                                                      },
+                                                                      items: <String>['Name', 'Staff ID', 'Position']
+                                                                          .map<DropdownMenuItem<String>>((String value) {
+                                                                        return DropdownMenuItem<String>(
+                                                                          value: value,
+                                                                          child: Text(value),
+                                                                        );
+                                                                      }).toList(),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                Row(
+                                                                  children: [
+                                                                    Container(
+                                                                      width: width*0.25,
+                                                                      decoration: BoxDecoration(
+                                                                        color: Colors.white, // White background color
+                                                                        borderRadius: BorderRadius.circular(8),
+                                                                      ),
+                                                                      child: TextField(
+                                                                        controller: _searchcontroller,
+                                                                        onSubmitted: (_){
+                                                                          //searchStaff(filterStaff, _searchcontroller.text);
+                                                                        },
+                                                                        onChanged: (value){
+                                                                          if(value == ''){
+                                                                            // setState(() {
+                                                                            //   //if(_selectedFilter == ''){_selectedFilter = 'All';}
+                                                                            //   applyFilter(_selectedFilter);
+                                                                            //   notExist = false;
+                                                                            // });
+                                                                          }
+                                                                        },
+                                                                        decoration: InputDecoration(
+                                                                          hintText: 'Search...',
+                                                                          border: OutlineInputBorder(
+                                                                            borderRadius: BorderRadius.circular(8),
+                                                                            borderSide: BorderSide.none, // Hide border
+                                                                          ),
+                                                                          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(width: 10),
+                                                                    Container(
+                                                                      decoration: BoxDecoration(
+                                                                        color: Color.fromARGB(255, 87, 189, 90), // Blue color for the search icon button
+                                                                        borderRadius: BorderRadius.circular(8),
+                                                                      ),
+                                                                      child: IconButton(
+                                                                        onPressed: () {
+                                                                          // Implement search functionality here
+                                                                          //searchStaff(filterStaff, _searchcontroller.text);
+                                                                        },
+                                                                        icon: Icon(Icons.search),
+                                                                        color: Colors.white, // White color for the search icon
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                )
+                                                              ],
+                                                            ),
+                                                          ),
+                                
+                                                          const SizedBox(height: 16),
+                                                          
+                                                          Expanded(
+                                                            child: Container(
+                                                              padding: EdgeInsets.all(16),
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white,
+                                                                //border: Border.all(color: Colors.grey)
+                                                              ),
+                                                              child: notExist == true 
+                                                              ? Container(
+                                                                alignment: Alignment.topCenter,
+                                                                padding: EdgeInsets.only(top: 50),
+                                                                width: width,
+                                                                child: Text('Employee does not exist.',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Inter',
+                                                                      fontSize: 20,
+                                                                      fontWeight: FontWeight.bold
+                                                                    ), 
+                                                                  ),
+                                                              )
+                                                              : Column(
+                                                                children: [
+                                                                  LayoutBuilder(
+                                                                    builder: (context, constraints){
+                                                                      double width = constraints.maxWidth;
+                                                                      return Container(
+                                                                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                                                        decoration: BoxDecoration(
+                                                                          border: Border(bottom: BorderSide(color: Colors.grey)),
+                                                                        ),
+                                                                        child: Row(
+                                                                          children: [
+                                                                            Expanded(
+                                                                              child: Container(
+                                                                                //width:width *(1/6),
+                                                                                child: Text(
+                                                                                  'Staff ID',
+                                                                                  textAlign: TextAlign.center,
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 18, 
+                                                                                    fontWeight: FontWeight.bold, 
+                                                                                    color: Colors.green
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            Expanded(
+                                                                              flex:2,
+                                                                              child: Container(
+                                                                                //width:width *(2/6),
+                                                                                child: Text(
+                                                                                  'Name',
+                                                                                  textAlign: TextAlign.center,
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 18, 
+                                                                                    fontWeight: FontWeight.bold, 
+                                                                                    color: Colors.green
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            Expanded(
+                                                                              child: Container(
+                                                                                //width:width *(1/6),
+                                                                                child: Text(
+                                                                                  'Job Position',
+                                                                                  textAlign: TextAlign.center,
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 18, 
+                                                                                    fontWeight: FontWeight.bold, 
+                                                                                    color: Colors.green
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            Expanded(
+                                                                              flex:2,
+                                                                              child: Container(
+                                                                                //color: Colors.grey,
+                                                                                width:width *(2/7),
+                                                                                child: Text(
+                                                                                  'Claim Status',
+                                                                                  textAlign: TextAlign.center,
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 18, 
+                                                                                    fontWeight: FontWeight.bold, 
+                                                                                    color: Colors.green
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: SingleChildScrollView(
+                                                                      child: Column(
+                                                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                                        children: [
+                                                                          // The list creates the containers for all the trucks
+                                                                          ListView.builder(
+                                                                            shrinkWrap: true,
+                                                                            physics: const NeverScrollableScrollPhysics(), // you can try to delete this
+                                                                            itemCount: _staffs.length,
+                                                                            itemBuilder: (context, index) {
+                                                                              return staffContainer(_staffs[index]);
+                                                                            },
+                                                                          ),
+                                                                          // GridView.builder(
+                                                                          //   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                                                          //     crossAxisCount: 2,
+                                                                          //     mainAxisSpacing: 5,
+                                                                          //     crossAxisSpacing: 5,
+                                                                          //   ),
+                                                                          //   shrinkWrap: true,
+                                                                          //   physics: const NeverScrollableScrollPhysics(),
+                                                                          //   itemCount: _staffs.length,
+                                                                          //   itemBuilder: (context, index) {
+                                                                          //     return ConstrainedBox(
+                                                                          //       constraints: BoxConstraints(
+                                                                          //         minHeight: 250, // Adjust the height as per your requirement
+                                                                          //       ),
+                                                                          //       child: buildStaffContainer(_staffs[index]),
+                                                                          //     );
+                                                                          //   },
+                                                                          // ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    );
+                                                  }
+                                                ),
+                                              ),
+                                            
+                                            ],
                                           );
-                                        },
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.horizontal(
-                                          left: Radius.circular(2),
-                                          right: Radius.circular(2),
-                                        ),
+                                        }
                                       ),
-                                      backgroundColor: Colors.grey[
-                                          300], // Background color of the button
-                                      elevation: 0,
-                                    ),
-                                    child: const Text(
-                                      'Update Payrate',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black),
-                                    ),
+                                    )
                                   ),
-                                ],
-                              ),
+                              ],
                             ),
-                            const SizedBox(height: 20),
-                            Container(
-                        height: size.height * 0.68,
-                        child: Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: SingleChildScrollView(
-                                  child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.stretch,
-                                children: [
-                                  //thy list creates the containers for all the trucks
-                                  GridView.builder(
-                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 4,
-                                      mainAxisSpacing: 15,
-                                      crossAxisSpacing: 15,
-                                    ),
-                                    shrinkWrap: true, // Add this line
-                                    physics: const NeverScrollableScrollPhysics(), // Add this line if needed
-                                    itemCount: _staffs.length,
-                                    itemBuilder: (context, index) {
-                                      return buildStaffContainer(
-                                         _staffs[index]);
-                                    },
-                                  ),
-                                  // ListView.builder(
-                                  //   shrinkWrap: true,
-                                  //   physics:
-                                  //       const NeverScrollableScrollPhysics(), // you can try to delete this
-                                  //   itemCount: _staffs.length,
-                                  //   itemBuilder: (context, index) {
-                                  //     return buildStaffContainer(
-                                  //         _staffs[index]);
-                                  //   },
-                                  // ),
-                                ],
-                              )
-                            ),
-                          ),
-                        )
-                      ),
-                      //const SizedBox(height: 20),
-                          ],
-                        )
+                          );
+                          }
+                        ),
+                      )
                     ],
                   ),
+                  )
                 ),
-              );
-              // Right panel for Truck;
-        
-        }),
-      );           
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    //height: 1000,
+                    color: Colors.green.shade50,
+                    child: staffPanel(selectedStaff)
+                  ),
+                )
+              ],
+            );
+          }
+        }
+      ),
+    );
+                      
   }
 
   //for the list
@@ -629,53 +1541,109 @@ class _PayrollState extends State<Payroll> {
       ),
     );
   }
-  // unselected Right Panel
-  Widget unselectedRightPanel(){
-    return Expanded(
-      child: Container(                              
-        //height: 450,                              
-        //margin: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-        //padding: const EdgeInsets.fromLTRB(25, 10, 25, 0),
-        color: Colors.yellow[100],
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.money,
-                size: 50, color: Colors.black),
-            SizedBox(height: 10),
-            Text(
-              'Select an Employee\nto view payslip',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 24,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold),
+  
+  Widget staffContainer(Map<String, dynamic> aStaff){
+    return LayoutBuilder(
+      builder: (context, constraints){
+        double width = constraints.maxWidth;
+        return InkWell(
+          onTap: (){
+            setState(() {
+              if(selectaStaff == false){
+                selectedStaff = aStaff;
+                selectaStaff = true;
+              }
+              else if(selectaStaff == true && selectedStaff == aStaff){
+                selectedStaff = {};
+                selectaStaff = false;
+              } else if(selectaStaff == true && selectedStaff != aStaff){
+                selectaStaff = false;
+                selectedStaff = aStaff;
+                selectaStaff = true;
+              }
+            });
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              border: selectedStaff == aStaff && selectaStaff == true
+              ? Border.all(color: Colors.green, width:3)
+              : Border(bottom: BorderSide(color: Colors.grey)),
             ),
-          ],
-        ),
-      ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    //width:width *(1/6),
+                    child: Text(
+                      aStaff['staffId'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    //width:width *(2/6),
+                    child: Text(
+                      '${aStaff['firstname']} ${aStaff['lastname']}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    //width:width *(1/6),
+                    child: Text(
+                      aStaff['position'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex:2,
+                  child: Container(
+                    //color: Colors.grey,
+                    //width:width *(2/7),
+                    child: Text(
+                      aStaff['ClaimedStatus'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
     );
   }
-
   List<String> _deliveries = [];
 
   void getAccomplishedDelivery(String staffId)async{
     PayrollService payrollService = new PayrollService();
     List<String> deliveries = await payrollService.accomplishedDeliveries(staffId);
-    print('Accomplished Deliveries: $deliveries');
+    //print('Accomplished Deliveries: $deliveries');
     setState(() {
       _deliveries = deliveries;
     });
 
   }
+  
   // selected staff right panel
   Widget staffPanel(Map<String, dynamic> aStaff) {
     DateTime now = DateTime.now();
     String dateToday = DateFormat('MMMM dd, yyyy').format(now);
     Size size = MediaQuery.of(context).size;
-    getAccomplishedDelivery(aStaff['staffId']);
+    totalDeduct = aStaff['SSS'] + aStaff['PhilHealth'] + aStaff['Pagibig'];
+    
+    //getAccomplishedDelivery(aStaff['staffId']);
     return Container(
-      width: size.width * 0.5,
+      //width: size.width * 0.5,
       color: const Color(0xFFFF95E),
       child: Column(
         children: [
@@ -779,7 +1747,9 @@ class _PayrollState extends State<Payroll> {
                         const SizedBox(
                             height: 25), // Moved from inside child to inside Column
                         Text(
-                          'PHP ${totalSalary.toStringAsFixed(2)}',
+                          aStaff['netSalary'] != null?
+                          'Php ${aStaff['netSalary'].toStringAsFixed(2)}' 
+                          :'Php 0.00',
                           style: const TextStyle(
                             color: Color(0xFF737373),
                             fontSize: 26,
@@ -826,8 +1796,16 @@ class _PayrollState extends State<Payroll> {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () {
-                                  showDialog<String>(
+                                onPressed: () async{
+                                  String numberString = month.toString();
+                                  if (numberString.length == 1) {
+                                    numberString = '0$numberString';
+                                  }
+
+                                  // Construct the Firestore path
+                                  String path = 'Payroll/$year' + '_' + numberString + '/$week';
+                                  print(path);
+                                  Map<String, dynamic>? breakdown = await showDialog<Map<String, dynamic>>(
                                     context: context,
                                     builder: (BuildContext context) {
                                       return AlertDialog(
@@ -835,10 +1813,45 @@ class _PayrollState extends State<Payroll> {
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(15.0),
                                         ),
-                                        content: ComputeDialog(staff: aStaff)
+                                        content: ComputeDialog(
+                                          staff: aStaff,
+                                          breakdown: (value) {
+                                            Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                                          },
+                                          path: path,
+                                        ),
                                       );
                                     },
                                   );
+
+                                  if(breakdown != null){
+                                    //print('breakdown not empty');
+                                    //print(breakdown); 
+
+                                    // Check and print the data types of the elements in the breakdown map
+                                    // breakdown.forEach((key, value) {
+                                    //   print('Key: $key, Value: $value, Type: ${value.runtimeType}');
+                                    // });
+
+                                    
+                                    setState(() {
+                                      netSalary = breakdown['netSalary'] ?? breakdown['netSalary'] as double;
+                                      salary = breakdown['salary'] ?? breakdown['salary'] as double;
+                                      numDays = breakdown['numDays'] ?? breakdown['numDays'] as double;
+                                      salaryRate = breakdown['salaryRate'] ?? breakdown['salaryRate'] as double;
+                                      totalDeduct = breakdown['totalDeduct'] ?? breakdown['totalDeduct'];
+                                      SSS = breakdown['SSS'] ?? breakdown['SSS'] as double;
+                                      PhilHealth = breakdown['PhilHealth'] ?? breakdown['PhilHealth'] as double;
+                                      Pag_ibig = breakdown['Pag-ibig'] ?? breakdown['Pag-ibig'] as double;
+                                      aStaff['netSalary'] = netSalary;
+                                      aStaff['numDays'] = numDays;
+                                      aStaff['SSS'] = SSS;
+                                      aStaff['PhilHealth'] = PhilHealth;
+                                      aStaff['Pagibig'] = Pag_ibig;
+                                      totalDeduct = aStaff['SSS'] + aStaff['PhilHealth'] + aStaff['Pagibig'];
+                                    });
+                                    //print('here $netSalary, $salary, $numDays, $salaryRate, $totalDeduct, $SSS, $PhilHealth, $Pag_ibig');
+                                  }
                                 },
                                 style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all<Color>(
@@ -851,7 +1864,7 @@ class _PayrollState extends State<Payroll> {
                             ],
                           ),
                         ),
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.all(15.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -869,7 +1882,9 @@ class _PayrollState extends State<Payroll> {
                                     ),
                                   ),
                                   Text(
-                                    'Php 0.00',
+                                    aStaff['position'] == 'Driver' && aStaff['numDays'] != null
+                                    ? 'Php ${(driverRate*aStaff['numDays']).toStringAsFixed(2)}'
+                                    :'Php 0.00',
                                     style: TextStyle(
                                       color: Color.fromRGBO(115, 115, 115, 1),
                                       fontSize: 20,
@@ -883,14 +1898,15 @@ class _PayrollState extends State<Payroll> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'SALARY',
+                                    'SALARY RATE',
                                     style: TextStyle(
                                       color: Color(0xFF737373),
                                       fontSize: 14,
                                     ),
                                   ),
                                   Text(
-                                    'Php 3,000',
+                                    aStaff['position'] == 'Driver'? 'Php ${driverRate.toStringAsFixed(2)}' 
+                                    : 'Php ${helperRate.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       color: Color(0xFF737373),
                                       fontSize: 14,
@@ -909,7 +1925,9 @@ class _PayrollState extends State<Payroll> {
                                     ),
                                   ),
                                   Text(
-                                    '11',
+                                    aStaff['numDays'] != null 
+                                    ? aStaff['numDays'].toString()
+                                    : '0',
                                     style: TextStyle(
                                       color: Color(0xFF737373),
                                       fontSize: 14,
@@ -936,7 +1954,7 @@ class _PayrollState extends State<Payroll> {
                                     ),
                                   ),
                                   Text(
-                                    'Php 0.00',
+                                    'Php ${totalDeduct.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       color: Color.fromRGBO(115, 115, 115, 1),
                                       fontSize: 20,
@@ -956,7 +1974,8 @@ class _PayrollState extends State<Payroll> {
                                     ),
                                   ),
                                   Text(
-                                    'Php 3000',
+                                    aStaff['SSS'] != null ? 'Php ${aStaff['SSS'].toStringAsFixed(2)}'
+                                     : 'Php 0.00',
                                     style: TextStyle(
                                       color: Color(0xFF737373),
                                       fontSize: 14,
@@ -975,7 +1994,8 @@ class _PayrollState extends State<Payroll> {
                                     ),
                                   ),
                                   Text(
-                                    'Php 3000',
+                                    aStaff['PhilHealth'] != null ? 'Php ${aStaff['PhilHealth'].toStringAsFixed(2)}'
+                                    :'Php 0.00',
                                     style: TextStyle(
                                       color: Color(0xFF737373),
                                       fontSize: 14,
@@ -994,7 +2014,8 @@ class _PayrollState extends State<Payroll> {
                                     ),
                                   ),
                                   Text(
-                                    'Php 3000',
+                                    aStaff['Pagibig']!= null ?'Php ${aStaff['Pagibig'].toStringAsFixed(2)}'
+                                    :'Php 0.00',
                                     style: TextStyle(
                                       color: Color(0xFF737373),
                                       fontSize: 14,
@@ -1021,7 +2042,8 @@ class _PayrollState extends State<Payroll> {
                                     ),
                                   ),
                                   Text(
-                                    'Php 0.00',
+                                    aStaff['netSalary'] != null ? 'Php ${aStaff['netSalary'].toStringAsFixed(2)}'
+                                    :'Php 0.00',
                                     style: TextStyle(
                                       color: Color.fromRGBO(115, 115, 115, 1),
                                       fontSize: 20,
@@ -1065,8 +2087,9 @@ class _PayrollState extends State<Payroll> {
                         const SizedBox(width: 30),
                         ElevatedButton(
                           onPressed: () async {
-                            // // Generate and save the PDF
-                            // final String pdfPath = await generateAndSavePDF();
+                            // Generate and save the PDF
+                            final String? pdfPath = await generateAndSavePDF();
+                            print('toPdf');
                   
                             // // Open the generated PDF using the default PDF viewer
                             // OpenFile.open(pdfPath);
@@ -1100,376 +2123,5 @@ class _PayrollState extends State<Payroll> {
     );
   }
   
-  // Widget setPayRate(Map<String,dynamic> _rates){
-
-  //   return Center(
-  //     child: Container(
-  //       height: 600,
-  //       width: 530,
-  //       child: AlertDialog(
-  //         backgroundColor:
-  //             Colors.amberAccent.shade700,
-  //         title: Column(
-  //           children: [
-  //             Row(
-  //               children: [
-  //                 GestureDetector(
-  //                   onTap: () {
-  //                     Navigator.of(context)
-  //                         .pop();
-  //                   },
-  //                   child: const Icon(
-  //                       Icons.arrow_back),
-  //                 ),
-  //                 const SizedBox(width: 80),
-  //                 const Text('Pay Rate'),
-  //               ],
-  //             ),
-  //             const SizedBox(height: 20),
-  //           ],
-  //         ),
-  //         contentPadding: EdgeInsets.zero,
-  //         content: Container(
-  //           height: 300,
-  //           width: 900,
-  //           child: DecoratedBox(
-  //             decoration: const BoxDecoration(
-  //               color: Colors.white,
-  //               borderRadius:
-  //                   BorderRadius.vertical(
-  //                 top: Radius.zero,
-  //                 bottom: Radius.circular(10.0),
-  //               ),
-  //             ),
-  //             child: Container(
-  //               padding: const EdgeInsets.all(20.0),
-  //               child: Row(
-  //                 children: [
-  //                   Expanded(
-  //                   child: Column(
-  //                     crossAxisAlignment:
-  //                         CrossAxisAlignment
-  //                             .start,
-  //                     children: [
-  //                       const Text(
-  //                         'Staff Rate:',
-  //                         style: TextStyle(
-  //                             fontWeight:
-  //                                 FontWeight
-  //                                     .normal),
-  //                       ),
-  //                       const SizedBox(
-  //                           height: 10.0),
-  //                       Row(
-  //                         children: [
-  //                           const SizedBox(
-  //                               width: 20),
-  //                           const Text(
-  //                               'Driver:',
-  //                               style: TextStyle(
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal)),
-  //                           const SizedBox(
-  //                               width: 10),
-  //                           Container(
-  //                             height: 25,
-  //                             width: 200,
-  //                             child: TextField(
-  //                               decoration:
-  //                                   InputDecoration(
-  //                                 filled: true,
-  //                                 fillColor:
-  //                                     Colors.grey[
-  //                                         200],
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                       const SizedBox(
-  //                           height: 10),
-  //                       Row(
-  //                         children: [
-  //                           const SizedBox(
-  //                               width: 20),
-  //                           const Text(
-  //                               'Helper:',
-  //                               style: TextStyle(
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal)),
-  //                           const SizedBox(
-  //                               width: 10),
-  //                           Container(
-  //                             height: 25,
-  //                             width: 200,
-  //                             child: TextField(
-  //                               decoration:
-  //                                   InputDecoration(
-  //                                 filled: true,
-  //                                 fillColor:
-  //                                     Colors.grey[
-  //                                         200],
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                       const SizedBox(
-  //                           height: 10),
-  //                       const Text(
-  //                         'Trip Rate:',
-  //                         style: TextStyle(
-  //                             fontWeight:
-  //                                 FontWeight
-  //                                     .normal),
-  //                       ),
-  //                       const SizedBox(
-  //                           height: 10.0),
-  //                           Row(
-  //                         children: [
-  //                           const SizedBox(
-  //                               width: 20),
-  //                           const Text('Loading:',
-  //                               style: TextStyle(
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal)),
-  //                           const SizedBox(
-  //                               width: 10),
-  //                           Container(
-  //                             height: 25,
-  //                             width: 200,
-  //                             child: TextField(
-  //                               decoration:
-  //                                   InputDecoration(
-  //                                 filled: true,
-  //                                 fillColor:
-  //                                     Colors.grey[
-  //                                         200],
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                       const SizedBox(
-  //                           height: 10),
-  //                       Row(
-  //                         children: [
-  //                           const SizedBox(
-  //                               width: 20),
-  //                           const Text('Cebu:',
-  //                               style: TextStyle(
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal)),
-  //                           const SizedBox(
-  //                               width: 10),
-  //                           Container(
-  //                             height: 25,
-  //                             width: 200,
-  //                             child: TextField(
-  //                               decoration:
-  //                                   InputDecoration(
-  //                                 filled: true,
-  //                                 fillColor:
-  //                                     Colors.grey[
-  //                                         200],
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                       const SizedBox(
-  //                           height: 10),
-  //                       Row(
-  //                         children: [
-  //                           const SizedBox(
-  //                               width: 20),
-  //                           const Text(
-  //                               'Others:',
-  //                               style: TextStyle(
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal)),
-  //                           const SizedBox(
-  //                               width: 10),
-  //                           Container(
-  //                             height: 25,
-  //                             width: 200,
-  //                             child: TextField(
-  //                               decoration:
-  //                                   InputDecoration(
-  //                                 filled: true,
-  //                                 fillColor:
-  //                                     Colors.grey[
-  //                                         200],
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                       Expanded(
-  //                         child: Row(
-  //                           mainAxisAlignment:
-  //                               MainAxisAlignment
-  //                                   .start,
-  //                           children: [
-  //                             Checkbox(
-  //                               value: false,
-  //                               onChanged:
-  //                                   (bool?
-  //                                       value) {
-  //                                 // Handle checkbox change
-  //                               },
-  //                             ),
-  //                             const SizedBox(
-  //                                 width: 10),
-  //                             const Text(
-  //                               'Confirm Pay Rate',
-  //                               style: TextStyle(
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal),
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ),
-  //                   const VerticalDivider(),
-  //                   Column(
-  //                     children: [
-  //                       const SizedBox(width: 20),
-  //                       const Text(
-  //                     'Recorded Rate:',
-  //                     style: TextStyle(
-  //                         fontSize: 12,
-  //                         fontWeight: FontWeight
-  //                             .normal),
-  //                   ),   
-  //                       const SizedBox(height: 10),
-  //                       Text(
-  //                     "Php ${_rates['driverRate'].toStringAsFixed(2)}",
-  //                     style: const TextStyle(
-  //                         fontWeight: FontWeight
-  //                             .normal),
-  //                   ),
-  //                       const SizedBox(height: 10),
-  //                       Text(
-  //                     "Php ${_rates['helperRate'].toStringAsFixed(2)}",
-  //                     style: const TextStyle(
-  //                         fontWeight: FontWeight
-  //                             .normal),
-  //                   ),
-  //                       const SizedBox(height: 65),
-  //                       Row(
-  //                     crossAxisAlignment:
-  //                         CrossAxisAlignment
-  //                             .start,
-  //                     children: [
-  //                       const SizedBox(width: 20),
-  //                       RichText(
-  //                         text: TextSpan(
-  //                           text: _rates['loadingRate'].toString(),
-  //                           style: const TextStyle(
-  //                               fontWeight:
-  //                                   FontWeight
-  //                                       .normal,
-  //                               fontSize: 16),
-  //                           children: const <TextSpan>[
-  //                             TextSpan(
-  //                               text:
-  //                                   ' day salary',
-  //                               style: TextStyle(
-  //                                   fontSize:
-  //                                       12,
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal),
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                       const SizedBox(height: 10),
-  //                       Row(
-  //                         crossAxisAlignment:
-  //                             CrossAxisAlignment
-  //                                 .start,
-  //                         children: [
-  //                           const SizedBox(width: 20),
-  //                           RichText(
-  //                             text: TextSpan(
-  //                               text: _rates['cebuRate'].toString(),
-  //                               style: const TextStyle(
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal,
-  //                                   fontSize: 16),
-  //                               children: const <TextSpan>[
-  //                                 TextSpan(
-  //                                   text:
-  //                                       ' day salary',
-  //                                   style: TextStyle(
-  //                                       fontSize:
-  //                                           12,
-  //                                       fontWeight:
-  //                                           FontWeight
-  //                                               .normal),
-  //                                 ),
-  //                               ],
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                       const SizedBox(height: 10),
-  //                       Row(
-  //                     crossAxisAlignment:
-  //                         CrossAxisAlignment
-  //                             .start,
-  //                     children: [
-  //                       const SizedBox(width: 20),
-  //                       RichText(
-  //                         text: TextSpan(
-  //                           text: _rates['noncebuRate'].toString(),
-  //                           style: const TextStyle(
-  //                               fontWeight:
-  //                                   FontWeight
-  //                                       .normal,
-  //                               fontSize: 16),
-  //                           children: const <TextSpan>[
-  //                             TextSpan(
-  //                               text:
-  //                                   ' day salary',
-  //                               style: TextStyle(
-  //                                   fontSize:
-  //                                       12,
-  //                                   fontWeight:
-  //                                       FontWeight
-  //                                           .normal),
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                       const SizedBox(
-  //                           height: 10),
-  //                     ],
-  //                   ),
-  //                     ]
-  //                   )
-  //                 ]
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-  
-  }
+}
 

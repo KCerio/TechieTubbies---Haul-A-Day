@@ -4,7 +4,8 @@ import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/service/payrollService.dart';
 
 class RateDialog extends StatefulWidget {
-  const RateDialog({super.key});
+  final Function(Map<String, dynamic>?) newrates;
+  const RateDialog({super.key, required this.newrates});
 
   @override
   State<RateDialog> createState() => _RateDialogState();
@@ -763,7 +764,14 @@ class _RateDialogState extends State<RateDialog> {
                                 TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
+                                    //Navigator.of(context).pop();
+                                    widget.newrates({
+                                      'driverRate': _rates['driverRate'],
+                                      'helperRate': _rates['helperRate'],
+                                      'loadingRate': _rates['loadingRate'],
+                                      'cebuRate': _rates['cebuRate'],
+                                      'otherRate': _rates['noncebuRate'],
+                                    });
                                   },
                                   child: const Text('OK'),
                                 ),
