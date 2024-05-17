@@ -300,6 +300,23 @@ class PayrollService{
     }
   }
 
+  Future<bool> claimPayroll(String path, String name, String picture, String staffId)async{
+    try{
+      DateTime today = DateTime.now();
+      _firestore..collection(path).doc(staffId).update({
+        'ClaimedBy' : name,
+        'ClaimedPicture' : picture,
+        'ClaimedStatus': 'Claimed',
+        'ClaimedDate': today,
+      });
+      return true;
+    }catch(e){
+      print('Failed to claim: $e');
+      return false;
+    }
+
+  }
+
   Future<Map<String, int>> getWeekClass(String order)async{
     Map<String, int> weekClass = {};
     

@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/claimDialog.dart';
 import 'package:haul_a_day_web/newUI/components/dialogs/computeDialog.dart';
 import 'package:haul_a_day_web/newUI/components/dialogs/setpayrate.dart';
 import 'package:haul_a_day_web/service/database.dart';
@@ -1898,7 +1899,7 @@ class _PayrollState extends State<Payroll> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'SALARY RATE',
+                                    'Salary Rate',
                                     style: TextStyle(
                                       color: Color(0xFF737373),
                                       fontSize: 14,
@@ -1918,7 +1919,7 @@ class _PayrollState extends State<Payroll> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'NO. OF DAYS',
+                                    'No. of Days',
                                     style: TextStyle(
                                       color: Color(0xFF737373),
                                       fontSize: 14,
@@ -2064,8 +2065,59 @@ class _PayrollState extends State<Payroll> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
-                          onPressed: () {
-                            // Add truck functionality here
+                          onPressed: () async{
+                            if(aStaff['ClaimedStatus'] == 'Not Claimed'){
+                              String numberString = month.toString();
+                              if (numberString.length == 1) {
+                                numberString = '0$numberString';
+                              }
+
+                              // Construct the Firestore path
+                              String path = 'Payroll/$year' + '_' + numberString + '/$week';
+                              Map<String, dynamic>? claimStatus = await showDialog<Map<String, dynamic>?>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  String todayDate = DateFormat('d MMMM, yyyy').format(DateTime.now()).toUpperCase();
+                                  return ClaimDialog(path: path, staffId: aStaff['staffId'],
+                                    status: (value) {
+                                      Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                                    },
+                                  );
+                                },
+                              );
+
+                              if(claimStatus != null){
+                                if(claimStatus['status'] == 'Claimed') {
+                                  setState(() {
+                                    aStaff['ClaimedStatus'] = 'Claimed';
+                                    aStaff['ClaimedBy'] = claimStatus['name'];
+                                    aStaff['ClaimedPicture'] = claimStatus['image'];
+                                    aStaff['ClaimedDate'] = DateTime.parse(claimStatus['date']); //String
+                                  });
+                                  //print(staff['ClaimedDate'].runtimeType);
+                                
+                              }
+                              }
+                            } else{
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Error'),
+                                    content: Text('Payroll already claimed.'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () async {        
+                                          
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );    // Close the dialog
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             shape: const RoundedRectangleBorder(

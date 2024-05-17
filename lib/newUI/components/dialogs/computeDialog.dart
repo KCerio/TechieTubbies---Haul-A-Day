@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/claimDialog.dart';
 import 'package:haul_a_day_web/service/payrollService.dart';
+import 'package:intl/intl.dart';
 
 class ComputeDialog extends StatefulWidget {
   final Map<String, dynamic> staff;
@@ -21,6 +24,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
   //Map<String,dynamic> _rates = {};
   List<Map<String,dynamic>> deductions= [];
   List<Map<String,dynamic>> numDays = [];
+  bool notNumber = false;
 
   double totalDays = 0;
   double salary = 0;
@@ -275,7 +279,9 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                   )
                                 ),
                                 Text(
-                                  'Php ${netSalary.toStringAsFixed(2)}',
+                                  staff['netSalary'] != null
+                                  ? 'Php ${staff['netSalary'].toStringAsFixed(2)}'
+                                  :'Php 0.00',
                                   style: TextStyle(
                                     fontFamily: 'InriaSans',
                                     fontSize: 35,
@@ -305,8 +311,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     )
                                   ),
                                   Text(
-                                    staff['ClaimedStatus'] == true ? 'Claimed'
-                                    : 'Not Claimed',
+                                    staff['ClaimedStatus'],
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
                                       fontSize: 25,
@@ -336,7 +341,8 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     )
                                   ),
                                   Text(
-                                    '--',
+                                    staff['ClaimedBy'] != null ? staff['ClaimedBy']
+                                    : '--',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
                                       fontSize: 19,
@@ -366,6 +372,11 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     )
                                   ),
                                   Text(
+                                    staff['ClaimedDate'] != null && staff['ClaimedDate'].runtimeType == Timestamp
+                                    ? '${DateFormat('MMM dd, yyyy').format(staff['ClaimedDate'].toDate())}'
+                                    : staff['ClaimedDate'] != null && staff['ClaimedDate'].runtimeType == DateTime
+                                    ? '${DateFormat('MMM dd, yyyy').format(staff['ClaimedDate'])}'
+                                    : 
                                     '--',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
@@ -408,6 +419,8 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                                 color: Color.fromRGBO(194, 192, 192, 1),
                                                 borderRadius: BorderRadius.circular(10)
                                               ),
+                                              child: staff['ClaimedPicture'] != null ? Image.network(staff['ClaimedPicture'], fit: BoxFit.cover)
+                                              : Container()
                                             ),
                                           );
                                         },
@@ -420,6 +433,8 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                         color: Color.fromRGBO(194, 192, 192, 1),
                                         borderRadius: BorderRadius.circular(10)
                                       ),
+                                      child: staff['ClaimedPicture'] != null ? Image.network(staff['ClaimedPicture'], fit: BoxFit.cover)
+                                      : Container()
                                     ),
                                   ),
                                 ],
@@ -427,8 +442,53 @@ class _ComputeDialogState extends State<ComputeDialog> {
                           ),
                           const SizedBox(height: 40),
                           ElevatedButton(
-                            onPressed: (){
+                            onPressed: ()async{
+                              if(staff['ClaimedStatus'] == 'Not Claimed'){
                               
+                              Map<String, dynamic>? claimStatus = await showDialog<Map<String, dynamic>?>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  String todayDate = DateFormat('d MMMM, yyyy').format(DateTime.now()).toUpperCase();
+                                  return ClaimDialog(path: widget.path, staffId: staff['staffId'],
+                                    status: (value) {
+                                      Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                                    },
+                                  );
+                                },
+                              );
+
+                              if(claimStatus != null){
+                                if(claimStatus['status'] == 'Claimed') {
+                                  setState(() {
+                                    staff['ClaimedStatus'] = 'Claimed';
+                                    staff['ClaimedBy'] = claimStatus['name'];
+                                    staff['ClaimedPicture'] = claimStatus['image'];
+                                    staff['ClaimedDate'] = DateTime.parse(claimStatus['date']); //String
+                                  });
+                                  print(staff['ClaimedDate'].runtimeType);
+                                }
+                              }
+                            } else{
+                              print('${DateFormat('MMM dd, yyyy').format((staff['ClaimedDate']).toDate())}');
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Error'),
+                                    content: Text('Payroll already claimed.'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () async {        
+                                          
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );    // Close the dialog
+                            }
                             }, 
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all<Color>(
@@ -784,20 +844,40 @@ class _ComputeDialogState extends State<ComputeDialog> {
                           const SizedBox(height:10),
                           ElevatedButton(
                             onPressed: (){
-                              setState(() {
-                                netSalary = salary - totalDeduction;
-                              });
+                              if(notNumber){
+                                 showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Alert'),
+                                      content: const Text('Not a numerical value.'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }else{
+                                setState(() {
+                                  netSalary = salary - totalDeduction;
+                                  staff['netSalary'] = netSalary;
+                                });
 
-                              //Navigator.of(context).pop();
-                              payrollService.updatePayroll(
-                                widget.path, 
-                                staff['staffId'], 
-                                netSalary, 
-                                totalDays, 
-                                staff
-                              );
-
-                              
+                                //Navigator.of(context).pop();
+                                payrollService.updatePayroll(
+                                  widget.path, 
+                                  staff['staffId'], 
+                                  netSalary, 
+                                  totalDays, 
+                                  staff
+                                );
+                              }                              
+                          
                             }, 
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all<Color>(
@@ -865,12 +945,23 @@ class _ComputeDialogState extends State<ComputeDialog> {
               child: TextField(
                 controller: dayscontroller,
                 onChanged: (value){
-                  setState(() {
-                    totalDays -= order['days'];
-                    order['days'] = int.parse(value);
-                    totalDays += order['days'];
-                    salary  = totalDays * salaryRate;
-                  });
+                  try {
+                    int parsedValue = int.parse(value);
+                    setState(() {
+                      notNumber = false;
+                      // Update totalDays and order['days'] safely
+                      totalDays -= order['days'];
+                      order['days'] = parsedValue;
+                      totalDays += order['days'];
+                      salary = totalDays * salaryRate;
+                    });
+                  } catch (e) {
+                    print('Not Number');
+                    setState(() {
+                      notNumber = true;
+                    });
+                  }
+                  
                 },
                 decoration: InputDecoration(
                   //contentPadding: EdgeInsets.symmetric(vertical: 2),
@@ -924,19 +1015,31 @@ class _ComputeDialogState extends State<ComputeDialog> {
                 child: TextField(
                   //controller: _othercontroller,
                   onChanged: (value){
-                  setState(() {
-                    //deduction['amount'] = double.parse(value);
-                    //payrollService.updateDeduction(staff['staffId'], deduction['name'], deduction['amount']);
-                    if(index == 0){
-                      staff['SSS'] = double.parse(value);
-                    } else if(index == 1){
-                      staff['PhilHealth'] = double.parse(value);
-                    } else if(index == 2){
-                     staff['Pagibig'] = double.parse(value);
+                    try {
+                      double parsedValue = double.parse(value);
+                      setState(() {
+                        notNumber = false;
+                        
+                        // Update the appropriate staff field based on the index
+                        if (index == 0) {
+                          staff['SSS'] = parsedValue;
+                        } else if (index == 1) {
+                          staff['PhilHealth'] = parsedValue;
+                        } else if (index == 2) {
+                          staff['Pagibig'] = parsedValue;
+                        }
+                        
+                        // Recalculate the total deduction
+                        totalDeduction = (staff['SSS'] ?? 0) + (staff['PhilHealth'] ?? 0) + (staff['Pagibig'] ?? 0);
+                      });
+                    } catch (e) {
+                      // Handle the case where the input is not a valid number
+                      print('Not a number: $e');
+                      setState(() {
+                        notNumber = true;
+                      });
                     }
-                    totalDeduction = staff['SSS'] + staff['PhilHealth'] + staff['Pagibig']; 
-                  });
-                },
+                  },
                   decoration: InputDecoration(
                     //contentPadding: EdgeInsets.symmetric(vertical: 2),
                     hintText: index == 0 ? staff['SSS'].toStringAsFixed(2)

@@ -102,7 +102,7 @@ Future<void> addDelivery(Delivery delivery) async {
   FirebaseFirestore.instance.collection('Order').doc('${delivery.orderId}').set({
     'company_name':delivery.company_name,
     'customer_email':delivery.customer_email,
-    'date_filed':delivery.dateFiled,
+    'date_filed':Timestamp.now(),
     'loading_id':'LS-${getDeliveryId(delivery.orderId)}',
     'note': delivery.note,
     'phone':delivery.phone,

@@ -133,7 +133,7 @@ class AddUnloadingDelivery extends StatelessWidget {
                         controller: _quantity,
                         decoration: InputDecoration(
                           hintText:
-                          'cartons to be unloaded', // Change labelText to hintText
+                          'number of cartons', // Change labelText to hintText
                           hintStyle: TextStyle(
                               fontSize: 12,
                               color: Colors
