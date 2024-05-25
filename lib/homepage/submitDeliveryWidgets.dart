@@ -14,7 +14,7 @@ Widget deliveryInfo(Delivery delivery, BuildContext context){
         informationContainer('Contact Information', delivery.phone),
         informationContainer('Email Address', delivery.customer_email),
         if(delivery.note!='')
-          informationContainer('Email Address', delivery.note),
+          informationContainer('Notes', delivery.note),
       ],
 
     )

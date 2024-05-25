@@ -1,11 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:haul_a_day_web/newUI/components/dialogs/claimDialog.dart';
 import 'package:haul_a_day_web/service/payrollService.dart';
+import 'package:intl/intl.dart';
 
 class ComputeDialog extends StatefulWidget {
   final Map<String, dynamic> staff;
-  const ComputeDialog({super.key, required this.staff});
+  final Function(Map<String, dynamic>?) breakdown;
+  final String path;
+  const ComputeDialog({super.key, required this.staff, required this.breakdown, required this.path});
 
   @override
   State<ComputeDialog> createState() => _ComputeDialogState();
@@ -19,8 +24,8 @@ class _ComputeDialogState extends State<ComputeDialog> {
   //Map<String,dynamic> _rates = {};
   List<Map<String,dynamic>> deductions= [];
   List<Map<String,dynamic>> numDays = [];
+  bool notNumber = false;
 
-  Map<String,dynamic> _staffpayroll= {};
   double totalDays = 0;
   double salary = 0;
   double totalDeduction = 0;
@@ -44,20 +49,19 @@ class _ComputeDialogState extends State<ComputeDialog> {
       numDays.add(deliveryDays);
       totalDays += deliveryDays['days'];
     }
-    Map<String,dynamic> staffpayroll = await payrollService.getDeduction(staffId);
-    print(staffpayroll);
-    deductions = [
-    {'name': 'SSS', 'amount': staffpayroll['SSS']},
-    {'name': 'PhilHealth', 'amount': staffpayroll['PhilHealth']},
-    {'name': 'Pag-ibig', 'amount': staffpayroll['Pagibig']},
-    ];
+    // Map<String,dynamic> staffpayroll = await payrollService.getDeduction(staffId);
+    // print(staffpayroll);
+    // deductions = [
+    // {'name': 'SSS', 'amount': staffpayroll['SSS']},
+    // {'name': 'PhilHealth', 'amount': staffpayroll['PhilHealth']},
+    // {'name': 'Pag-ibig', 'amount': staffpayroll['Pagibig']},
+    // ];
 
     print('numDays: $numDays');
     setState(() {
       _deliveries = deliveries;
-      _staffpayroll = staffpayroll;
       salary = totalDays * salaryRate;
-      totalDeduction = _staffpayroll['SSS'] + _staffpayroll['PhilHealth'] + _staffpayroll['Pagibig'];
+      totalDeduction = staff['SSS'] + staff['PhilHealth'] + staff['Pagibig'];
       stillFetching = false;
     });
   }
@@ -152,7 +156,22 @@ class _ComputeDialogState extends State<ComputeDialog> {
                       const Spacer(),
                       IconButton(
                       onPressed: (){
-                        Navigator.pop(context);
+                        //Navigator.pop(context);
+                        if(netSalary != 0){
+                          widget.breakdown({
+                            'netSalary':netSalary,
+                            'salary': salary,                                
+                            'numDays': totalDays,
+                            'salaryRate': salaryRate,
+                            'totalDeduct' : totalDeduction,
+                            'SSS' : staff['SSS'],
+                            'PhilHealth': staff['PhilHealth'],
+                            'Pag-ibig':staff['Pagibig']
+                          });
+                        }
+                        else{
+                          Navigator.pop(context);
+                        }
                       }, 
                       icon: Icon(Icons.close)
                     ),
@@ -164,7 +183,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
             ),
           ),
           Expanded(
-            flex:8,
+            flex:10,
             child: stillFetching == true ? Center(child: CircularProgressIndicator(color: Colors.green,),)
             : LayoutBuilder(
               builder: (context,constraints) {
@@ -179,7 +198,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                         children: [
                           Container(
                             width: 400,
-                            height: 100,
+                            height: 90,
                             // decoration: BoxDecoration(
                             //   color: Colors.white,
                             //   borderRadius: BorderRadius.circular(10),
@@ -260,10 +279,12 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                   )
                                 ),
                                 Text(
-                                  'Php ${netSalary.toStringAsFixed(2)}',
+                                  staff['netSalary'] != null
+                                  ? 'Php ${staff['netSalary'].toStringAsFixed(2)}'
+                                  :'Php 0.00',
                                   style: TextStyle(
                                     fontFamily: 'InriaSans',
-                                    fontSize: 40,
+                                    fontSize: 35,
                                     fontWeight: FontWeight.bold,
                                     color: Color.fromRGBO(56, 113, 193, 1)
                                   )
@@ -285,16 +306,15 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     'Claim Status',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
-                                      fontSize: 25,
+                                      fontSize: 20,
                                       color: Color.fromRGBO(115, 115, 115, 1)
                                     )
                                   ),
                                   Text(
-                                    _staffpayroll['ClaimedStatus'] == true ? 'Claimed'
-                                    : 'Not Claimed',
+                                    staff['ClaimedStatus'],
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
-                                      fontSize: 30,
+                                      fontSize: 25,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.green
                                     )
@@ -316,15 +336,16 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     'Claimed by:',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
-                                      fontSize: 19,
+                                      fontSize: 16,
                                       color: Color.fromRGBO(115, 115, 115, 1)
                                     )
                                   ),
                                   Text(
-                                    '--',
+                                    staff['ClaimedBy'] != null ? staff['ClaimedBy']
+                                    : '--',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
-                                      fontSize: 22,
+                                      fontSize: 19,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.grey
                                     )
@@ -346,15 +367,20 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     'Date Claimed:',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
-                                      fontSize: 19,
+                                      fontSize: 16,
                                       color: Color.fromRGBO(115, 115, 115, 1)
                                     )
                                   ),
                                   Text(
+                                    staff['ClaimedDate'] != null && staff['ClaimedDate'].runtimeType == Timestamp
+                                    ? '${DateFormat('MMM dd, yyyy').format(staff['ClaimedDate'].toDate())}'
+                                    : staff['ClaimedDate'] != null && staff['ClaimedDate'].runtimeType == DateTime
+                                    ? '${DateFormat('MMM dd, yyyy').format(staff['ClaimedDate'])}'
+                                    : 
                                     '--',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
-                                      fontSize: 22,
+                                      fontSize: 19,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.grey
                                     )
@@ -376,7 +402,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                     'Signature:',
                                     style: TextStyle(
                                       fontFamily: 'InriaSans',
-                                      fontSize: 19,
+                                      fontSize: 16,
                                       color: Color.fromRGBO(115, 115, 115, 1)
                                     )
                                   ),
@@ -393,6 +419,8 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                                 color: Color.fromRGBO(194, 192, 192, 1),
                                                 borderRadius: BorderRadius.circular(10)
                                               ),
+                                              child: staff['ClaimedPicture'] != null ? Image.network(staff['ClaimedPicture'], fit: BoxFit.cover)
+                                              : Container()
                                             ),
                                           );
                                         },
@@ -405,15 +433,62 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                         color: Color.fromRGBO(194, 192, 192, 1),
                                         borderRadius: BorderRadius.circular(10)
                                       ),
+                                      child: staff['ClaimedPicture'] != null ? Image.network(staff['ClaimedPicture'], fit: BoxFit.cover)
+                                      : Container()
                                     ),
                                   ),
                                 ],
                               ),
                           ),
-                          const SizedBox(height: 50),
+                          const SizedBox(height: 40),
                           ElevatedButton(
-                            onPressed: (){
+                            onPressed: ()async{
+                              if(staff['ClaimedStatus'] == 'Not Claimed'){
                               
+                              Map<String, dynamic>? claimStatus = await showDialog<Map<String, dynamic>?>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  String todayDate = DateFormat('d MMMM, yyyy').format(DateTime.now()).toUpperCase();
+                                  return ClaimDialog(path: widget.path, staffId: staff['staffId'],
+                                    status: (value) {
+                                      Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                                    },
+                                  );
+                                },
+                              );
+
+                              if(claimStatus != null){
+                                if(claimStatus['status'] == 'Claimed') {
+                                  setState(() {
+                                    staff['ClaimedStatus'] = 'Claimed';
+                                    staff['ClaimedBy'] = claimStatus['name'];
+                                    staff['ClaimedPicture'] = claimStatus['image'];
+                                    staff['ClaimedDate'] = DateTime.parse(claimStatus['date']); //String
+                                  });
+                                  print(staff['ClaimedDate'].runtimeType);
+                                }
+                              }
+                            } else{
+                              print('${DateFormat('MMM dd, yyyy').format((staff['ClaimedDate']).toDate())}');
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Error'),
+                                    content: Text('Payroll already claimed.'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () async {        
+                                          
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );    // Close the dialog
+                            }
                             }, 
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all<Color>(
@@ -456,7 +531,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                 
                           Container(
                             width: 500,
-                            height: 350,
+                            height: 340,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(10),
@@ -644,7 +719,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                       'Php Php ${salary.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontFamily: 'InriaSans',
-                                        fontSize: 25,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                         color: Color.fromRGBO(56, 113, 193, 1)
                                       )
@@ -655,13 +730,13 @@ class _ComputeDialogState extends State<ComputeDialog> {
                               ],
                             ),
                           ),
-                          const SizedBox(height:20),
+                          const SizedBox(height:10),
                           
                           // total salary based from salary rate and no. of days
                           
                           Container(
                             width: 500,
-                            height: 160,
+                            height: 150,
                             padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -729,9 +804,9 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                         ListView.builder(
                                           shrinkWrap: true,
                                           physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                          itemCount: deductions.length,
+                                          itemCount: 3,
                                           itemBuilder: (context, index) {
-                                            return deductionList(deductions[index]);
+                                            return deductionList(index);
                                           },
                                         ),
                                 
@@ -756,7 +831,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
                                       'Php ${totalDeduction.toStringAsFixed(2)}',
                                       style: TextStyle(
                                         fontFamily: 'InriaSans',
-                                        fontSize: 25,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                         color: Color.fromRGBO(56, 113, 193, 1)
                                       )
@@ -766,12 +841,43 @@ class _ComputeDialogState extends State<ComputeDialog> {
                               ],
                             ),
                           ),
-                          const SizedBox(height:20),
+                          const SizedBox(height:10),
                           ElevatedButton(
                             onPressed: (){
-                              setState(() {
-                                netSalary = salary - totalDeduction;
-                              });
+                              if(notNumber){
+                                 showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Alert'),
+                                      content: const Text('Not a numerical value.'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }else{
+                                setState(() {
+                                  netSalary = salary - totalDeduction;
+                                  staff['netSalary'] = netSalary;
+                                });
+
+                                //Navigator.of(context).pop();
+                                payrollService.updatePayroll(
+                                  widget.path, 
+                                  staff['staffId'], 
+                                  netSalary, 
+                                  totalDays, 
+                                  staff
+                                );
+                              }                              
+                          
                             }, 
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all<Color>(
@@ -839,12 +945,23 @@ class _ComputeDialogState extends State<ComputeDialog> {
               child: TextField(
                 controller: dayscontroller,
                 onChanged: (value){
-                  setState(() {
-                    totalDays -= order['days'];
-                    order['days'] = int.parse(value);
-                    totalDays += order['days'];
-                    salary  = totalDays * salaryRate;
-                  });
+                  try {
+                    int parsedValue = int.parse(value);
+                    setState(() {
+                      notNumber = false;
+                      // Update totalDays and order['days'] safely
+                      totalDays -= order['days'];
+                      order['days'] = parsedValue;
+                      totalDays += order['days'];
+                      salary = totalDays * salaryRate;
+                    });
+                  } catch (e) {
+                    print('Not Number');
+                    setState(() {
+                      notNumber = true;
+                    });
+                  }
+                  
                 },
                 decoration: InputDecoration(
                   //contentPadding: EdgeInsets.symmetric(vertical: 2),
@@ -864,7 +981,7 @@ class _ComputeDialogState extends State<ComputeDialog> {
   );
  }
 
-  Widget deductionList(Map<String, dynamic> deduction){
+  Widget deductionList(int index){
     
     return LayoutBuilder(
       builder: (context,constraints) {
@@ -880,7 +997,9 @@ class _ComputeDialogState extends State<ComputeDialog> {
               Container(
                 width: width * 0.5,
                 child: Text(
-                  deduction['name'],
+                  index == 0 ? 'SSS'
+                  : index == 1 ? 'PhilHealth'
+                  : 'Pag-ibig',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'InriaSans'
@@ -896,22 +1015,36 @@ class _ComputeDialogState extends State<ComputeDialog> {
                 child: TextField(
                   //controller: _othercontroller,
                   onChanged: (value){
-                  setState(() {
-                    deduction['amount'] = double.parse(value);
-                    payrollService.updateDeduction(staff['staffId'], deduction['name'], deduction['amount']);
-                    if(deduction['name']== 'SSS'){
-                      _staffpayroll['SSS'] = int.parse(value);
-                    } else if(deduction['name']== 'PhilHealth'){
-                      _staffpayroll['PhilHealth'] = int.parse(value);
-                    } else if(deduction['name']== 'Pag-ibig'){
-                      _staffpayroll['Pagibig'] = int.parse(value);
+                    try {
+                      double parsedValue = double.parse(value);
+                      setState(() {
+                        notNumber = false;
+                        
+                        // Update the appropriate staff field based on the index
+                        if (index == 0) {
+                          staff['SSS'] = parsedValue;
+                        } else if (index == 1) {
+                          staff['PhilHealth'] = parsedValue;
+                        } else if (index == 2) {
+                          staff['Pagibig'] = parsedValue;
+                        }
+                        
+                        // Recalculate the total deduction
+                        totalDeduction = (staff['SSS'] ?? 0) + (staff['PhilHealth'] ?? 0) + (staff['Pagibig'] ?? 0);
+                      });
+                    } catch (e) {
+                      // Handle the case where the input is not a valid number
+                      print('Not a number: $e');
+                      setState(() {
+                        notNumber = true;
+                      });
                     }
-                    totalDeduction = _staffpayroll['SSS'] + _staffpayroll['PhilHealth'] + _staffpayroll['Pagibig']; 
-                  });
-                },
+                  },
                   decoration: InputDecoration(
                     //contentPadding: EdgeInsets.symmetric(vertical: 2),
-                    hintText: deduction['amount'].toStringAsFixed(2),
+                    hintText: index == 0 ? staff['SSS'].toStringAsFixed(2)
+                  : index == 1 ? staff['PhilHealth'].toStringAsFixed(2)
+                  : staff['Pagibig'].toStringAsFixed(2),
                     hintStyle: TextStyle(fontFamily: 'InriaSans'),
                     border: InputBorder.none,
                   ),
@@ -932,641 +1065,641 @@ class _ComputeDialogState extends State<ComputeDialog> {
 
  
 
-Widget oldComputeDialog(){
-  return Center(
-      child: Container(
-        height: 600,
-        width: 600,
-        child: AlertDialog(
-          backgroundColor:
-              Colors.amberAccent.shade700,
-          title: Column(
-            children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      //Navigator.of(context).pop();
-                    },
-                    child: const Icon(
-                        Icons.arrow_back),
-                  ),
-                  const SizedBox(width: 80),
-                  const Text('Compute Pay Check'),
-                ],
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-          contentPadding: EdgeInsets.zero,
-          content: Container(
-            height: 750,
-            width: 900,
-            child: DecoratedBox(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.zero,
-                  bottom: Radius.circular(10.0),
-                ),
-              ),
-              child: Container(
-                width: 400,
-                padding: const EdgeInsets.fromLTRB(
-                    20, 10, 0, 0),
-                child: Stack(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment
-                                .start,
-                        children: [
-                          const Text(
-                            'Accomplished Deliveries:',
-                            style: TextStyle(
-                                fontWeight:
-                                    FontWeight
-                                        .normal),
-                          ),
-                          const SizedBox(
-                              height: 5.0),
-                          Padding(
-                            padding:
-                                const EdgeInsets
-                                    .all(5),
-                            child: Container(
-                              decoration:
-                                  BoxDecoration(
-                                border: Border.all(
-                                    color: Colors
-                                        .black),
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    width: 175,
-                                    height: 35,
-                                    decoration:
-                                        BoxDecoration(
-                                      color: Colors
-                                          .grey
-                                          .shade200,
-                                      borderRadius: const BorderRadius
-                                          .horizontal(
-                                          left: Radius
-                                              .circular(
-                                                  1.0),
-                                          right: Radius
-                                              .circular(
-                                                  1.0)),
-                                      border: Border.all(
-                                          color: Colors
-                                              .black),
-                                    ),
-                                    child:
-                                        const Padding(
-                                      padding:
-                                          EdgeInsets
-                                              .all(
-                                                  0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .start,
-                                        children: [
-                                          Icon(
-                                              Icons
-                                                  .local_shipping,
-                                              size:
-                                                  25),
-                                          SizedBox(
-                                              width:
-                                                  10),
-                                          Text(
-                                              'Delivery ID',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 175,
-                                    height: 35,
-                                    decoration:
-                                        BoxDecoration(
-                                      color: Colors
-                                          .grey
-                                          .shade200,
-                                      borderRadius:
-                                          const BorderRadius
-                                              .horizontal(),
-                                      border: Border.all(
-                                          color: Colors
-                                              .black),
-                                    ),
-                                    child:
-                                        const Padding(
-                                      padding:
-                                          EdgeInsets
-                                              .all(
-                                                  0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .start,
-                                        children: [
-                                          Icon(
-                                              Icons
-                                                  .local_shipping,
-                                              size:
-                                                  25),
-                                          SizedBox(
-                                              width:
-                                                  10),
-                                          Text(
-                                              'Delivery ID',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 175,
-                                    height: 35,
-                                    decoration:
-                                        BoxDecoration(
-                                      color: Colors
-                                          .grey
-                                          .shade200,
-                                      borderRadius:
-                                          const BorderRadius
-                                              .horizontal(),
-                                      border: Border.all(
-                                          color: Colors
-                                              .black),
-                                    ),
-                                    child:
-                                        const Padding(
-                                      padding:
-                                          EdgeInsets
-                                              .all(
-                                                  0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .start,
-                                        children: [
-                                          Icon(
-                                              Icons
-                                                  .local_shipping,
-                                              size:
-                                                  25),
-                                          SizedBox(
-                                              width:
-                                                  10),
-                                          Text(
-                                              'Delivery ID',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Padding(
-                            padding:
-                                const EdgeInsets
-                                    .fromLTRB(
-                                    20, 0, 20, 0),
-                            child: Container(
-                              width:
-                                  480, // Adjust the width as neded
-                              height:
-                                  5, // Adjust the height as needed
-                              child: Table(
-                                border: TableBorder
-                                    .all(),
-                                children: const [
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child:
-                                              Center(
-                                            child:
-                                                Text(
-                                              'TOTAL INCOME',
-                                              style:
-                                                  TextStyle(fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child:
-                                              Center(
-                                            child:
-                                                Text(
-                                              'AMOUNT',
-                                              style:
-                                                  TextStyle(fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              'Medical Allowance'),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              ''),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              'Rice Allowance'),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              ''),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              'Mobile Allowance'),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              ''),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              'Clothing Allowance'),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              ''),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child:
-                                              Center(
-                                            child:
-                                                Text(
-                                              'TOTAL DEDUCTION',
-                                              style:
-                                                  TextStyle(fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child:
-                                              Center(
-                                            child:
-                                                Text(
-                                              'AMOUNT',
-                                              style:
-                                                  TextStyle(fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+// Widget oldComputeDialog(){
+//   return Center(
+//       child: Container(
+//         height: 600,
+//         width: 600,
+//         child: AlertDialog(
+//           backgroundColor:
+//               Colors.amberAccent.shade700,
+//           title: Column(
+//             children: [
+//               Row(
+//                 children: [
+//                   GestureDetector(
+//                     onTap: () {
+//                       //Navigator.of(context).pop();
+//                     },
+//                     child: const Icon(
+//                         Icons.arrow_back),
+//                   ),
+//                   const SizedBox(width: 80),
+//                   const Text('Compute Pay Check'),
+//                 ],
+//               ),
+//               const SizedBox(height: 20),
+//             ],
+//           ),
+//           contentPadding: EdgeInsets.zero,
+//           content: Container(
+//             height: 750,
+//             width: 900,
+//             child: DecoratedBox(
+//               decoration: const BoxDecoration(
+//                 color: Colors.white,
+//                 borderRadius: BorderRadius.vertical(
+//                   top: Radius.zero,
+//                   bottom: Radius.circular(10.0),
+//                 ),
+//               ),
+//               child: Container(
+//                 width: 400,
+//                 padding: const EdgeInsets.fromLTRB(
+//                     20, 10, 0, 0),
+//                 child: Stack(
+//                   children: [
+//                     Expanded(
+//                       child: Column(
+//                         crossAxisAlignment:
+//                             CrossAxisAlignment
+//                                 .start,
+//                         children: [
+//                           const Text(
+//                             'Accomplished Deliveries:',
+//                             style: TextStyle(
+//                                 fontWeight:
+//                                     FontWeight
+//                                         .normal),
+//                           ),
+//                           const SizedBox(
+//                               height: 5.0),
+//                           Padding(
+//                             padding:
+//                                 const EdgeInsets
+//                                     .all(5),
+//                             child: Container(
+//                               decoration:
+//                                   BoxDecoration(
+//                                 border: Border.all(
+//                                     color: Colors
+//                                         .black),
+//                               ),
+//                               child: Column(
+//                                 children: [
+//                                   Container(
+//                                     width: 175,
+//                                     height: 35,
+//                                     decoration:
+//                                         BoxDecoration(
+//                                       color: Colors
+//                                           .grey
+//                                           .shade200,
+//                                       borderRadius: const BorderRadius
+//                                           .horizontal(
+//                                           left: Radius
+//                                               .circular(
+//                                                   1.0),
+//                                           right: Radius
+//                                               .circular(
+//                                                   1.0)),
+//                                       border: Border.all(
+//                                           color: Colors
+//                                               .black),
+//                                     ),
+//                                     child:
+//                                         const Padding(
+//                                       padding:
+//                                           EdgeInsets
+//                                               .all(
+//                                                   0),
+//                                       child: Row(
+//                                         mainAxisAlignment:
+//                                             MainAxisAlignment
+//                                                 .start,
+//                                         children: [
+//                                           Icon(
+//                                               Icons
+//                                                   .local_shipping,
+//                                               size:
+//                                                   25),
+//                                           SizedBox(
+//                                               width:
+//                                                   10),
+//                                           Text(
+//                                               'Delivery ID',
+//                                               style: TextStyle(
+//                                                   fontWeight: FontWeight.bold,
+//                                                   fontSize: 16)),
+//                                         ],
+//                                       ),
+//                                     ),
+//                                   ),
+//                                   Container(
+//                                     width: 175,
+//                                     height: 35,
+//                                     decoration:
+//                                         BoxDecoration(
+//                                       color: Colors
+//                                           .grey
+//                                           .shade200,
+//                                       borderRadius:
+//                                           const BorderRadius
+//                                               .horizontal(),
+//                                       border: Border.all(
+//                                           color: Colors
+//                                               .black),
+//                                     ),
+//                                     child:
+//                                         const Padding(
+//                                       padding:
+//                                           EdgeInsets
+//                                               .all(
+//                                                   0),
+//                                       child: Row(
+//                                         mainAxisAlignment:
+//                                             MainAxisAlignment
+//                                                 .start,
+//                                         children: [
+//                                           Icon(
+//                                               Icons
+//                                                   .local_shipping,
+//                                               size:
+//                                                   25),
+//                                           SizedBox(
+//                                               width:
+//                                                   10),
+//                                           Text(
+//                                               'Delivery ID',
+//                                               style: TextStyle(
+//                                                   fontWeight: FontWeight.bold,
+//                                                   fontSize: 16)),
+//                                         ],
+//                                       ),
+//                                     ),
+//                                   ),
+//                                   Container(
+//                                     width: 175,
+//                                     height: 35,
+//                                     decoration:
+//                                         BoxDecoration(
+//                                       color: Colors
+//                                           .grey
+//                                           .shade200,
+//                                       borderRadius:
+//                                           const BorderRadius
+//                                               .horizontal(),
+//                                       border: Border.all(
+//                                           color: Colors
+//                                               .black),
+//                                     ),
+//                                     child:
+//                                         const Padding(
+//                                       padding:
+//                                           EdgeInsets
+//                                               .all(
+//                                                   0),
+//                                       child: Row(
+//                                         mainAxisAlignment:
+//                                             MainAxisAlignment
+//                                                 .start,
+//                                         children: [
+//                                           Icon(
+//                                               Icons
+//                                                   .local_shipping,
+//                                               size:
+//                                                   25),
+//                                           SizedBox(
+//                                               width:
+//                                                   10),
+//                                           Text(
+//                                               'Delivery ID',
+//                                               style: TextStyle(
+//                                                   fontWeight: FontWeight.bold,
+//                                                   fontSize: 16)),
+//                                         ],
+//                                       ),
+//                                     ),
+//                                   ),
+//                                 ],
+//                               ),
+//                             ),
+//                           ),
+//                           const SizedBox(height: 5),
+//                           Padding(
+//                             padding:
+//                                 const EdgeInsets
+//                                     .fromLTRB(
+//                                     20, 0, 20, 0),
+//                             child: Container(
+//                               width:
+//                                   480, // Adjust the width as neded
+//                               height:
+//                                   5, // Adjust the height as needed
+//                               child: Table(
+//                                 border: TableBorder
+//                                     .all(),
+//                                 children: const [
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child:
+//                                               Center(
+//                                             child:
+//                                                 Text(
+//                                               'TOTAL INCOME',
+//                                               style:
+//                                                   TextStyle(fontWeight: FontWeight.bold),
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child:
+//                                               Center(
+//                                             child:
+//                                                 Text(
+//                                               'AMOUNT',
+//                                               style:
+//                                                   TextStyle(fontWeight: FontWeight.bold),
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               'Medical Allowance'),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               ''),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               'Rice Allowance'),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               ''),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               'Mobile Allowance'),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               ''),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               'Clothing Allowance'),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               ''),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child:
+//                                               Center(
+//                                             child:
+//                                                 Text(
+//                                               'TOTAL DEDUCTION',
+//                                               style:
+//                                                   TextStyle(fontWeight: FontWeight.bold),
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child:
+//                                               Center(
+//                                             child:
+//                                                 Text(
+//                                               'AMOUNT',
+//                                               style:
+//                                                   TextStyle(fontWeight: FontWeight.bold),
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
 
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              ''),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              ''),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child:
-                                              Center(
-                                            child:
-                                                Text(
-                                              'TAX',
-                                              style:
-                                                  TextStyle(fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child:
-                                              Center(
-                                            child:
-                                                Text(
-                                              'AMOUNT',
-                                              style:
-                                                  TextStyle(fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              ''),
-                                        ),
-                                      ),
-                                      TableCell(
-                                        child:
-                                            Padding(
-                                          padding:
-                                              EdgeInsets.all(
-                                                  1.0),
-                                          child: Text(
-                                              ''),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  // Add more rows as needed
-                                ],
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment
-                                      .start,
-                              children: [
-                                Checkbox(
-                                  value: false,
-                                  onChanged: (bool?
-                                      value) {
-                                    // Handle checkbox change
-                                  },
-                                ),
-                                const SizedBox(
-                                    width: 10),
-                                const Text(
-                                  'Confirm Pay Rate',
-                                  style: TextStyle(
-                                      fontWeight:
-                                          FontWeight
-                                              .normal),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                          150, 0, 0, 0),
-                      child: Expanded(
-                        child:
-                            SingleChildScrollView(
-                          child: Column(
-                            mainAxisAlignment:
-                                MainAxisAlignment
-                                    .spaceEvenly,
-                            children: [
-                              const Text(
-                                'Salary:',
-                                style: TextStyle(
-                                    fontWeight:
-                                        FontWeight
-                                            .normal),
-                              ),
-                              const SizedBox(
-                                  height: 10.0),
-                              Column(
-                                children: [
-                                  const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .center,
-                                      children: [
-                                        Text(
-                                          '3 Deliveries Accomplished',
-                                          style: TextStyle(
-                                              decoration:
-                                                  TextDecoration.underline),
-                                        ),
-                                        SizedBox(
-                                            height:
-                                                5),
-                                      ]),
-                                  SizedBox(
-                                      width: 80),
-                                  const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .center,
-                                      children: [
-                                        Text(
-                                          '1 Cebu Trip',
-                                        ),
-                                        SizedBox(
-                                            width:
-                                                15),
-                                        Text(
-                                            'Php 800.00')
-                                      ]),
-                                  SizedBox(
-                                      width: 80),
-                                  const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .center,
-                                      children: [
-                                        Text(
-                                          '2 Out-Cebu Trip',
-                                        ),
-                                        SizedBox(
-                                            width:
-                                                10),
-                                        Text(
-                                            'Php 1200')
-                                      ]),
-                                  const SizedBox(
-                                      height: 10),
-                                  Column(children: [
-                                    Container(
-                                      width: 175,
-                                      height: 35,
-                                      decoration:
-                                          BoxDecoration(
-                                        color: Colors
-                                            .grey
-                                            .shade200,
-                                        borderRadius: const BorderRadius
-                                            .horizontal(
-                                            left: Radius.circular(
-                                                1.0),
-                                            right: Radius.circular(
-                                                1.0)),
-                                      ),
-                                      child:
-                                          const Padding(
-                                        padding:
-                                            EdgeInsets
-                                                .all(0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment
-                                                  .center,
-                                          children: [
-                                            Text(
-                                                'Php 2,000.00'),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ]),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )
-                  ], //children
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );                
-}
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               ''),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               ''),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child:
+//                                               Center(
+//                                             child:
+//                                                 Text(
+//                                               'TAX',
+//                                               style:
+//                                                   TextStyle(fontWeight: FontWeight.bold),
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child:
+//                                               Center(
+//                                             child:
+//                                                 Text(
+//                                               'AMOUNT',
+//                                               style:
+//                                                   TextStyle(fontWeight: FontWeight.bold),
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   TableRow(
+//                                     children: [
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               ''),
+//                                         ),
+//                                       ),
+//                                       TableCell(
+//                                         child:
+//                                             Padding(
+//                                           padding:
+//                                               EdgeInsets.all(
+//                                                   1.0),
+//                                           child: Text(
+//                                               ''),
+//                                         ),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                   // Add more rows as needed
+//                                 ],
+//                               ),
+//                             ),
+//                           ),
+//                           const Spacer(),
+//                           Expanded(
+//                             child: Row(
+//                               mainAxisAlignment:
+//                                   MainAxisAlignment
+//                                       .start,
+//                               children: [
+//                                 Checkbox(
+//                                   value: false,
+//                                   onChanged: (bool?
+//                                       value) {
+//                                     // Handle checkbox change
+//                                   },
+//                                 ),
+//                                 const SizedBox(
+//                                     width: 10),
+//                                 const Text(
+//                                   'Confirm Pay Rate',
+//                                   style: TextStyle(
+//                                       fontWeight:
+//                                           FontWeight
+//                                               .normal),
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     Padding(
+//                       padding: EdgeInsets.fromLTRB(
+//                           150, 0, 0, 0),
+//                       child: Expanded(
+//                         child:
+//                             SingleChildScrollView(
+//                           child: Column(
+//                             mainAxisAlignment:
+//                                 MainAxisAlignment
+//                                     .spaceEvenly,
+//                             children: [
+//                               const Text(
+//                                 'Salary:',
+//                                 style: TextStyle(
+//                                     fontWeight:
+//                                         FontWeight
+//                                             .normal),
+//                               ),
+//                               const SizedBox(
+//                                   height: 10.0),
+//                               Column(
+//                                 children: [
+//                                   const Row(
+//                                       mainAxisAlignment:
+//                                           MainAxisAlignment
+//                                               .center,
+//                                       children: [
+//                                         Text(
+//                                           '3 Deliveries Accomplished',
+//                                           style: TextStyle(
+//                                               decoration:
+//                                                   TextDecoration.underline),
+//                                         ),
+//                                         SizedBox(
+//                                             height:
+//                                                 5),
+//                                       ]),
+//                                   SizedBox(
+//                                       width: 80),
+//                                   const Row(
+//                                       mainAxisAlignment:
+//                                           MainAxisAlignment
+//                                               .center,
+//                                       children: [
+//                                         Text(
+//                                           '1 Cebu Trip',
+//                                         ),
+//                                         SizedBox(
+//                                             width:
+//                                                 15),
+//                                         Text(
+//                                             'Php 800.00')
+//                                       ]),
+//                                   SizedBox(
+//                                       width: 80),
+//                                   const Row(
+//                                       mainAxisAlignment:
+//                                           MainAxisAlignment
+//                                               .center,
+//                                       children: [
+//                                         Text(
+//                                           '2 Out-Cebu Trip',
+//                                         ),
+//                                         SizedBox(
+//                                             width:
+//                                                 10),
+//                                         Text(
+//                                             'Php 1200')
+//                                       ]),
+//                                   const SizedBox(
+//                                       height: 10),
+//                                   Column(children: [
+//                                     Container(
+//                                       width: 175,
+//                                       height: 35,
+//                                       decoration:
+//                                           BoxDecoration(
+//                                         color: Colors
+//                                             .grey
+//                                             .shade200,
+//                                         borderRadius: const BorderRadius
+//                                             .horizontal(
+//                                             left: Radius.circular(
+//                                                 1.0),
+//                                             right: Radius.circular(
+//                                                 1.0)),
+//                                       ),
+//                                       child:
+//                                           const Padding(
+//                                         padding:
+//                                             EdgeInsets
+//                                                 .all(0),
+//                                         child: Row(
+//                                           mainAxisAlignment:
+//                                               MainAxisAlignment
+//                                                   .center,
+//                                           children: [
+//                                             Text(
+//                                                 'Php 2,000.00'),
+//                                           ],
+//                                         ),
+//                                       ),
+//                                     ),
+//                                   ]),
+//                                 ],
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+//                     )
+//                   ], //children
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );                
+// }

@@ -123,6 +123,24 @@ class _AssignedWidgetState extends State<AssignedWidget> {
     );
   }
 
+  Widget _buildDotsIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        toBeAssigned.length,
+        (index) => Container(
+          width: 10,
+          height: 10,
+          margin: EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            //color: _currentPage == index ? Colors.blue : Colors.grey,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget assignContainer(Map<String,dynamic> order) {
     return InkWell(
       onTap: () async{

@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/newUI/components/dialogs/accApprovalDialog.dart';
 import 'package:haul_a_day_web/service/database.dart';
+import 'package:haul_a_day_web/service/userService.dart';
 import 'package:intl/intl.dart';
 
 class StaffList extends StatefulWidget {
@@ -55,13 +56,16 @@ class _StaffListState extends State<StaffList> {
           if(account['position'] != 'Driver' && account['position'] != 'Helper'){
             _management.add(account);
           }
+          else{
+            _staffs.add(account);
+          }
         }
       }
       
       setState(() {
         //_management = management;
-        filterStaff = _management + staffs;
-        _staffs = staffs;
+        filterStaff = _management + _staffs;
+        //_staffs = staffs;
       });
       sortList(filterStaff,_selectedSortBy);
     } catch (e) {
@@ -157,6 +161,71 @@ class _StaffListState extends State<StaffList> {
       });
     }
     
+  }
+
+  UserService userService = UserService();
+  TextEditingController _passwordController = TextEditingController();
+
+
+  void rejectAccount(Map<String,dynamic> staff)async{
+    // Add your approval logic here                      
+    String password = _passwordController.text;
+    // Perform validation and approval process
+    bool approved = await userService.confirmation(widget.userId, password);
+    if(approved){
+      userService.removeAccount(staff['staffId']);
+      //Navigator.of(context).pop();
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Account Removed'),
+            content:  Text('This account is now removed!'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Close the dialog
+                  setState(() {
+                    selectaStaff = false;
+                    selectedStaff = {};                    
+                    if(staff['accessKey'] =='Basic') {
+                      _staffs.remove(staff);
+                      print('remove from op staff');
+                    }else{
+                      _management.remove(staff);
+                      print('remove from management');
+                    }
+                    filterStaff.remove(staff);
+                    print('removed from all staff');
+                  });
+                  _passwordController.clear();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }else{
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content:  Text('User ID and Password do not match!'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
 
@@ -291,6 +360,22 @@ class _StaffListState extends State<StaffList> {
                             Divider(),
                             const SizedBox(height:12),
 
+                            selectaStaff == false ? Container()
+                            : Column(
+                              children: [                                
+                                Container(
+                                  height: height * 0.6,
+                                  width: width,
+                                  color: Color.fromARGB(109, 223, 222, 222),
+                                  child: staffInfoPanel(selectedStaff)
+                                ),
+
+                                const SizedBox(height:12),
+                                Divider(),
+                                const SizedBox(height:12),
+                              ],
+                            ),
+
                             Container(
                               width: width,
                               height: 1000,
@@ -402,7 +487,7 @@ class _StaffListState extends State<StaffList> {
                                                       padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
                                                       height: height *0.055,
                                                       width: width,
-                                                      color: Color.fromARGB(109, 223, 222, 222),
+                                                      color: Color.fromRGBO(251, 250, 239, 0.782),
                                                       child: ElevatedButton(
                                                         onPressed: (){
                                                          applyFilter(_selectedFilter);
@@ -558,9 +643,9 @@ class _StaffListState extends State<StaffList> {
                                                                 // The list creates the containers for all the trucks
                                                                 GridView.builder(
                                                                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                                    crossAxisCount: 4,
-                                                                    mainAxisSpacing: 10,
-                                                                    crossAxisSpacing: 10,
+                                                                    crossAxisCount: 3,
+                                                                    mainAxisSpacing: 5,
+                                                                    crossAxisSpacing: 5,
                                                                   ),
                                                                   shrinkWrap: true,
                                                                   physics: const NeverScrollableScrollPhysics(),
@@ -646,7 +731,7 @@ class _StaffListState extends State<StaffList> {
             print('Account: ${approval['accessKey']}');
             setState(() {
               account['accessKey'] = approval['accessKey'];
-              filterStaff.add(account);
+              //filterStaff.add(account);
               if(approval['accessKey'] =='Basic') {
                 _staffs.add(account);
               }else{
@@ -690,7 +775,9 @@ class _StaffListState extends State<StaffList> {
                   bottom: BorderSide(color: Colors.black, width: 1.0,),
                 ),
               ),
-              child: Image.network(account['pictureUrl'],fit: BoxFit.scaleDown,)
+              child: account['pictureUrl'] != null
+              ? Image.network(account['pictureUrl'],fit: BoxFit.scaleDown,)
+              : Image.asset('images/user_pic.png',fit: BoxFit.scaleDown,)
             ),
             const SizedBox(height: 10),
             Text(
@@ -716,6 +803,489 @@ class _StaffListState extends State<StaffList> {
     );
   }
 
+  //Staff Information
+  Widget staffInfoPanel(Map<String, dynamic> staff){
+    String registeredDate;
+    if (staff['registeredDate'] is String) {
+      registeredDate = staff['registeredDate'] ?? ' ';
+    } else if(staff['registeredDate'] == null){
+      registeredDate = ' ';
+    }
+    else {
+      registeredDate = DateFormat('MMM dd, yyyy').format(staff['registeredDate'].toDate());
+    }
+    return LayoutBuilder(
+      builder: (context, constraints){
+        double width = constraints.maxWidth;
+        double height = constraints.maxHeight;
+        return Center(
+          child: Container(
+            width: width *0.8,
+            height: height *0.9,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: Colors.green, width: 5)
+            ),
+            child:Row(
+              children: [
+                Expanded(
+                  flex:3,
+                  child: LayoutBuilder(
+                    builder:(context,constraints){
+                    double width = constraints.maxWidth;
+                    double height = constraints.maxHeight;
+                    return Container(
+                        //color: Colors.blue,
+                        width: width,
+                        height: height,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            //const SizedBox(height: 16),
+                            Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.all(12),
+                              width: width*0.6,
+                              height: height *0.6,
+                              decoration: BoxDecoration(
+                                color: Color.fromRGBO(76, 206, 80, 1),
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5), // Shadow color
+                                    spreadRadius: 2, // Spread radius
+                                    blurRadius: 5, // Blur radius
+                                    offset: Offset(0, 3), // Offset from the container
+                                  ),
+                                ],
+                              ),
+                              child: staff['pictureUrl'] != null
+                              ? Image.network(staff['pictureUrl'], fit: BoxFit.fill)
+                              : Image.asset('images/user_pic.png',  fit: BoxFit.contain),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              '${staff['firstname']} ${staff['lastname']}',
+                              style: TextStyle(
+                                fontSize: 20,
+                                //color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Inter'
+                              ),
+                            ),
+                            Text(
+                              staff['staffId'],
+                              style: TextStyle(
+                                fontSize: 16,
+                                //color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'InriaSans'
+                              ),
+                            ),
+                          ],
+                        )
+                      
+                      );
+                    }
+                  ),
+
+                ),
+                Expanded(
+                  flex: 6,
+                  child: Container(
+                    alignment: Alignment.center,
+                    //width: width * 0.6,
+                    //color: Colors.green,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        double width = constraints.maxWidth;
+                        double height = constraints.maxHeight;
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            
+                            Text(
+                              "Staff's Information",
+                              style:TextStyle(
+                                fontSize:22,
+                                fontFamily: 'Inter',
+                                color:Colors.grey,
+                                fontWeight: FontWeight.bold
+                              )
+                            ),
+                            const SizedBox(height:10),
+                            // firstname and lastname
+                            Row(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'First Name',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 25,
+                                      width: width *0.45,
+                                      padding: EdgeInsets.symmetric(horizontal: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            const BorderRadius.horizontal(
+                                          left: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                          right: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                        ),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Text(
+                                        staff['firstname']??'',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          //fontFamily: 'Inter'
+                                        ),
+                                      )
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 10,),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Last Name',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 25,
+                                      width: width *0.45,
+                                      padding: EdgeInsets.symmetric(horizontal: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            const BorderRadius.horizontal(
+                                          left: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                          right: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                        ),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Text(
+                                        staff['lastname']??'',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          //fontFamily: 'Inter'
+                                        ),
+                                      )
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                            const SizedBox(height: 10,),
+                            
+                            //Job Position and Contact No.
+                            Row(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Username',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 25,
+                                      width: width *0.45,
+                                      padding: EdgeInsets.symmetric(horizontal: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            const BorderRadius.horizontal(
+                                          left: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                          right: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                        ),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Text(
+                                        staff['userName']?? '',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          //fontFamily: 'Inter'
+                                        ),
+                                      )
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 10,),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Contact Number',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 25,
+                                      width: width *0.45,
+                                      padding: EdgeInsets.symmetric(horizontal: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            const BorderRadius.horizontal(
+                                          left: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                          right: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                        ),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Text(
+                                        staff['contactNumber'] ?? '',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          //fontFamily: 'Inter'
+                                        ),
+                                      )
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                            const SizedBox(height: 10,),
+                            
+                            // Registered Date
+                            Container(
+                              width: width,
+                              child: Row(
+                                children: [
+                                  Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Job Position',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 25,
+                                      width: width *0.45,
+                                      padding: EdgeInsets.symmetric(horizontal: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            const BorderRadius.horizontal(
+                                          left: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                          right: Radius.circular(
+                                              20.0), // Adjust the radius as needed
+                                        ),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Text(
+                                        staff['position']??'',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          //fontFamily: 'Inter'
+                                        ),
+                                      )
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 10,),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Registered Date',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      Container(
+                                        height: 25,
+                                        width: width *0.45,
+                                        padding: EdgeInsets.symmetric(horizontal: 10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              const BorderRadius.horizontal(
+                                            left: Radius.circular(
+                                                20.0), // Adjust the radius as needed
+                                            right: Radius.circular(
+                                                20.0), // Adjust the radius as needed
+                                          ),
+                                          border: Border.all(
+                                              color: Colors.grey),
+                                        ),
+                                        child: Text(
+                                          registeredDate,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            //fontFamily: 'Inter'
+                                          ),
+                                        )
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 25,),
+                            
+                            Container(
+                              width: width,
+                              alignment: Alignment.centerRight,
+                              padding: EdgeInsets.only(right: 50),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Deletion Confirmation'),
+                                        content: Container(
+                                          padding: EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Colors.white
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Text('Do you wish to delete this account? If yes please input your password to confirm deletion.',
+                                              softWrap: true,
+                                              style:TextStyle(
+                                                fontStyle: FontStyle.italic
+                                              ),
+                                              ),
+                                              const SizedBox(height: 10,),
+                                              Container(
+                                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                                child: Column(
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Text('User ID:', style: TextStyle(fontSize: 16),),
+                                                        const SizedBox(width: 8,),
+                                                        Text(widget.userId, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                                                      ],
+                                                    ),
+                                                    TextField(
+                                                      onSubmitted: (_){
+                                                        //confirmApproval();
+                                                        rejectAccount(staff);
+                                                      },
+                                                      controller: _passwordController,
+                                                      obscureText: true,
+                                                      decoration: InputDecoration(
+                                                        labelText: 'Password',
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        actions: [
+                                          ElevatedButton(
+                                            onPressed: () async{
+                                              //confirmApproval();
+                                              rejectAccount(staff);
+                                            },
+                                            child: Text('Confirm'),
+                                          ),
+                                          const SizedBox(width: 8,),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(); // Close the dialog
+                                            },
+                                            child: Text('Cancel'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                  
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  shape:
+                                      const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.horizontal(
+                                      left: Radius.circular(10.0),
+                                      right: Radius.circular(10.0),
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8.0),
+                                    const Text(
+                                      'Remove',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            
+                          ],
+                        );
+                      }
+                    ),
+                  ),
+                )
+              ],
+            )
+          ),
+        );
+      }
+    );
+  }
+  
   //for the list
   Widget buildStaffContainer(Map<String, dynamic> aStaff){
     return InkWell(

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
+import 'package:haul_a_day_web/homepage/homepage.dart';
 //import 'package:haul_a_day_web/page/menupage2.dart';
 import 'package:haul_a_day_web/newUI/homescreen.dart';
 import 'package:haul_a_day_web/service/database.dart';
@@ -255,7 +256,7 @@ class _LoginState extends State<Login> {
                             )
                           ),
                         ),
-                        const SizedBox(height: 64),
+                        const SizedBox(height: 50),
                         ElevatedButton(
                           onPressed: _login,
                           style: ButtonStyle(
@@ -273,7 +274,7 @@ class _LoginState extends State<Login> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -293,6 +294,46 @@ class _LoginState extends State<Login> {
                                 children: [
                                   const Text(
                                     "Sign Up",
+                                    style: TextStyle(
+                                      color: Colors.amber,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.amber,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        //const SizedBox(height:5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Or are you a customer?",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push( 
+                                context, 
+                                MaterialPageRoute( 
+                                    builder: (context) => 
+                                        CustomerHomePage())); 
+                              },
+                              child: Row(
+                                children: [
+                                  const Text(
+                                    "Customer",
                                     style: TextStyle(
                                       color: Colors.amber,
                                       fontSize: 14,

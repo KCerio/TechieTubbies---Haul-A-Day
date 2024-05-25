@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:haul_a_day_web/homepage/homepage.dart';
 import 'package:haul_a_day_web/models/user_model.dart';
 import 'package:haul_a_day_web/repository/user_repository.dart';
 import 'package:haul_a_day_web/service/userService.dart';
@@ -612,58 +613,8 @@ class _SignUpState extends State<SignUp> {
                         ),
                       ),
                       const SizedBox(
-                        height: 32,
+                        height: 50,
                       ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      
-
-                      // if user has an account, switch to login widget
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-
-                          const Text(
-                            "Already have an account?",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
-                          ),
-
-                          const SizedBox(
-                            width: 8,
-                          ),
-
-                          GestureDetector(
-                            onTap: () {
-                              widget.onLogInSelected(); //login widget
-                            },
-                            child: const Row(
-                              children: [
-                                Text(
-                                  "Log In",
-                                  style: TextStyle(
-                                    color: Colors.amber,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                Icon(
-                                  Icons.arrow_forward,
-                                  color: Colors.amber,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                        ],
-                      ),
-
 
                     // Sign up button                 
                     ElevatedButton(
@@ -682,8 +633,95 @@ class _SignUpState extends State<SignUp> {
                               fontSize: 20,
                               fontWeight: FontWeight.bold),  
                             )
-                        )
-                       
+                        ),
+
+                        const SizedBox(height: 30),
+                        // if user has an account, switch to login widget
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+
+                            const Text(
+                              "Already have an account?",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
+
+                            const SizedBox(
+                              width: 8,
+                            ),
+
+                            GestureDetector(
+                              onTap: () {
+                                widget.onLogInSelected(); //login widget
+                              },
+                              child: const Row(
+                                children: [
+                                  Text(
+                                    "Log In",
+                                    style: TextStyle(
+                                      color: Colors.amber,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.amber,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          ],
+                        ),
+
+                        // if is customer
+                        Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  "Or are you a customer?",
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push( 
+                                    context, 
+                                    MaterialPageRoute( 
+                                        builder: (context) => 
+                                            CustomerHomePage())); 
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                        "Customer",
+                                        style: TextStyle(
+                                          color: Colors.amber,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Icon(
+                                        Icons.arrow_forward,
+                                        color: Colors.amber,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          
                     ],
                   ),
                   )

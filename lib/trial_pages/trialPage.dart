@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/newUI/components/dialogs/accApprovalDialog.dart';
 import 'package:haul_a_day_web/newUI/components/dialogs/reassignDialog.dart';
+import 'package:haul_a_day_web/trial_pages/viewOrder.dart';
 
 class TrialPage extends StatelessWidget {
   const TrialPage({super.key});
@@ -13,7 +14,8 @@ class TrialPage extends StatelessWidget {
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        child: NonInfiniteCarousel(),
+        child: ViewOrder()
+        //NonInfiniteCarousel(),
         // child: Center(
         //   child: ElevatedButton(
         //     onPressed: () {

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:haul_a_day_web/homepage/deliveryInformation.dart';
 import 'package:haul_a_day_web/homepage/submitDeliveryWidgets.dart';
 
-import 'package:haul_a_day_web/homepage/unloadingDelivery.dart';
+//import 'package:haul_a_day_web/homepage/unloadingDelivery.dart';
 import 'package:intl/intl.dart';
 import 'addUnloadingDelivery.dart';
 import 'editUnloadingDelivery.dart';
@@ -162,7 +162,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
       child: Container(
         padding: EdgeInsets.symmetric(
             horizontal: 60,
-            vertical: 60
+            vertical: 40
         ),
         width: double.infinity,
         height: double.infinity,
@@ -246,7 +246,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
   Widget deliveryInformation(BuildContext context){
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-      height:MediaQuery.sizeOf(context).height*0.57,
+      height:MediaQuery.sizeOf(context).height*0.6,
       width:MediaQuery.sizeOf(context).width*0.95,
       decoration:BoxDecoration(
         color: Color(0xffCEDCF0),
@@ -499,7 +499,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
   Widget loadingInformation(BuildContext context){
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-      height: MediaQuery.of(context).size.height * 0.57,
+      height: MediaQuery.of(context).size.height * 0.60,
       width: MediaQuery.of(context).size.width * 0.95,
       decoration: BoxDecoration(
         color: Color(0xffCEDCF0),
@@ -928,7 +928,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
   Widget unloadingDeliveryList(BuildContext context){
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-      height: MediaQuery.of(context).size.height * 0.57,
+      height: MediaQuery.of(context).size.height * 0.60,
       width: MediaQuery.of(context).size.width * 0.95,
       decoration: BoxDecoration(
         color: Color(0xffCEDCF0),
@@ -1247,7 +1247,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
   Widget submitDelivery(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-      height:MediaQuery.sizeOf(context).height*0.57,
+      height:MediaQuery.sizeOf(context).height*0.6,
       width:MediaQuery.sizeOf(context).width*0.95,
       decoration:BoxDecoration(
         color: Color(0xffCEDCF0),

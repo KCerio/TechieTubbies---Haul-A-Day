@@ -99,7 +99,13 @@ class UserService {
         DateTime timestamp = DateTime.now();
         String dateDeleted = DateFormat('MMM dd, yyyy').format(timestamp);
         String docName = '$userId - $dateDeleted (Users)';
-        await FirebaseFirestore.instance.collection('Archive').doc(docName).set(userDocSnapshot.data() as Map<String, dynamic>);
+        Map<String, dynamic> userData = userDocSnapshot.data() as Map<String, dynamic>;
+
+        // Add the timestamp field
+        userData['timestamp'] = timestamp;
+
+        // Create a new document in the 'Archive' collection with the same data
+        await FirebaseFirestore.instance.collection('Archive').doc(docName).set(userData);
         
         // Delete the document from the 'Users' collection
         await userDocRef.delete();
@@ -107,6 +113,41 @@ class UserService {
         print('Document moved to Archive and deleted from Users successfully');
       } else {
         print('Document does not exist in Users collection');
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error moving document to Archive: $e');
+    }
+  }
+
+  Future<void> removeTruck(String truckId) async {
+    try {
+      // Get reference to the document in the 'Users' collection
+      DocumentReference truckDocRef = FirebaseFirestore.instance.collection('Trucks').doc(truckId);
+      
+      // Get the document data
+      DocumentSnapshot truckDocSnapshot = await truckDocRef.get();
+      
+      // Check if the document exists
+      if (truckDocSnapshot.exists) {
+        // Add the document to the 'Archive' collection
+        DateTime timestamp = DateTime.now();
+        String dateDeleted = DateFormat('MMM dd, yyyy').format(timestamp);
+        String docName = '$truckId - $dateDeleted (Trucks)';
+        Map<String, dynamic> truckData = truckDocSnapshot.data() as Map<String, dynamic>;
+
+        // Add the timestamp field
+        truckData['timestamp'] = timestamp;
+
+        // Create a new document in the 'Archive' collection with the same data
+        await FirebaseFirestore.instance.collection('Archive').doc(docName).set(truckData);
+        
+        // Delete the document from the 'trucks' collection
+        await truckDocRef.delete();
+        
+        print('Document moved to Archive and deleted from Trucks successfully');
+      } else {
+        print('Document does not exist in Trucks collection');
       }
     } catch (e) {
       // Handle errors
