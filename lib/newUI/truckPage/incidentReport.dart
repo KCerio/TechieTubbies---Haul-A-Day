@@ -55,7 +55,18 @@ class _IncidentReportState extends State<IncidentReport> {
           Expanded(
             child: incidentReportList.isEmpty
                 ? Center(child: CircularProgressIndicator())
-                : ListView.builder(
+                : (incidentReportList[0].reportId=='none')
+                  ?Center(
+                    child: Text(
+                      'No Incidents so far',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey,
+                      ),
+                    ),)
+                  :ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               itemCount: incidentReportList.length,
               itemBuilder: (context, index) {

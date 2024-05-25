@@ -43,6 +43,20 @@ class InciReport {
   }
 }
 
+class AccomplishedReport{
+  final String id;
+  final String customer;
+  final Timestamp dateAssigned;
+
+  AccomplishedReport(this.id, this.customer, this.dateAssigned);
+
+  AccomplishedReport.nullReport()
+    :id ='none',
+    customer ='',
+    dateAssigned = Timestamp.now();
+
+}
+
 Future<List<InciReport>> fetchIncidentReports (String truckId) async {
   List<InciReport> incidentReports = [];
   try{
@@ -53,7 +67,7 @@ Future<List<InciReport>> fetchIncidentReports (String truckId) async {
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      print("YES");
+
 
       for (var doc in querySnapshot.docs) {
         incidentReports.add(InciReport.fromSnapshot(doc));
@@ -70,13 +84,62 @@ Future<List<InciReport>> fetchIncidentReports (String truckId) async {
   return incidentReports;
 }
 
+Future<List<AccomplishedReport>> fetchDeliveryReports(String truckId) async {
+  List<AccomplishedReport> deliveryList = [];
+
+  try {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Trucks')
+        .doc(truckId)
+        .collection('Accomplished Deliveries')
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      for (var doc in querySnapshot.docs) {
+        print("YUH: ${doc.id}");
+        String orderId = doc.id;
+
+        String company = '';
+        Timestamp assignedDate = Timestamp.now();
+
+        DocumentSnapshot orderSnapshot = await FirebaseFirestore.instance
+            .collection('Order')
+            .doc(orderId)
+            .get();
+
+        if (orderSnapshot.exists) {
+          company = orderSnapshot['company_name'];
+          assignedDate = Timestamp.now();
+          
+        }
+
+        AccomplishedReport accomplishedReport =
+        AccomplishedReport(orderId, company, assignedDate);
+        print("PERFECT: ${accomplishedReport.id}, ${accomplishedReport.customer}, ${intoDate(accomplishedReport.dateAssigned)}");
+        deliveryList.add(accomplishedReport);
+      }
+    } else {
+      // No delivery reports found, add a null report
+      AccomplishedReport noAccomplished = AccomplishedReport.nullReport();
+      deliveryList.add(noAccomplished);
+    }
+  } catch (e) {
+    print("Error fetching delivery reports: $e");
+    // Add a null report in case of error
+    AccomplishedReport noAccomplished = AccomplishedReport.nullReport();
+    deliveryList.add(noAccomplished);
+  }
+
+  return deliveryList;
+}
+
 String intoDate (Timestamp timeStamp)  {
   DateTime dateTime = timeStamp.toDate(); // Convert Firebase Timestamp to DateTime
   String formattedDate = DateFormat('MMM d,yyyy').format(dateTime); // Format DateTime into date string
   return formattedDate; // Return the formatted date string
 }
 
-String intoTime (Timestamp stampTime) {
+String intoTime (Timestamp stampTime)  {
   DateTime dateTime =  stampTime.toDate();  // Convert Firebase Timestamp to DateTime
   String formattedTime = DateFormat('h:mm a').format(dateTime); // Format DateTime into time string
   return formattedTime; // Return the formatted time string
