@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:haul_a_day_mobile/components/data/delivery_information.dart';
+import 'package:haul_a_day_mobile/components/dateThings.dart';
 
 
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -347,6 +349,8 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
         if(widget.deliveryId.startsWith('U')){
           if(widget.nextDeliveryId==''){
             addToAccomplished(staffId);
+            print("Success");
+            addPayroll(staffId);
           }
         }
       }).catchError((error) {
@@ -500,7 +504,6 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
 
         // Add a new document to the "Accomplished Deliveries" subcollection
         await accomplishedDeliveriesCollection.doc(widget.orderId).set({
-
         });
 
         print('Document added to "Accomplished Deliveries" subcollection');
@@ -522,6 +525,8 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
       await accomplishedDeliveriesCollection.doc(widget.orderId).set({
 
       });
+
+
 
     } catch (e) {
       print('Error adding document: $e');
@@ -549,5 +554,103 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
       },
     );
   }
+
+  Future<int> getWeekNumber(String loadDate)async {
+    DateTime date = DateFormat('MMM dd, yyyy').parse(loadDate);
+
+    // Convert the date to UTC+8 timezone
+    DateTime utcPlus8Date = date.add(Duration(hours: 8));
+
+    // Find the first Monday of the year
+    DateTime firstDayOfYear = DateTime(utcPlus8Date.year, 1, 1);
+    int firstMondayOffset = 8 - firstDayOfYear.weekday;
+    DateTime firstMonday = firstDayOfYear.add(Duration(days: firstMondayOffset));
+
+    // Calculate the difference in weeks between the loading date and the first Monday of the year
+    int weekDifference = (utcPlus8Date.difference(firstMonday).inDays / 7).floor();
+
+    //print('$orderId: ${weekDifference + 1}');
+    // Week number is the difference plus one
+    return weekDifference + 1;
+  }
+
+  Future<void> addPayroll(String staffId) async {
+    String loadDate = "";
+    String loadingId = widget.deliveryId;
+
+    if (loadingId.startsWith('U')) {
+      loadingId = getLoading(loadingId);
+    }
+
+    try {
+      DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection('Order')
+          .doc(widget.orderId)
+          .collection('LoadingSchedule')
+          .doc(loadingId)
+          .get();
+
+      if (documentSnapshot.exists) {
+        Timestamp date = documentSnapshot['loadingTime_Date'];
+        loadDate = forLoadDate(date);
+      } else {
+        throw Exception('No loading schedule found with ID: $loadingId');
+      }
+
+      DateTime dateTime = DateFormat('MMM dd, yyyy').parse(loadDate);
+      int year = dateTime.year;
+      String month = DateFormat('MM').format(dateTime);
+      int week = await getWeekNumber(loadDate);
+      week = week % 4;
+
+      String documentId = '$year-$month'; // Form document ID // year-month of loadDate
+      String documentPath = 'Payroll/$documentId/$week/$staffId';
+      print("DOCUM: $documentPath"); // staff Id
+
+      // Ensure the parent document and collection exist
+      DocumentReference parentDocRef = FirebaseFirestore.instance.collection('Payroll').doc(documentId);
+
+      DocumentSnapshot parentDocSnapshot = await parentDocRef.get();
+
+      if (!parentDocSnapshot.exists) {
+        // Create the parent document if it does not exist
+        await FirebaseFirestore.instance.doc('Payroll/$documentId').set({});
+      }
+
+      // Proceed to check and update the staff document
+      DocumentSnapshot staff = await FirebaseFirestore.instance.doc(documentPath).get();
+
+      if (staff.exists) {
+        Map<String, dynamic> staffDoc = staff.data() as Map<String, dynamic>;
+        print('whut');
+        if (staffDoc.containsKey('accomplishedDeliveries')) {
+          //string of list of accomplished deliveries sa staff
+          List<String> accomplishedDeliveries = List.from(staffDoc['accomplishedDeliveries']);
+          //add the new accomplished deliveries to accomplished list
+          accomplishedDeliveries.add(widget.orderId);
+          // update list in database
+          await FirebaseFirestore.instance..doc(documentPath).update({
+            'accomplishedDeliveries': accomplishedDeliveries,
+          });
+        }
+      }
+      else {
+        //kung wala pay documnet sa staff didto sa payroll
+        await FirebaseFirestore.instance..doc(documentPath).set({
+          'accomplishedDeliveries': [widget.orderId],
+        });
+      }
+    } catch (e) {
+      print("Error adding to payroll: $e");
+      throw Exception('Failed to add to payroll');
+    }
+  }
+
 }
+
+
+
+
+
+
 

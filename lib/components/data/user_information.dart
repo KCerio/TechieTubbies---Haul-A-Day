@@ -25,8 +25,8 @@ class AccountInfo {
 class User {
   final String pictureUrl;
   final String staffID;
-  final String firstName;
-  final String lastName;
+  String firstName;
+  String lastName;
   final String username;
   final String departmentId;
   final String position;
@@ -126,8 +126,12 @@ Future<String> getPosition(String staffId)async{
 }
 
 void createNewUser(User newUser)  {
+
+  newUser.firstName = capitalizeName(newUser.firstName);
+  newUser.lastName = capitalizeName(newUser.lastName);
+
   FirebaseFirestore.instance.collection('Users').doc('${newUser.staffID}').set({
-   'assignedSchedule' : 'none',
+    'assignedSchedule' : 'none',
     'staffId' : newUser.staffID,
     'firstname' : newUser.firstName,
     'lastname' : newUser.lastName,
@@ -136,10 +140,16 @@ void createNewUser(User newUser)  {
     'pictureUrl':newUser.pictureUrl,
     'position':newUser.position,
     'depart_id':newUser.departmentId,
-    'accessKey':'null',
     'registeredDate':newUser.registeredDate,
     'contactNumber':newUser.contactNumber,
     if(newUser.position=="Driver")
       'truck':'',
   });
+}
+
+String capitalizeName(String name) {
+  if (name.isNotEmpty) {
+    return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+  }
+  return name;
 }

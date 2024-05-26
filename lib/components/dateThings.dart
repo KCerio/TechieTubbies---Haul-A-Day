@@ -45,3 +45,9 @@ Timestamp getTimeDate(){
   return Timestamp.fromDate(now);
 
 }
+
+String forLoadDate(Timestamp timestamp){
+  DateTime dateTime = timestamp.toDate(); // Convert Firebase Timestamp to DateTime
+  String formattedDate = DateFormat('MMM dd, yyyy').format(dateTime); // Format DateTime into date string
+  return formattedDate;
+}
