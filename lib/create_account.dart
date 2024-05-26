@@ -327,7 +327,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             if(value!.isEmpty){
                               return "Enter username";
                             }else{
-                              bool  isValidName = RegExp(r'^[a-zA-Z0-9]+(?:[._ -]?[a-zA-Z0-9]+)*$').hasMatch(value);
+                              bool  isValidName = RegExp(r'^[a-zA-Z0-9]+(?:[._-]?[a-zA-Z0-9]+)*$').hasMatch(value);
                               if(!isValidName){
                                 return "Invalid username";
                               }
@@ -382,7 +382,6 @@ class _CreateAccountState extends State<CreateAccount> {
                           ),
                         ],
                       ),
-
                       //contact number
                       Padding(
                         padding: const EdgeInsets.only(left: 30.0, right: 30.0),
@@ -686,23 +685,27 @@ class _CreateAccountState extends State<CreateAccount> {
                                             Text('Account already exists for \n${staffId.text.trim()}'),
                                           ],
                                         ),));
+                                return;
 
-                              }else if(usernameSnapshot.docs.isNotEmpty){
+                              }
+                              else if(usernameSnapshot.docs.isNotEmpty){
                                 showDialog(context: context, builder:
                                     (_) =>  AlertDialog(title: Text("Error",
                                     style: TextStyle(
                                         color: Colors.red,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 20)),
-                                  content:  Row(
-                                      children: [
-                                        Icon(Icons.sim_card_alert_outlined, color: Colors.red,),
-                                        SizedBox(width: 5),
-                                        Text('Account already exists for \n'
-                                            '${userName.text.trim()}'),
-                                      ],
+                                    content:  Row(
+                                        children: [
+                                          Icon(Icons.sim_card_alert_outlined, color: Colors.red,),
+                                          SizedBox(width: 5),
+                                          Text('Account already exists for \n'
+                                              '${userName.text.trim()}'),
+                                        ],
                                   ),));
-                              }else{
+                                return;
+                              }
+                              else{
                                 User newUser = User(
                                     firstName: firstName.text.trim(),
                                     lastName: lastName.text.trim(),
@@ -722,8 +725,6 @@ class _CreateAccountState extends State<CreateAccount> {
                                   MaterialPageRoute(builder: (context) => ApplicationApproval()),
                                 );
                               }
-
-
 
                           }else{
                             ScaffoldMessenger.of(context).showSnackBar(
