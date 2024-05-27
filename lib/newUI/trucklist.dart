@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/service/userService.dart';
 import 'package:haul_a_day_web/web_Pages/truckList/addTruckDialog.dart';
@@ -425,15 +426,26 @@ class _TruckListState extends State<TruckList> {
                         color: Colors.black,
                         fontSize: 20),
                   ),
-                  const Text(
-                    'Edit Details',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Colors.red,
-                        fontSize: 16),
-                  ),
+
+                  TextButton(onPressed: () {
+                    // showDialog(
+                    //   context: context,
+                    //   builder: (BuildContext context) {
+                    //     return EditTruck(truck: aTruck, onUpdate: update);
+                    //   },
+                    // );
+                  },
+
+                      child: Text(
+                        'Edit Details',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.red,
+                            fontSize: 16),
+                      ))
+
                 ],
               ),
             ),
@@ -525,6 +537,12 @@ class _TruckListState extends State<TruckList> {
         ],
       ),
     );
+  }
+
+  void update(){
+    setState(() {
+
+    });
   }
 
 }
