@@ -516,7 +516,7 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
                             setState(() {
                               _newTruck = {
                                 'truckID': truckID,
-                                'cargoType': cargoType,
+                                'cargoType': (cargoType!.startsWith('f')?'fgl':'cgl'),
                                 'driver': driver,
                                 'maxCapacity': maxCapacity,
                                 'pictureUrl': imageUrl,
