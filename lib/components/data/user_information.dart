@@ -48,35 +48,6 @@ class User {
   });
 }
 
-Future<AccountInfo> getUserDetails(String staffId) async {
-  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-      .collection('Users')
-      .where('staffId', isEqualTo: staffId)
-      .get();
-
-  if (querySnapshot.docs.isNotEmpty) {
-    final firstName = querySnapshot.docs.first['firstname'];
-    final lastName = querySnapshot.docs.first['lastname'];
-    final fullName = '$firstName $lastName';
-    final position = querySnapshot.docs.first['position'];
-    final staffID = querySnapshot.docs.first['staffId'];
-    final registeredDate = querySnapshot.docs.first['registeredDate'];
-    final contactNumber = querySnapshot.docs.first['contactNumber'];
-    final pictureUrl = querySnapshot.docs.first['pictureUrl'];;
-
-    return AccountInfo(
-      pictureUrl: pictureUrl,
-      staffID: staffID,
-      fullName: fullName,
-      position: position,
-      registeredDate: registeredDate,
-      contactNumber: contactNumber,
-    );
-  } else {
-    throw Exception('No user found with staff ID: $staffId');
-  }
-}
-
 Future<String> getSchedule(String staffId) async {
   String userAssignedSchedule = '';
 
@@ -153,3 +124,40 @@ String capitalizeName(String name) {
   }
   return name;
 }
+
+Future<User> fetchDetails(String staffId) async {
+  QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+      .collection('Users')
+      .where('staffId', isEqualTo: staffId)
+      .get();
+
+  if (querySnapshot.docs.isNotEmpty) {
+    final firstName = querySnapshot.docs.first['firstname'];
+    final lastName = querySnapshot.docs.first['lastname'];
+    final position = querySnapshot.docs.first['position'];
+    final staffID = querySnapshot.docs.first['staffId'];
+    final registeredDate = querySnapshot.docs.first['registeredDate'];
+    final contactNumber = querySnapshot.docs.first['contactNumber'];
+    final username = querySnapshot.docs.first['userName'];
+    final departmentId = querySnapshot.docs.first['depart_id']??'';
+    final password = querySnapshot.docs.first['password'];
+    final pictureUrl = querySnapshot.docs.first['pictureUrl'];;
+
+    return User(
+      pictureUrl: pictureUrl,
+      staffID: staffID,
+      firstName: firstName,
+      position: position,
+      registeredDate: registeredDate,
+      contactNumber: contactNumber,
+      lastName: lastName,
+      username: username,
+      departmentId: departmentId,
+      password: password,
+    );
+  } else {
+    throw Exception('No user found with staff ID: $staffId');
+  }
+}
+
+

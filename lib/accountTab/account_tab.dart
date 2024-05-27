@@ -1,6 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:haul_a_day_mobile/accountTab/accountTab_EditPersonalDetails.dart';
 import 'package:haul_a_day_mobile/accountTab/account_tab_accomplished.dart';
 import 'package:haul_a_day_mobile/components/dateThings.dart';
 import 'package:haul_a_day_mobile/staffIDController.dart';
@@ -24,11 +25,10 @@ class _AccountTabState extends State<AccountTab> {
     super.initState();
   }
 
-  Future<AccountInfo> _initializeData() async {
+  Future<User> _initializeData() async {
     final currentStaffId = Get.find<StaffIdController>().getStaffId();
-    return getUserDetails(currentStaffId);
+    return fetchDetails(currentStaffId);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class _AccountTabState extends State<AccountTab> {
           backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
         ),
-        body: FutureBuilder<AccountInfo>(
+        body: FutureBuilder<User>(
           future: _initializeData(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -72,7 +72,7 @@ class _AccountTabState extends State<AccountTab> {
                               children: [
                                 SizedBox(height: 40),
                                 Text(
-                                  accountInfo.fullName,
+                                  accountInfo.firstName+ ' ' +accountInfo.lastName,
                                   style: TextStyle(
                                     fontSize: 30,
                                     fontWeight: FontWeight.bold,
@@ -118,7 +118,7 @@ class _AccountTabState extends State<AccountTab> {
                                       builder: (context) => AccountInformation(
                                         pictureUrl: accountInfo.pictureUrl,
                                         staffID: accountInfo.staffID,
-                                        fullName: accountInfo.fullName,
+                                        fullName: accountInfo.firstName + ' '+accountInfo.lastName,
                                         position: accountInfo.position,
                                         registeredDate: intoDate(accountInfo.registeredDate),
                                         contactNumber: accountInfo.contactNumber,
@@ -171,39 +171,50 @@ class _AccountTabState extends State<AccountTab> {
                               ),
 
                               //Edit Personal Details
-                              Container(
-                                color: Colors.grey[300],
-                                height: 100.0, // Adjust the height as needed
-                                margin: EdgeInsets.only(
-                                    left: 30, right: 30), // Example margin
-                                padding: EdgeInsets.all(10.0), // Example padding
-                                child: Row(
-                                  children: [
-                                    SizedBox(width: 10),
-                                    Icon(
-                                      Icons.edit_note,
-                                      size: 75, // Adjust the size of the icon as needed
-                                      color: Colors
-                                          .green[700], // Adjust the color of the icon
+                              GestureDetector(
+                                onTap:(){
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditPersonalDetails(account: accountInfo,)
                                     ),
-                                    SizedBox(width: 10),
-                                    Container(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          // Add spacing between the text widgets
-                                          Text(
-                                            'Edit Personal \nDetails',
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.green[700]),
-                                          ),
-                                        ],
+                                  );
+                                },
+                                child: Container(
+                                  color: Colors.grey[300],
+                                  height: 100.0, // Adjust the height as needed
+                                  margin: EdgeInsets.only(
+                                      left: 30, right: 30), // Example margin
+                                  padding: EdgeInsets.all(10.0), // Example padding
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 10),
+                                      Icon(
+                                        Icons.edit_note,
+                                        size: 75, // Adjust the size of the icon as needed
+                                        color: Colors
+                                            .green[700], // Adjust the color of the icon
                                       ),
-                                    ),
-                                  ],
+                                      SizedBox(width: 10),
+                                      Container(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            // Add spacing between the text widgets
+                                            Text(
+                                              'Edit Personal \nDetails',
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.green[700]),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
 
