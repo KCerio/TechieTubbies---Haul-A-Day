@@ -721,8 +721,8 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                   value: _loadingCargoType.isEmpty ? null : _loadingCargoType,
                   items: [
                     DropdownMenuItem(
-                      value: 'Canned Coods',
-                      child: Text('Canned Coods'),
+                      value: 'Dry Goods',
+                      child: Text('Dry Goods'),
                     ),
                     DropdownMenuItem(
                       value: 'Frozen Goods',
@@ -736,7 +736,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
                   },
                   validator: (value) {
                     if (value == null || value == '') {
-                      return 'Please select a position';
+                      return 'Please select a cargo type';
                     }
                     return null;
                   },
