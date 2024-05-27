@@ -554,7 +554,7 @@ class _EditPersonalDetailsState extends State<EditPersonalDetails> {
                   'Change Password?',
                   style: TextStyle(
                     color: Colors.blue,
-                    fontSize: 14,
+                    fontSize: 18,
                   ),
                 ),
               ),
