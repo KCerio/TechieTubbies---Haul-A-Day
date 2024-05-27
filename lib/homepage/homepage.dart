@@ -37,7 +37,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                 controller: _tabController,
                 indicator: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: Colors.blue[700],
+                  color: Colors.green[700],
                 ),
                 tabs: [
                   Tab(text: '   ABOUT   '),
@@ -55,7 +55,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                   fontWeight: FontWeight.bold,
                 ),
                 labelColor: Colors.white,
-                unselectedLabelColor: Colors.blue[700],
+                unselectedLabelColor: Colors.green[700],
                 onTap: (index) {
                   if (index == 3) {
                     // If the "MANAGEMENT" tab is clicked, navigate to the login screen
@@ -75,9 +75,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
         children: [
           homePage(),
           DeliveryHomePage(tabController: _tabController),
-          Center(
-            child: Text('PAGE ONE'),
-          ),
+          contactPage()
         ],
       ),
     );
@@ -86,6 +84,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
     return Container(
       width: double.infinity,
       height: double.infinity,
+
       padding: EdgeInsets.only(left: 40, right: 40, top: 60, bottom: 200),
       decoration: BoxDecoration(
         image: DecorationImage(
@@ -134,7 +133,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
             _tabController.animateTo(1);
           },
               style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue[700]!),
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.green[700]!),
                   minimumSize: MaterialStateProperty.all<Size>(Size(100, 50)),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -151,6 +150,136 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
               )),
         ],),
       // Placeholder content
+    );
+  }
+
+  Widget contactPage(){
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      padding: EdgeInsets.only(left: 40, right: 40, top: 60, bottom: 20),
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('images/contactpageBackground.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Get in touch',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 64
+              ),
+            ),
+            Text(
+              'with CUC Cargo Services',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 52
+              ),
+            ),
+            SizedBox(height: 40,),
+
+            Container(
+              width: 800,
+              padding: EdgeInsets.all(30),
+              decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8)
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Icon(Icons.phone,
+                      color: Colors.grey[700],),
+                    Text(
+                      'TELEPHONE',
+                      style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 24
+                      ),
+                    ),
+                  ],),
+                  Container(
+                    padding: EdgeInsets.only(left: 50),
+                    child: Text(
+                      '032-888-6915',
+                      style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 24
+                      ),
+                    ),
+                  ),
+                  SizedBox(height:20),
+
+                  Row(children: [
+                    Icon(Icons.email,
+                      color: Colors.grey[700],),
+                    Text(
+                      'EMAIL',
+                      style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 24
+                      ),
+                    ),
+                  ],),
+                  Container(
+                    padding: EdgeInsets.only(left: 50),
+                    child: Text(
+                      'cuccargoservices@gmail.com',
+                      style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 24
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(left: 50),
+                    child: Text(
+                      'cuccargoservices@yahoo.com',
+                      style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 24
+                      ),
+                    ),
+                  ),
+                  SizedBox(height:20),
+
+                  Row(children: [
+                    Icon(Icons.pin_drop,
+                      color: Colors.grey[700],),
+                    Text(
+                      'ADDRESS',
+                      style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 24
+                      ),
+                    ),
+                  ],),
+                  Container(
+                    padding: EdgeInsets.only(left: 50),
+                    child: Text(
+                      '450 Peace Valley Homes,\n'
+                          'Bulacao, Cebu City',
+                      style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 24
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      )
     );
   }
 }
