@@ -23,6 +23,7 @@ class UploadingReport extends StatefulWidget{
   final XFile documentation;
   final String incidentDescription;
   final String incidentReportNumber;
+  final String location;
   final Timestamp incidentTimeDate;
 
   const UploadingReport({Key? key,
@@ -33,7 +34,8 @@ class UploadingReport extends StatefulWidget{
     required this.documentation,
     required this.incidentDescription,
     required this.incidentReportNumber,
-    required this.incidentTimeDate}) : super(key: key);
+    required this.incidentTimeDate,
+    required this.location}) : super(key: key);
 
   @override
   _UploadingReportState createState() => _UploadingReportState();
@@ -236,7 +238,8 @@ class _UploadingReportState extends State <UploadingReport>{
 
   void createIncidentReport() {
     // First, upload the file to Firebase Storage
-    uploadFileToStorage().then((documentationUrl) {
+    uploadFileToStorage().then((documentationUrl)
+    {
       // Once the file is uploaded, use the URL to store the incident report information in Firestore
       FirebaseFirestore.instance.collection('Trucks/${widget.truckId}/Incident Reports').doc(widget.incidentReportNumber).set({
         'truckId': widget.truckId,
@@ -246,7 +249,9 @@ class _UploadingReportState extends State <UploadingReport>{
         'documentation': documentationUrl,
         'incidentDescription': widget.incidentDescription,
         'incidentTimeDate': widget.incidentTimeDate,
-      }).then((_) async {
+        'location':widget.location
+      }).then((_) async
+      {
 
         if(widget.currentSchedule!="none"){
 
@@ -310,6 +315,7 @@ class _UploadingReportState extends State <UploadingReport>{
         'reasonSpecified':(widget.incidentType=="Others")?widget.incidentDescription:'',
         'documentation': documentationUrl,
         'isSuccessful' : false,
+        'location':widget.location,
 
 
       }).then((_) async {

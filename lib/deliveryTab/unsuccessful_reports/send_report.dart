@@ -25,6 +25,7 @@ class SendUnsuccessfulReport extends StatefulWidget {
   final XFile documentation;
   final String reason;
   final String reasonSpec;
+  final String location;
 
   const SendUnsuccessfulReport({Key? key,
     required this.deliveryId,
@@ -34,6 +35,7 @@ class SendUnsuccessfulReport extends StatefulWidget {
     required this.TimeAndDate,
     required this.reason,
     required this.reasonSpec,
+    required this.location,
   }) : super(key: key);
 
   @override
@@ -152,6 +154,8 @@ class _SendUnsuccessfulReportState extends State<SendUnsuccessfulReport> {
                   informationContainer('Time and Date',
                       '${intoTime(widget.TimeAndDate)} at ${intoDate(widget.TimeAndDate)}'),
 
+                  informationContainer('Location', widget.location),
+
                   informationContainer('Truck Team', teamNames(widget.team)),
 
                   informationContainer('Reason of Unsuccessful Delivery', '${widget.reason}'),
@@ -208,7 +212,7 @@ class _SendUnsuccessfulReportState extends State<SendUnsuccessfulReport> {
                               documentation: widget.documentation,
                               TimeAndDate: widget.TimeAndDate,
                               reason: widget.reason,
-                              reasonSpec: widget.reasonSpec)));
+                              reasonSpec: widget.reasonSpec, location: widget.location,)));
 
 
 

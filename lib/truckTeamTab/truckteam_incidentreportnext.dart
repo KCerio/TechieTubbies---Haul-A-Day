@@ -17,6 +17,7 @@ class IncidentReportNext extends StatefulWidget {
   final String mechanicName;
   final XFile documentation;
   final String incidentDescription;
+  final String location;
 
   const IncidentReportNext({
     Key? key, required this.truckId,
@@ -24,7 +25,8 @@ class IncidentReportNext extends StatefulWidget {
     required this.incidentType,
     required this.mechanicName,
     required this.documentation,
-    required this.incidentDescription}) : super(key: key);
+    required this.incidentDescription,
+    required this.location}) : super(key: key);
 
 
 
@@ -337,6 +339,51 @@ class _IncidentReportNextState extends State<IncidentReportNext> {
                   if(widget.mechanicName!='')
                     mechanicWidget(),
 
+                  //location
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(
+                            10.0), // Adjust the padding values as needed
+                        child: Text(
+                          'Location of Incident',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                    ],
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    padding: EdgeInsets.all(10.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.location,
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                            ),
+                            softWrap: true, // Allow text to wrap
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+
                   //documentation
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -472,7 +519,7 @@ class _IncidentReportNextState extends State<IncidentReportNext> {
                               documentation: widget.documentation,
                               incidentDescription: widget.incidentDescription,
                               incidentReportNumber: incidentReportNumber,
-                              incidentTimeDate: incidentTimeDate)));
+                              incidentTimeDate: incidentTimeDate, location: widget.location,)));
                         },
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.resolveWith<Color>(

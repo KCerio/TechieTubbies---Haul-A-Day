@@ -25,6 +25,7 @@ class UploadUnsuccessfulReport extends StatefulWidget {
   final XFile documentation;
   final String reason;
   final String reasonSpec;
+  final String location;
 
   const UploadUnsuccessfulReport({Key? key,
     required this.deliveryId,
@@ -33,7 +34,7 @@ class UploadUnsuccessfulReport extends StatefulWidget {
     required this.documentation,
     required this.TimeAndDate,
     required this.reason,
-    required this.reasonSpec,
+    required this.reasonSpec, required this.location,
   }) : super(key: key);
 
   @override
@@ -249,6 +250,7 @@ class _UploadUnsuccessfulReportState extends State<UploadUnsuccessfulReport> {
         'reasonSpecified':widget.reasonSpec??'',
         'documentation': documentationUrl,
         'isSuccessful' : false,
+        'location':widget.location,
 
 
       }).then((_) async {

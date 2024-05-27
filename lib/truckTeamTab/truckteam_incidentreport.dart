@@ -26,12 +26,13 @@ class _IncidentReportState extends State<IncidentReport> {
   int progress = 0;
 
   //single select list for incidentType
-  List<String> incidentType =['Accident', 'Mechanical Failure', 'Others'];
+  List<String> incidentType =['Accident', 'Mechanical Failure'];
   late String? selectedIncidentType;
 
 
   TextEditingController mechanicName = TextEditingController();
   TextEditingController incidentDescription = TextEditingController();
+  TextEditingController location = TextEditingController();
 
   XFile? _image =null;
 
@@ -46,10 +47,11 @@ class _IncidentReportState extends State<IncidentReport> {
   void updateProgress() {
     int newProgress = 0;
 
-    if(incidentDescription.text.trim().isNotEmpty)newProgress+=25;
-    if (selectedIncidentType != null) newProgress += 25;
+    if(incidentDescription.text.trim().isNotEmpty)newProgress+=20;
+    if(location.text.isNotEmpty)newProgress+=20;
+    if (selectedIncidentType != null) newProgress += 20;
     if (_image != null) {
-      newProgress += 25;
+      newProgress += 20;
     }
 
 
@@ -237,6 +239,59 @@ class _IncidentReportState extends State<IncidentReport> {
           ),
           SizedBox(height: 20),
 
+          //location
+          Row(
+            children: [
+              SizedBox(width: 10),
+              Text(
+                'Location of Incident',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if(location.text.trim().isEmpty)
+                Text(
+                  '*',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 5, 16, 16),
+              child: TextField(
+                controller:location,
+                maxLines: null, // Allow text to wrap to the next line
+                textInputAction: TextInputAction
+                    .newline, // Enable Return key to insert a newline
+                decoration: InputDecoration(
+                  hintText: 'Enter detailed description as to what happened', // Placeholder text
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.green, width: 2.0),
+                  ),// Add border
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 20, horizontal: 12.0), // Adjust padding
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    updateProgress();
+                  });
+                },
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+
+
 
           //DOCUMENTATION
           Row(
@@ -336,6 +391,7 @@ class _IncidentReportState extends State<IncidentReport> {
                       mechanicName: mechanicName.text,
                       documentation: _image ?? XFile(''), // Handle null case
                       incidentDescription: incidentDescription.text,
+                      location: location.text.trim(),
                     ),
                   ),
                 );
@@ -390,7 +446,7 @@ class _IncidentReportState extends State<IncidentReport> {
 
   bool _validateForm() {
 
-    if(progress==75){
+    if(progress==80){
       return true;
     }else{
       return false;

@@ -54,9 +54,12 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
     'Staff Shortage',
     'Cargo Damaged',
     'Others'];
+
   late String? selectedReason;
 
   TextEditingController reasonSpec = TextEditingController();
+
+  TextEditingController location = TextEditingController();
 
   XFile? _documentation = null;
 
@@ -77,18 +80,19 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
   void updateProgress() {
     int newProgress = 0;
 
-    if (selectedMembers.isNotEmpty) newProgress += 18;
-    if (_selectedTime != null) newProgress += 18;
-    if (_selectedDate != null) newProgress += 18;
-    if(_documentation!=null)newProgress += 18;
+    if (selectedMembers.isNotEmpty) newProgress += 20;
+    if (location.text.isNotEmpty) newProgress += 10;
+    if (_selectedTime != null) newProgress += 10;
+    if (_selectedDate != null) newProgress += 10;
+    if(_documentation!=null)newProgress += 20;
     if(selectedReason!=null){
       if(selectedReason=='Others'){
-        newProgress += 9;
+        newProgress += 10;
         if(reasonSpec.text.trim().isNotEmpty){
-          newProgress += 9;
+          newProgress += 10;
         }
       }else{
-        newProgress += 18;
+        newProgress += 20;
       }
     }
 
@@ -212,6 +216,9 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
                   children: [
                     //date and time
                     DateAndTime(),
+
+                    Location(),
+                    SizedBox(height: 20),
 
                     //TruckTeam
                     TruckTeamWidget(),
@@ -679,6 +686,77 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
     );
   }
 
+  Widget Location(){
+    return Column(
+      children: [
+        Row(
+          children: [
+            SizedBox(width: 10),
+            Text(
+              'Location',
+              style: TextStyle(
+                color: Colors.blue[700],
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if(location.text.isEmpty)
+              Text(
+                '*',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+          ],
+        ),
+        SizedBox(height: 10),
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.only(
+                left: 30.0, right: 30.0),
+            child: TextField(
+              controller: location,
+              maxLines:
+              null, // Allow text to wrap to the next line
+              textInputAction: TextInputAction
+                  .newline, // Enable Return key to insert a newline
+              decoration: InputDecoration(
+                prefixIcon: Icon(
+                    Icons.pin_drop,
+                    color: Colors.blue[700],
+                    ),
+                hintText: 'Enter current location', // Placeholder text
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(
+                    color: Colors.black,
+                    width:1.5
+                  ),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: 12.0,
+                    horizontal: 12.0),
+                // Adjust padding
+              ),
+              onChanged: (value) {
+                setState(() {
+                  updateProgress();
+                });
+              },
+            ),
+          ),
+        ),
+
+
+      ],
+
+    );
+  }
+
 
   Widget Documentation(){
     if(_documentation==null){
@@ -947,7 +1025,8 @@ class _CreateUnsuccessfulReportState extends State<CreateUnsuccessfulReport> {
               documentation: _documentation ?? XFile(''),
               TimeAndDate: DateAndTime,
               reason: selectedReason ?? '',
-              reasonSpec: reasonSpec.text.trim())));
+              reasonSpec: reasonSpec.text.trim(),
+              location: location.text.trim(),)));
     }
 
   }

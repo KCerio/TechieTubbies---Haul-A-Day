@@ -603,7 +603,7 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
       int week = await getWeekNumber(loadDate);
       week = week % 4;
 
-      String documentId = '$year-$month'; // Form document ID // year-month of loadDate
+      String documentId = '$year' +'_'+'$month'; // Form document ID // year-month of loadDate
       String documentPath = 'Payroll/$documentId/$week/$staffId';
       print("DOCUM: $documentPath"); // staff Id
 
@@ -622,7 +622,6 @@ class _UploadSuccessfulReportState extends State<UploadSuccessfulReport> {
 
       if (staff.exists) {
         Map<String, dynamic> staffDoc = staff.data() as Map<String, dynamic>;
-        print('whut');
         if (staffDoc.containsKey('accomplishedDeliveries')) {
           //string of list of accomplished deliveries sa staff
           List<String> accomplishedDeliveries = List.from(staffDoc['accomplishedDeliveries']);
