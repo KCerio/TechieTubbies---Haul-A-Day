@@ -30,10 +30,11 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
   bool isCheck = false;
   bool imageAdded = false;
   String? truckID;
-  String? cargoType;
-  String? truckType;
-  int? maxCapacity;
+  //String? cargoType;
+  //String? truckType;
+  //int? maxCapacity;
   Map<String,dynamic> _newTruck = {};
+  String _cargoType = '';
 
   Map<String,dynamic> get newTruck => _newTruck;
   //List<String> cargoTypes = ['cgl - canned/dry', 'fgl - frozen'];
@@ -59,8 +60,9 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
     print("Drivers: $drivers");
     if(_dbdrivers.isNotEmpty){
       for(Map<String,dynamic> driver in _dbdrivers){
-      drivers.add(driver['name']);
-    }
+        drivers.add(driver['name']);
+      }
+      drivers.add('None');
     } else{
       drivers.add('No Available drivers');
     }
@@ -205,414 +207,563 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          width: 850.0,
-          height: 700,
-          color: Colors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFF3871C1),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(15.0),
-                    topRight: Radius.circular(15.0),
-                  ),
+    return Container(
+      width: 700,
+      height: 800,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15.0),
+        color: Colors.white,
+      ),
+      child: Column(
+        children: [
+           Expanded(
+            flex: 2,
+            child: Container(
+                decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.black, )
                 ),
-                child: AppBar(
-                  title: const Padding(
-                    padding: EdgeInsets.fromLTRB(250, 0, 0, 0),
-                    child: Text(
-                      'Add Truck',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  backgroundColor: Colors.amber,
-                  elevation: 0, // Remove the shadow
-                ),
+                
               ),
-              Container(
-                //height: 800,
-                padding: EdgeInsets.fromLTRB(60, 20, 60, 0),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex:2,
-                        child: Container(
-                          margin: const EdgeInsets.fromLTRB(24, 24, 24, 15),
-                          child: Form(
-                            key: _formfield,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                //Truck Id
-                                TextFormField(
-                                  controller: truckIdcontroller,
-                                  validator: (value){
-                                    setState(() {
-                                      truckID = truckIdcontroller.text;
-                                    });
-                                    if(value!.isEmpty){
-                                      return "Enter Truck Plate Number";
-                                    }
-                                    return null;
-                                  },
-                                  decoration: const InputDecoration(
-                                    //hintText: 'Username or Staff ID',
-                                    labelText: "Truck's Plate No.",
-                                    //suffixIcon: Icon(Icons.check)
-                                  ),
-                                ),
-                          
-                                //Truck Type
-                                TextFormField(
-                                  controller: truckTypecontroller,
-                                  validator: (value){
-                                    setState(() {
-                                      truckType = truckTypecontroller.text;
-                                    });
-                                    if(value!.isEmpty){
-                                      return "Enter Truck Type or Description";
-                                    }
-                                    return null;
-                                  },
-                                  decoration: const InputDecoration(
-                                    //hintText: 'Username or Staff ID',
-                                    labelText: "Truck Type or Description",
-                                    //suffixIcon: Icon(Icons.check)
-                                  ),
-                                ),
-                          
-                                //Max Capacity
-                                TextFormField(
-                                  controller: maxCapacitycontroller,
-                                  validator: (value){
-                                    setState(() {
-                                      maxCapacity = int.parse(maxCapacitycontroller.text);
-                                    });
-                                    if(value!.isEmpty){
-                                      return "Enter Truck's Max Capacity";
-                                    }
-                                    
-                                    return null;
-                                  },
-                                  decoration: const InputDecoration(
-                                    //hintText: 'Username or Staff ID',
-                                    labelText: "Truck's Max Capacity (kg)",
-                                    //suffixIcon: Icon(Icons.check)
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                  
-                                //Cargo Type Dropdown
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Truck's Cargo Type:",
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontFamily: 'Arial',
-                                        color: Colors.black
-                                      ),
-                                    ),
-                                    
-                                    //const SizedBox(height: 20),
-                                                                  
-                                    Container(
-                                      height: 40,
-                                      width: 500,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border(bottom: BorderSide(color: Colors.grey, width: 1.5))
-                                      ),
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButton<String>(
-                                          value: cargoType,
-                                          items: <String>['cgl - canned/dry', 'fgl - frozen']
-                                              .map((String value) {
-                                            return DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: Text(value),
-                                              ),
-                                            );
-                                          }).toList(),
-                                          onChanged: (String? newValue) {
-                                            setState(() {
-                                              cargoType = newValue;
-                                              //truck = _selectedCrew1!;
-                                            });
-                                            // Add your code here to handle the selected value
-                                          },
-                                          icon: const Icon(Icons.arrow_drop_down), // Add dropdown icon
-                                          style: const TextStyle(
-                                            fontSize: 14, // Set the font size of the selected item
-                                            fontFamily: 'Arial',
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                  
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                  
-                                //Driver Type Dropdown
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Assign Truck Driver:",
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontFamily: 'Arial',
-                                        color: Colors.black
-                                      ),
-                                    ),
-                                    
-                                    //const SizedBox(height: 20),
-                                                                  
-                                    Container(
-                                      height: 40,
-                                      width: 500,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border(bottom: BorderSide(color: Colors.grey, width: 1.5))
-                                      ),
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButton<String>(
-                                          value: driver,
-                                          onChanged: (String? newValue) {
-                                            // Add your code here to handle the selected value
-                                            setState(() {
-                                              
-                                              driver = newValue; 
-                                              //crew1 = newValue!;                                                                 
-                                            });
-                                            
-                                            // Remove selected crew from the list
-                                            //_helpersAvailable.remove(_selectedCrew1);
-                                            
-                                          },
-                                          items: drivers.map((String value) {
-                                            return DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: Text(value),
-                                              ),
-                                            );
-                                          }).toList(),                                
-                                          icon: const Icon(Icons.arrow_drop_down), // Add dropdown icon
-                                          style: const TextStyle(
-                                            fontSize: 14, // Set the font size of the selected item
-                                            fontFamily: 'Arial',
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.only(top:16,left: 24),
-                          height:400,
-                                                  
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Container(
-                                height: 200,
-                                width: 200,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey,
-                                ),
-                                child: _byte == null
-                                    ? IconButton(
-                                        icon: Icon(Icons.add_a_photo),
-                                        onPressed: () async {
-                                          _getImage();
-                                          setState(() {
-                                            imageAdded = true;
-                                          });
-                                        },
-                                      )
-                                    : InkWell(onTap: _getImage,child: Image.memory(_byte!, fit: BoxFit.cover))
-                              ),
-                              SizedBox(height: 10,),
-                              Text("Truck Picture", style: TextStyle(fontSize: 16),)
-                            ],
-                          ),
-                        ),
-                      )
-                  ],),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.only(top:24),
-                width: 850,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Row(
+              margin: EdgeInsets.symmetric(horizontal: 30),
+              padding: EdgeInsets.fromLTRB(25, 16, 0, 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('images/logo2_trans.png'),
+                  const SizedBox(width: 50,),
+                  Container(
+                    // decoration: BoxDecoration(
+                    //   border: Border.all(color: Colors.black)
+                    // ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
                       children: [
-                        Checkbox(
-                        value: isCheck,
-                        onChanged: (newValue) {
-                          setState(() {
-                            isCheck = newValue!;
-                          });
-                        },
-                      ),
-                        const Text(
-                          'Confirm Truck Information',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'Arial',
-                          ),
+                        Text('Add Truck',
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Inter' 
                         ),
+                        ),
+                        const SizedBox(height:5),
+                        Text('Fill in the necessary information of the truck to be \nadded to the list.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                          fontFamily: 'InriaSans' 
+                        ),
+                        )
                       ],
                     ),
+                  ),
+                  IconButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  }, 
+                  icon: Icon(Icons.close)
+                )
+                ],
+              )
+            ),
+          ),
 
-                    const SizedBox(height: 20),
-
-                    ElevatedButton(
-                    onPressed: ()async {
-                      // Handle button press
-                      print("Driver: $driver");
-                      //print
-                      //print("Max: ${maxCapacity!.toString()}");
-                      if(cargoType != null &&
-                          driver !=null &&  isCheck && imageAdded){
-                            if(_formfield.currentState!.validate()){
-                            await _uploadImage();
-                            //String truckPic = await uploadFileToStorage(_imageFile, truckID); // Call uploadFileToStorage with filePath
-                            print("Added Truck: $truckID, ${cargoType!}, ${driver!}, $maxCapacity, $imageUrl, $truckType");
-                            //print('TruckPic: $truckPic');
-                            setState(() {
-                              _newTruck = {
-                                'truckID': truckID,
-                                'cargoType': cargoType,
-                                'driver': driver,
-                                'maxCapacity': maxCapacity,
-                                'pictureUrl': imageUrl,
-                                'truckType': truckType,
-                                'truckStatus' : 'Available'
-                              };
-                            });
-                            databaseService.addTruck(truckID!, cargoType!, driver!, maxCapacity!, imageUrl!, truckType!);
-                            print("Driver: $driver");
-                            
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Successful'),
-                                  content: Text('$truckID is successfully added to the truck list.'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () async {        
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text('OK'),
+          Expanded(
+            flex: 8,
+            child: LayoutBuilder(
+              builder: ((context, constraints) {
+                return Column(
+                  children: [
+                    Expanded(
+                      flex:7,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child:Container(
+                              //padding: EdgeInsets.only(top:16,left: 24), 
+                              alignment: Alignment.center,
+                              margin: EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Color.fromRGBO(50, 131, 245, 1),
+                                borderRadius: BorderRadius.circular(10)
+                              ),                                                                       
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  //const SizedBox(height: 50),
+                                  Container(
+                                    height: 200,
+                                    width: 200,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Color.fromARGB(188, 195, 235, 253),
                                     ),
-                                  ],
-                                );
-                              },
-                            );                      
-                        }  
-                        else if(truckID == null|| maxCapacity == null|| truckType == null){
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text('Alert'),
-                                content: const Text('Please fill in all the truck information required.'),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () async {        
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text('OK'),
+                                    child: _byte == null
+                                        ? IconButton(
+                                            icon: Icon(Icons.add_a_photo, color: Colors.grey,),
+                                            onPressed: () async {
+                                              _getImage();
+                                              setState(() {
+                                                imageAdded = true;
+                                              });
+                                            },
+                                          )
+                                        : InkWell(onTap: _getImage,child: Image.memory(_byte!, fit: BoxFit.cover))
                                   ),
+                                  SizedBox(height: 10,),
+                                  Text("Truck Picture", style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white
+                                    ),
+                                  )
                                 ],
-                              );
-                            },
-                          );
-                        }
-                      }
-                      else{
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Alert'),
-                              content: const Text('Please fill in all the truck information required.'),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () async {        
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          Color.fromARGB(255, 223, 175, 17),
-                        ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex:4,
+                            child:Container(
+                              padding: EdgeInsets.all(16),
+                              child: LayoutBuilder(
+                                builder: (context,constraints) {
+                                  return Column(
+                                    children: [
+                                      const SizedBox(height: 10,),
+                                      const Text(
+                                        'Truck Information',
+                                        style:TextStyle(
+                                          fontSize:22,
+                                          fontFamily: 'Inter',
+                                          color:Colors.grey,
+                                          fontWeight: FontWeight.bold
+                                        )
+                                      ),
+                                      const SizedBox(height:20),
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 16),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              'Plate No.',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            const SizedBox( width: 10,),
+                                            Container(
+                                              height: 40,
+                                              width: constraints.maxWidth * 2/3,
+                                              child: TextField(
+                                                controller: truckIdcontroller,
+                                                decoration: InputDecoration(
+                                                  contentPadding: EdgeInsets.symmetric(vertical: 2),
+                                                  hintText: "GDN 6543",
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                style: TextStyle(fontSize: 14),
+                                                textAlign: TextAlign.center, // Center align horizontally
+                                                textAlignVertical: TextAlignVertical.center, // Center align vertically
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height:12),
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 16),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              'Truck type',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            const SizedBox( width: 10,),
+                                            Container(
+                                              height: 40,
+                                              width: constraints.maxWidth * 2/3,
+                                              child: TextField(
+                                                controller: truckTypecontroller,
+                                                decoration: InputDecoration(
+                                                  contentPadding: EdgeInsets.symmetric(vertical: 2),
+                                                  hintText: '10 Wheelers Reefer Van',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                style: TextStyle(fontSize: 14),
+                                                textAlign: TextAlign.center, // Center align horizontally
+                                                textAlignVertical: TextAlignVertical.center, // Center align vertically
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height:12),
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 16),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              'Max Capacity\n(kg)',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                              softWrap: true,
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox( width: 10,),
+                                            Container(
+                                              height: 40,
+                                              width: constraints.maxWidth * 2/3,
+                                              child: TextField(
+                                                controller: maxCapacitycontroller,
+                                                decoration: InputDecoration(
+                                                  contentPadding: EdgeInsets.symmetric(vertical: 2),
+                                                  hintText: '5000',
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                                style: TextStyle(fontSize: 14),
+                                                textAlign: TextAlign.center, // Center align horizontally
+                                                textAlignVertical: TextAlignVertical.center, // Center align vertically
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 30,),
+
+                                      Divider(),
+
+                                      const SizedBox(height: 12,),
+
+                                      Container(
+                                        width: constraints.maxWidth,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'What type of cargo can it handle?',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                                fontStyle: FontStyle.italic
+                                              ),
+                                            ),
+                                            Container(
+                                              //height: 25,
+                                              width: constraints.maxWidth,
+                                              padding: EdgeInsets.symmetric(horizontal: 10),
+                                              
+                                              child: //Radio Button
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Radio<String>(
+                                                        value: 'cgl',
+                                                        groupValue: _cargoType,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            _cargoType = value!;
+                                                          });
+                                                          print(_cargoType);
+                                                        },
+                                                      ),
+                                                      Text('Dry goods'),
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      Radio<String>(
+                                                        value: 'fgl',
+                                                        groupValue:  _cargoType,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            _cargoType = value!;
+                                                          });
+                                                          print(_cargoType);
+                                                        },
+                                                      ),
+                                                      Text('Frozen Goods'),
+                                                    ],
+                                                  ),
+                                                  
+                                                ],
+                                              ),
+
+                                            ),
+
+                                            const SizedBox(height: 12,),
+
+                                            Container(
+                                              width: constraints.maxWidth,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    'Assign a driver to this truck?',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.black,
+                                                      fontStyle: FontStyle.italic
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 5),
+                                                  Center(
+                                                    child: Container(
+                                                      height: 40,
+                                                      width: constraints.maxWidth * 2/3,
+                                                      //alignment: Alignment.center,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        border: Border.all(color: Colors.grey),
+                                                        borderRadius: BorderRadius.circular(10)
+                                                      ),
+                                                      child: DropdownButtonHideUnderline(
+                                                        child: DropdownButton<String>(
+                                                          value: driver,
+                                                          onChanged: (String? newValue) {
+                                                            // Add your code here to handle the selected value
+                                                            setState(() {
+                                                              
+                                                              driver = newValue; 
+                                                              //crew1 = newValue!;                                                                 
+                                                            });
+                                                            
+                                                            // Remove selected crew from the list
+                                                            //_helpersAvailable.remove(_selectedCrew1);
+                                                            
+                                                          },
+                                                          items: drivers.map((String value) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: value,
+                                                              child: Padding(
+                                                                padding: const EdgeInsets.all(8.0),
+                                                                child: Text(value),
+                                                              ),
+                                                            );
+                                                          }).toList(),                                
+                                                          icon: const Icon(Icons.arrow_drop_down), // Add dropdown icon
+                                                          style: const TextStyle(
+                                                            fontSize: 14, // Set the font size of the selected item
+                                                            fontFamily: 'Arial',
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                ]
+                                              )
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: const Text(
-                      'Add Truck',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'Arial',
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+
+
+                    //Confirm and save (add truck button)
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Checkbox(
+                            value: isCheck,
+                            onChanged: (newValue) {
+                              setState(() {
+                                isCheck = newValue!;
+                              });
+                            },
+                          ),
+                            const Text(
+                              'Confirm Truck Information',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontFamily: 'Arial',
+                              ),
+                            ),
+                          ],
+                        ),
+                      
+                        const SizedBox(height: 8),
+                      
+                          ElevatedButton(
+                          onPressed: ()async {
+                            
+                            // Handle button press
+                            print("Driver: $driver");
+                            
+                            
+                            if(truckIdcontroller.text == '' || 
+                            truckTypecontroller.text == ''|| 
+                            maxCapacitycontroller.text == '' ||                            
+                            driver == null||
+                            _cargoType == ''||
+                            _byte == null) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Alert'),
+                                    content: const Text('Please fill in all the truck information required.'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () async {        
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }else if(isCheck == false){
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Alert'),
+                                    content: const Text('Please confirm the information above by clicking the checkbox.'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () async {        
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }else{
+                              try{
+                                truckID = truckIdcontroller.text;
+                                String truckType = truckTypecontroller.text;
+                                int maxCapacity = int.parse(maxCapacitycontroller.text);
+                                //print("Added Truck: $truckID, $_cargoType, ${driver!}, $maxCapacity, $_byte, $truckType");
+                                await _uploadImage();
+                                //String truckPic = await uploadFileToStorage(_imageFile, truckID); // Call uploadFileToStorage with filePath
+                                print("Added Truck: $truckID, $_cargoType, ${driver!}, $maxCapacity, $imageUrl, $truckType");
+                                //print('TruckPic: $truckPic');
+                                setState(() {
+                                  _newTruck = {
+                                    'truckID': truckID,
+                                    'cargoType': _cargoType,
+                                    'driver': driver,
+                                    'maxCapacity': maxCapacity,
+                                    'pictureUrl': imageUrl,
+                                    'truckType': truckType,
+                                    'truckStatus' : 'Available'
+                                  };
+                                });
+                                databaseService.addTruck(truckID!, _cargoType, driver!, maxCapacity, imageUrl!, truckType!);
+                                print("Driver: $driver");
+                                
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Successful'),
+                                      content: Text('$truckID is successfully added to the truck list.'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () async {        
+                                            Navigator.of(context).pop();
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );                      
+                              }catch(e){
+                                print(e);
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Alert'),
+                                      content: const Text('Max Capacity should be numerical.'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () async {        
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Color.fromRGBO(190, 216, 253, 1),
+                              ),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add Truck',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontFamily: 'Arial',
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                            ),
+                          ),
+                            
+                        ],
                       ),
-                      ),
-                  ),
-                  ],
-                ),
+                    )
+                    ],
+                  );
+                }
               ),
-            ],
-          ),
-        )
-      ],
+            ),
+          )
+        ],
+      )
     );
   }
 }
+

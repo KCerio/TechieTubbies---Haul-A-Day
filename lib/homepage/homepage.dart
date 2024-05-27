@@ -78,6 +78,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
           Center(
             child: Text('PAGE ONE'),
           ),
+          Container()
         ],
       ),
     );

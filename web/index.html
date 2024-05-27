@@ -58,7 +58,7 @@
 
 <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+      //import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 
@@ -76,6 +76,11 @@
       const app = initializeApp(firebaseConfig);
       const db = firebase.firestore();
       db.settings({ timestampInSnapshot: true });
+</script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+<script type="text/javascript">
+   pdfjsLib.GlobalWorkerOptions.workerSrc = "//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js";
 </script>
 
 </body>

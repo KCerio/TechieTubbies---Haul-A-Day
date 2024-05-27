@@ -314,7 +314,7 @@ class _AccountApprovalDialogState extends State<AccountApprovalDialog> {
                                         crossAxisAlignment: CrossAxisAlignment.center,
                                         children: [
                                           const SizedBox(height:10),
-                                          Text(
+                                          const Text(
                                             'Account Information',
                                             style:TextStyle(
                                               fontSize:22,

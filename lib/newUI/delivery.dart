@@ -43,6 +43,24 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
     
   }
 
+  // void fetchOrder() async{
+  //   List<Map<String, dynamic>> orders = await databaseService.fetchAllOrderList();
+  //   setState(() {
+  //     //_filteredOrderDetails = orders;
+  //     _orders = orders;
+  //   });
+  //   for(Map<String, dynamic> order in _orders){
+  //     if(order['assignedStatus'] == 'true' && order['confirmed_status'] == true){
+  //       _deliverySchedules.add(order);
+  //     }
+  //   }
+  //   print(_deliverySchedules.length);
+  //   setState(() {
+  //     _filteredOrderDetails = _deliverySchedules;
+  //     //print('${widget.fetchOrderDetails}, $_filteredOrderDetails');
+  //   });
+  // }
+
   void _waitForFetchOrderDetails() {
     Future.delayed(Duration(milliseconds: 100), () {
       if (widget.fetchOrderDetails == true) {
@@ -95,185 +113,193 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 200, vertical:10),
-        child: Column(
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    
-                    child: const Text(
-                      'Delivery Dashboard',
-                      style: TextStyle(
-                        fontFamily: 'Itim',
-                        fontSize: 36
+    return Column(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 200, vertical:10),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        alignment: Alignment.centerLeft,
+                        
+                        child: const Text(
+                          'Delivery Dashboard',
+                          style: TextStyle(
+                            fontFamily: 'Itim',
+                            fontSize: 36
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              flex: 9,
-              child: LayoutBuilder(
-                 builder: (context,constraints) {
-                   return _deliverySchedules.isEmpty ? const Center(child: CircularProgressIndicator(),)
-                  :SingleChildScrollView(
-                    child: Column(
-                      children: [
-
-                        Padding(
-                           padding: const EdgeInsets.only(bottom: 24),
-                           child: ReschedDelivery(deliveries: _deliverySchedules,)
-                         ),
-
-                        Padding(
-                           padding: const EdgeInsets.all(8.0),
-                           child: LayoutBuilder(
-                             builder: (context, constraints) {
-                              double width = constraints.maxWidth;
-                              double height = constraints.maxHeight;
-                               return Column(
-                                 children: [
-                                   Container(
-                                    width: double.infinity,
-                                    height: 50,
-                                     child: Row(
-                                       children: [
-                                         Container(
-                                          padding: const EdgeInsets.only(bottom: 10),
-                                           alignment: Alignment.centerLeft,
-                                           child: const Text(
-                                             'All Deliveries',
-                                             style: TextStyle(
-                                               fontFamily: 'Inter',
-                                               fontSize: 26,
-                                               fontWeight: FontWeight.bold
+                ),
+        
+                Expanded(
+                  flex: 9,
+                  child: LayoutBuilder(
+                     builder: (context,constraints) {
+                       return _deliverySchedules.isEmpty ? const Center(child: CircularProgressIndicator(),)
+                      :SingleChildScrollView(
+                        child: Column(
+                          children: [
+        
+                            Padding(
+                               padding: const EdgeInsets.only(bottom: 24),
+                               child: ReschedDelivery(deliveries: _deliverySchedules,)
+                             ),
+        
+                            Padding(
+                               padding: const EdgeInsets.all(8.0),
+                               child: LayoutBuilder(
+                                 builder: (context, constraints) {
+                                  double width = constraints.maxWidth;
+                                  double height = constraints.maxHeight;
+                                   return Column(
+                                     children: [
+                                       Container(
+                                        width: double.infinity,
+                                        height: 50,
+                                         child: Row(
+                                           children: [
+                                             Container(
+                                              padding: const EdgeInsets.only(bottom: 10),
+                                               alignment: Alignment.centerLeft,
+                                               child: const Text(
+                                                 'All Deliveries',
+                                                 style: TextStyle(
+                                                   fontFamily: 'Inter',
+                                                   fontSize: 26,
+                                                   fontWeight: FontWeight.bold
+                                                 ),
+                                               ),
                                              ),
-                                           ),
-                                         ),
-                                         const SizedBox(width: 20,),
-                                         Container(child: labelButtons(),),
-                                         const Spacer(flex: 2,),
-                                                 
-                                          //Search Bar
-                                          Container(
-                                            width: width*0.25,
-                                            decoration: BoxDecoration(
-                                              color: const Color.fromARGB(255, 228, 228, 228), // White background color
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: TextField(
-                                              controller: _searchcontroller,
-                                              onSubmitted: (_){
-                                                searchOrder(_filteredOrderDetails, _searchcontroller.text);
-                                              },
-                                              onChanged: (value){                                            
-                                                setState(() {
-                                                  //if(_selectedFilter == ''){_selectedFilter = 'All';}
-                                                  // applyFilter(_selectedFilter);
-                                                    notExist = false;
-                                                  _filteredOrderDetails = _deliverySchedules;
-                                                });
-                                                searchOrder(_filteredOrderDetails, _searchcontroller.text);
-                                              },
-                                              decoration: InputDecoration(
-                                                hintText: 'Search...',
-                                                border: OutlineInputBorder(
+                                             const SizedBox(width: 20,),
+                                             Container(child: labelButtons(),),
+                                             const Spacer(flex: 2,),
+                                                     
+                                              //Search Bar
+                                              Container(
+                                                width: width*0.25,
+                                                decoration: BoxDecoration(
+                                                  color: const Color.fromARGB(255, 228, 228, 228), // White background color
                                                   borderRadius: BorderRadius.circular(8),
-                                                  borderSide: BorderSide.none, // Hide border
                                                 ),
-                                                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                                child: TextField(
+                                                  controller: _searchcontroller,
+                                                  onSubmitted: (_){
+                                                    searchOrder(_filteredOrderDetails, _searchcontroller.text);
+                                                  },
+                                                  onChanged: (value){                                            
+                                                    setState(() {
+                                                      //if(_selectedFilter == ''){_selectedFilter = 'All';}
+                                                      // applyFilter(_selectedFilter);
+                                                        notExist = false;
+                                                      _filteredOrderDetails = _deliverySchedules;
+                                                    });
+                                                    searchOrder(_filteredOrderDetails, _searchcontroller.text);
+                                                  },
+                                                  decoration: InputDecoration(
+                                                    hintText: 'Search...',
+                                                    border: OutlineInputBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      borderSide: BorderSide.none, // Hide border
+                                                    ),
+                                                    contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  color: Color.fromARGB(255, 87, 189, 90), // Blue color for the search icon button
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    // Implement search functionality here
+                                                    searchOrder(_filteredOrderDetails, _searchcontroller.text);
+                                                  },
+                                                  icon: Icon(Icons.search),
+                                                  color: Colors.white, // White color for the search icon
+                                                ),
+                                              ),
+                                           ],
+                                         ),
+                                       ),
+                                   
+                                       
+                                       const Divider(color: Colors.blue,),
+                                    
+                                       Container(
+                                         width: double.infinity,
+                                         height: 500,
+                                         child:  notExist == true 
+                                        ? Container(
+                                            alignment: Alignment.topCenter,
+                                            padding: EdgeInsets.only(top: 50),
+                                            width: width,
+                                            child: Text('Delivery does not exist.',
+                                                style: TextStyle(
+                                                  fontFamily: 'Inter',
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold
+                                                ), 
+                                              ),
+                                          )
+                                        : Column(
+                                          children: [
+                                            Expanded(
+                                              child: SingleChildScrollView(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                  children: [
+                                                    //thy list creates the containers for all the trucks
+                                                    ListView.builder(
+                                                      shrinkWrap: true,
+                                                      physics: const NeverScrollableScrollPhysics(),
+                                                      itemCount: _filteredOrderDetails.length,
+                                                      itemBuilder: (context, index) {
+                                                        return FutureBuilder<Widget>(
+                                                          future: deliveryContainer(_filteredOrderDetails[index]),
+                                                          builder: (context, snapshot) {
+                                                            if (snapshot.hasError) {
+                                                              return Text('Error: ${snapshot.error}');
+                                                            } else {
+                                                              return snapshot.data ?? Container(); // Return the widget or an empty Container
+                                                            }
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
+                                                    
+                                                  ],
+                                                )
                                               ),
                                             ),
-                                          ),
-                                          SizedBox(width: 10),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: Color.fromARGB(255, 87, 189, 90), // Blue color for the search icon button
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: IconButton(
-                                              onPressed: () {
-                                                // Implement search functionality here
-                                                searchOrder(_filteredOrderDetails, _searchcontroller.text);
-                                              },
-                                              icon: Icon(Icons.search),
-                                              color: Colors.white, // White color for the search icon
-                                            ),
-                                          ),
-                                       ],
-                                     ),
-                                   ),
-                               
-                                   
-                                   const Divider(color: Colors.blue,),
-                                
-                                   Container(
-                                     width: double.infinity,
-                                     height: 500,
-                                     child:  notExist == true 
-                                    ? Container(
-                                        alignment: Alignment.topCenter,
-                                        padding: EdgeInsets.only(top: 50),
-                                        width: width,
-                                        child: Text('Delivery does not exist.',
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold
-                                            ), 
-                                          ),
-                                      )
-                                    : Expanded(
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            //thy list creates the containers for all the trucks
-                                            ListView.builder(
-                                              shrinkWrap: true,
-                                              physics: const NeverScrollableScrollPhysics(),
-                                              itemCount: _filteredOrderDetails.length,
-                                              itemBuilder: (context, index) {
-                                                return FutureBuilder<Widget>(
-                                                  future: deliveryContainer(_filteredOrderDetails[index]),
-                                                  builder: (context, snapshot) {
-                                                    if (snapshot.hasError) {
-                                                      return Text('Error: ${snapshot.error}');
-                                                    } else {
-                                                      return snapshot.data ?? Container(); // Return the widget or an empty Container
-                                                    }
-                                                  },
-                                                );
-                                              },
-                                            ),
-
                                           ],
                                         )
-                                      ),
-                                    )
-                                   )
-                                 ],
-                               );
-                             }
-                           ),
-                         ),
-                      ],
-                    ),
-                  );
-                }
-              )
-            )
-
-          ],
+                                       )
+                                     ],
+                                   );
+                                 }
+                               ),
+                             ),
+                          ],
+                        ),
+                      );
+                    }
+                  )
+                )
+        
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 

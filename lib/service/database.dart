@@ -406,7 +406,7 @@ class DatabaseService {
     )async{
       //int max = maxCapacity.toInt();
       // Create document in truckTeam collection using crew1's staffId
-      if(driver == 'No Available drivers'){
+      if(driver == 'No Available drivers' || driver == 'None'){
           await _firestore
         .collection('Trucks')
         .doc(truckId).set({

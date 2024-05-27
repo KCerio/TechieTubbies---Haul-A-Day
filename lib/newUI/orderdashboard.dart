@@ -1,12 +1,6 @@
-import 'package:firebase/firebase.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
-import 'package:haul_a_day_web/controllers/menuController.dart';
-import 'package:haul_a_day_web/newUI/components/allOrdersWidget.dart';
 import 'package:haul_a_day_web/newUI/components/assignedWidget.dart';
-import 'package:haul_a_day_web/newUI/components/navigationBar.dart';
 import 'package:haul_a_day_web/newUI/components/orderCount.dart';
 import 'package:haul_a_day_web/newUI/components/sidepanel.dart';
 import 'package:haul_a_day_web/service/database.dart';
@@ -22,7 +16,7 @@ class OrderDashboard extends StatefulWidget {
 }
 
 class _OrderDashboardState extends State<OrderDashboard> {
-
+  DatabaseService databaseService = DatabaseService();
   List<Map<String, dynamic>> _filteredOrderDetails = [];
   TextEditingController _searchcontroller = TextEditingController();
   bool notExist = false;
@@ -35,6 +29,13 @@ class _OrderDashboardState extends State<OrderDashboard> {
     //fetchOrder();
     _waitForFetchOrderDetails();
   }
+
+  // void fetchOrder() async{
+  //   List<Map<String, dynamic>> orders = await databaseService.fetchAllOrderList();
+  //   setState(() {
+  //     _filteredOrderDetails = orders;
+  //   });
+  // }
 
   void _waitForFetchOrderDetails() {
     Future.delayed(Duration(milliseconds: 100), () {
@@ -90,190 +91,198 @@ class _OrderDashboardState extends State<OrderDashboard> {
   Widget build(BuildContext context) {
     //print(_filteredOrderDetails);
     Size size = MediaQuery.of(context).size;
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 50, vertical:10),
-        child: Column(
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    
-                    child: const Text(
-                      'Order Dashboard',
-                      style: TextStyle(
-                        fontFamily: 'Itim',
-                        fontSize: 36
+    return Column(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical:10),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        alignment: Alignment.centerLeft,
+                        
+                        child: const Text(
+                          'Order Dashboard',
+                          style: TextStyle(
+                            fontFamily: 'Itim',
+                            fontSize: 36
+                          ),
+                        ),
                       ),
-                    ),
+                      
+                      
+                    ],
                   ),
-                  
-                  
-                ],
-              ),
-            ),
-        
-            Expanded(
-              flex: 9,
-               child: LayoutBuilder(
-                 builder: (context,constraints) {
-                   return widget.fetchOrderDetails == false ? const Center(child: CircularProgressIndicator(),)
-                  :SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(100, 0, 100, 10),
-                     child: Column(
-                       children: [
-                         // Order Count
-                         orderCounter(orderDetails: widget.orderDetails,),
-                            
-                         // For Bar Graph
-                            
-                         // For Assigned Widget
-                         
-                         Padding(
-                           padding: const EdgeInsets.only(bottom: 24),
-                           child: AssignedWidget(orderDetails: widget.orderDetails,)
-                         ),
-                         
-                            
-                          //For All Orders Widget
-                         Padding(
-                           padding: const EdgeInsets.all(8.0),
-                           child: LayoutBuilder(
-                             builder: (context, constraints) {
-                              double width = constraints.maxWidth;
-                              double height = constraints.maxHeight;
-                               return Column(
-                                 children: [
-                                   Container(
-                                    width: double.infinity,
-                                    height: 50,
-                                     child: Row(
-                                       children: [
-                                         Container(
-                                          padding: const EdgeInsets.only(bottom: 10),
-                                           alignment: Alignment.centerLeft,
-                                           child: const Text(
-                                             'All Orders',
-                                             style: TextStyle(
-                                               fontFamily: 'Inter',
-                                               fontSize: 26,
-                                               fontWeight: FontWeight.bold
-                                             ),
-                                           ),
-                                         ),
-                                         const SizedBox(width: 20,),
-                                         Container(child: labelButtons(),),
-                                         const Spacer(flex: 2,),
-                                                 
-                                          //Search Bar
-                                          Row(
-                                            children: [
-                                              Container(
-                                                width: width*0.25,
-                                                decoration: BoxDecoration(
-                                                  color: const Color.fromARGB(255, 228, 228, 228), // White background color
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: TextField(
-                                                  controller: _searchcontroller,
-                                                  onSubmitted: (_){
-                                                    searchOrder(_filteredOrderDetails, _searchcontroller.text);
-                                                  },
-                                                  onChanged: (value){                                            
-                                                    setState(() {
-                                                      //if(_selectedFilter == ''){_selectedFilter = 'All';}
-                                                      // applyFilter(_selectedFilter);
-                                                        notExist = false;
-                                                      _filteredOrderDetails = widget.orderDetails;
-                                                    });
-                                                    searchOrder(_filteredOrderDetails, _searchcontroller.text);
-                                                  },
-                                                  decoration: InputDecoration(
-                                                    hintText: 'Search...',
-                                                    border: OutlineInputBorder(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      borderSide: BorderSide.none, // Hide border
-                                                    ),
-                                                    contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                                                  ),
-                                                ),
-                                              ),
-                                              SizedBox(width: 10),
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  color: Color.fromARGB(255, 87, 189, 90), // Blue color for the search icon button
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: IconButton(
-                                                  onPressed: () {
-                                                    // Implement search functionality here
-                                                    searchOrder(_filteredOrderDetails, _searchcontroller.text);
-                                                  },
-                                                  icon: Icon(Icons.search),
-                                                  color: Colors.white, // White color for the search icon
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                       ],
-                                     ),
-                                   ),
-                                   
-                                   const Divider(color: Colors.blue,),
+                ),
+            
+                Expanded(
+                  flex: 9,
+                   child: LayoutBuilder(
+                     builder: (context,constraints) {
+                       return widget.fetchOrderDetails == false ? const Center(child: CircularProgressIndicator(),)
+                      :SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(100, 0, 100, 10),
+                         child: Column(
+                           children: [
+                             // Order Count
+                             orderCounter(orderDetails: widget.orderDetails,),
                                 
-                                   Container(
-                                     width: double.infinity,
-                                     height: 500,
-                                     child:  notExist == true 
-                                    ? Container(
-                                        alignment: Alignment.topCenter,
-                                        padding: EdgeInsets.only(top: 50),
-                                        width: width,
-                                        child: Text('Order does not exist.',
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold
-                                            ), 
-                                          ),
-                                      )
-                                    : Expanded(
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                             // For Bar Graph
+                                
+                             // For Assigned Widget
+                             
+                             Padding(
+                               padding: const EdgeInsets.only(bottom: 24),
+                               child: AssignedWidget(orderDetails: widget.orderDetails,)
+                             ),
+                             
+                                
+                              //For All Orders Widget
+                             Padding(
+                               padding: const EdgeInsets.all(8.0),
+                               child: LayoutBuilder(
+                                 builder: (context, constraints) {
+                                  double width = constraints.maxWidth;
+                                  double height = constraints.maxHeight;
+                                   return Column(
+                                     children: [
+                                       Container(
+                                        width: double.infinity,
+                                        height: 50,
+                                         child: Row(
+                                           children: [
+                                             Container(
+                                              padding: const EdgeInsets.only(bottom: 10),
+                                               alignment: Alignment.centerLeft,
+                                               child: const Text(
+                                                 'All Orders',
+                                                 style: TextStyle(
+                                                   fontFamily: 'Inter',
+                                                   fontSize: 26,
+                                                   fontWeight: FontWeight.bold
+                                                 ),
+                                               ),
+                                             ),
+                                             const SizedBox(width: 20,),
+                                             Container(child: labelButtons(),),
+                                             const Spacer(flex: 2,),
+                                                     
+                                              //Search Bar
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    width: width*0.25,
+                                                    decoration: BoxDecoration(
+                                                      color: const Color.fromARGB(255, 228, 228, 228), // White background color
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: TextField(
+                                                      controller: _searchcontroller,
+                                                      onSubmitted: (_){
+                                                        searchOrder(_filteredOrderDetails, _searchcontroller.text);
+                                                      },
+                                                      onChanged: (value){                                            
+                                                        setState(() {
+                                                          //if(_selectedFilter == ''){_selectedFilter = 'All';}
+                                                          // applyFilter(_selectedFilter);
+                                                            notExist = false;
+                                                          _filteredOrderDetails = widget.orderDetails;
+                                                        });
+                                                        searchOrder(_filteredOrderDetails, _searchcontroller.text);
+                                                      },
+                                                      decoration: InputDecoration(
+                                                        hintText: 'Search...',
+                                                        border: OutlineInputBorder(
+                                                          borderRadius: BorderRadius.circular(8),
+                                                          borderSide: BorderSide.none, // Hide border
+                                                        ),
+                                                        contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 10),
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Color.fromARGB(255, 87, 189, 90), // Blue color for the search icon button
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: IconButton(
+                                                      onPressed: () {
+                                                        // Implement search functionality here
+                                                        searchOrder(_filteredOrderDetails, _searchcontroller.text);
+                                                      },
+                                                      icon: Icon(Icons.search),
+                                                      color: Colors.white, // White color for the search icon
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                           ],
+                                         ),
+                                       ),
+                                       
+                                       const Divider(color: Colors.blue,),
+                                    
+                                       Container(
+                                         width: double.infinity,
+                                         height: 500,
+                                         child:  notExist == true 
+                                        ? Container(
+                                            alignment: Alignment.topCenter,
+                                            padding: EdgeInsets.only(top: 50),
+                                            width: width,
+                                            child: Text('Order does not exist.',
+                                                style: TextStyle(
+                                                  fontFamily: 'Inter',
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold
+                                                ), 
+                                              ),
+                                          )
+                                        : Column(
                                           children: [
-                                            //thy list creates the containers for all the trucks
-                                            ListView.builder(
-                                              shrinkWrap: true,
-                                              physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                              itemCount: _filteredOrderDetails.length,
-                                              itemBuilder: (context, index) {
-                                                return orderContainer(_filteredOrderDetails[index]);
-                                              },
+                                            Expanded(
+                                              child: SingleChildScrollView(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                  children: [
+                                                    //thy list creates the containers for all the trucks
+                                                    ListView.builder(
+                                                      shrinkWrap: true,
+                                                      physics: const NeverScrollableScrollPhysics(), // you can try to delete this
+                                                      itemCount: _filteredOrderDetails.length,
+                                                      itemBuilder: (context, index) {
+                                                        return orderContainer(_filteredOrderDetails[index]);
+                                                      },
+                                                    ),
+                                                  ],
+                                                )
+                                              ),
                                             ),
                                           ],
                                         )
-                                      ),
-                                    )
-                                   )
-                                 ],
-                               );
-                             }
-                           ),
+                                       )
+                                     ],
+                                   );
+                                 }
+                               ),
+                             ),
+                                  
+                           ],
                          ),
-                              
-                       ],
-                     ),
-                   );
-                 }
-               ),
-             )
-            
-          ],
+                       );
+                     }
+                   ),
+                 )
+                
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 

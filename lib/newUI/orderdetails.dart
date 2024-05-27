@@ -1181,7 +1181,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           }
         ),
                 
-        Expanded(
+        _unloadings.isEmpty ? Container(height: 200,child: Center(child: CircularProgressIndicator(),),)
+        : Expanded(
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

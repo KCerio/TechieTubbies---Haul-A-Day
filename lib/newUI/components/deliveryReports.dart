@@ -52,38 +52,42 @@ class _DeliveryReportsState extends State<DeliveryReports> {
   @override
   Widget build(BuildContext context) {
     //print("Reports: $_allReports, $stillEmpty");
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_allReports.isEmpty && stillEmpty == false) // Check if _allReports is empty
-            const Center(child: CircularProgressIndicator())
-          else if (_allReports.isEmpty && stillEmpty == true)
-            Container(
-              height: 300,
-              child: const Center(
-                child: Text(
-                  'No reports yet',
-                  style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold
-                    ),  
-                  )
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_allReports.isEmpty && stillEmpty == false) // Check if _allReports is empty
+                const Center(child: CircularProgressIndicator())
+              else if (_allReports.isEmpty && stillEmpty == true)
+                Container(
+                  height: 300,
+                  child: const Center(
+                    child: Text(
+                      'No reports yet',
+                      style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold
+                        ),  
+                      )
+                    ),
+                )
+              else ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(), // you can try to delete this
+                  itemCount: _allReports.length,
+                  itemBuilder: (context, index) {
+                    return reportContainer(context,_allReports[index], widget.order,_unloadings);
+                  },
                 ),
+              ],
             )
-          else ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-              itemCount: _allReports.length,
-              itemBuilder: (context, index) {
-                return reportContainer(context,_allReports[index], widget.order,_unloadings);
-              },
-            ),
-          ],
-        )
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

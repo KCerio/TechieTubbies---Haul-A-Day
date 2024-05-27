@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
@@ -47,25 +46,10 @@ class _HomepageState extends State<Homepage> {
       _orderDetails = orderDetails;
       fetchingStatus = true;
     });
-    if(fetchingStatus == true){
-      _fetchGroupData(_orderDetails);
-    }
+  
     } catch (e){
       print('Failed to fetch order details: $e');
     }
-  }
-
-  Future<void> _fetchGroupData(List<Map<String, dynamic>> _orderDetails)async{
-    //print(_orderDetails);
-    Map<int, List<Map<String, dynamic>>> groupedOrders = await payrollService.groupOrders(_orderDetails);
-    // Print group
-    // groupedOrders.forEach((key, value) {
-    //   print('Year: ${key ~/ 10000}, Month: ${(key % 10000) ~/ 100}, Week: ${key % 100}, Orders: $value');
-    // });
-    //print(groupedOrders);
-    setState(() {
-      _groupedOrders = groupedOrders;
-    });
   }
 
   @override
