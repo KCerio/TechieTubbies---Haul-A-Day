@@ -10,7 +10,6 @@ import 'package:haul_a_day_web/page/order.dart';
 import 'package:haul_a_day_web/page/payroll.dart';
 import 'package:haul_a_day_web/page/staffList.dart';
 import 'package:haul_a_day_web/page/truck_list.dart';
-import 'package:haul_a_day_web/trial_pages/orderdetails.dart';
 import 'package:haul_a_day_web/page/orderscreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:haul_a_day_web/service/database.dart';

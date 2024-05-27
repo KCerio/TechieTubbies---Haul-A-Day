@@ -4,7 +4,9 @@ import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/service/userService.dart';
 import 'package:haul_a_day_web/web_Pages/truckList/addTruckDialog.dart';
 import 'package:haul_a_day_web/web_Pages/truckList/truckInfoPanel/deliveryHistory.dart';
+import 'package:haul_a_day_web/web_Pages/truckList/truckInfoPanel/editTruckDialog.dart';
 import 'package:haul_a_day_web/web_Pages/truckList/truckInfoPanel/incidentReport.dart';
+
 
 
 class TruckList extends StatefulWidget {
@@ -50,149 +52,149 @@ class _TruckListState extends State<TruckList> {
 
     return SafeArea(
       child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Row(
-              children: [
-                // Left side
-                Expanded(
-                  flex: 6,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(50, 16, 16, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Padding(
-                              padding:
-                              EdgeInsets.only(
-                                  left: 10.0),
-                              child: Text(
-                                'Truck List',
-                                style: TextStyle(
-                                    fontSize: 35,
-                                    fontFamily: 'Itim',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black),
-                              ),
+        builder: (context, constraints) {
+          return Row(
+            children: [
+              // Left side
+              Expanded(
+                flex: 6,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(50, 16, 16, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Padding(
+                            padding:
+                                EdgeInsets.only(
+                                    left: 10.0),
+                            child: Text(
+                              'Truck List',
+                              style: TextStyle(
+                                  fontSize: 35,
+                                  fontFamily: 'Itim',
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
                             ),
-                            const Spacer(),
+                          ),
+                          const Spacer(),
 
-                            //Search Bar
-                            Expanded(
-                              child: TextField(
-                                decoration: InputDecoration(
-                                    fillColor: const Color.fromRGBO(199, 196, 196, 0.463),
-                                    filled: true,
-                                    hintText: "Search Truck",
-                                    border: const OutlineInputBorder(
-                                      borderSide: BorderSide.none,
-                                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                                    ),
-                                    suffixIcon: InkWell(
-                                        onTap:(){},
-                                        child:const Icon(Icons.search, color: Colors.black,)
-                                    )
+                          //Search Bar
+                          Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                fillColor: const Color.fromRGBO(199, 196, 196, 0.463),
+                                filled: true,
+                                hintText: "Search Truck",
+                                border: const OutlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
                                 ),
-                              ),
-                            ),
-                            SizedBox(width: 20,)
-                          ],
-                        ),
-                        //const SizedBox(height: 10,),
-                        Container(
-                          width:200,
-                          alignment: Alignment.centerLeft,
-                          padding:
-                          const EdgeInsets.fromLTRB(
-                              25, 2, 30, 0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    contentPadding: EdgeInsets.zero,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15.0), // Set the border radius for the dialog
-                                    ),
-                                    content: AddTruckDialog(),
-                                  );
-                                },
-                              );
-                            },
-                            child: Row(
-                              children: [
-                                Icon(Icons.add_box, color: Colors.white,),
-                                SizedBox(width: 5,),
-                                Text('Add truck', style: TextStyle(color: Colors.white))
-                              ],
-                            ),
-                            style: ButtonStyle(
-                              padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
-                              backgroundColor: MaterialStateProperty.all<Color>(const Color.fromRGBO(76, 175, 80, 1)),
-                              foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
-                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5), // Set the border radius for the button
-                                ),
+                                suffixIcon: InkWell(
+                                  onTap:(){},
+                                  child:const Icon(Icons.search, color: Colors.black,)
+                                )
                               ),
                             ),
                           ),
-
-                        ),
-                        //const SizedBox(height: 20),
-                        Container(
-                            height: size.height*0.68,
-                            child: _trucks.isEmpty
-                                ? Container(
-                                alignment: Alignment.center,
-                                child: CircularProgressIndicator()
-                            )
-                                : Expanded(
-                              child: SingleChildScrollView(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      //thy list creates the containers for all the trucks
-                                      ListView.builder(
-                                        shrinkWrap: true,
-                                        physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                        itemCount: _trucks.length,
-                                        itemBuilder: (context, index) {
-                                          return buildTruckContainer(_trucks[index]);
-                                        },
-                                      ),
-                                    ],
-                                  )
+                          SizedBox(width: 20,)
+                        ],
+                      ),
+                      //const SizedBox(height: 10,),
+                      Container(
+                        width:200,
+                        alignment: Alignment.centerLeft,
+                        padding:
+                            const EdgeInsets.fromLTRB(
+                                25, 2, 30, 0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  contentPadding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15.0), // Set the border radius for the dialog
+                                  ),
+                                  content: AddTruckDialog(),
+                                );
+                              },
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              Icon(Icons.add_box, color: Colors.white,),
+                              SizedBox(width: 5,),
+                              Text('Add truck', style: TextStyle(color: Colors.white))
+                            ],
+                          ),
+                          style: ButtonStyle(
+                            padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                            backgroundColor: MaterialStateProperty.all<Color>(const Color.fromRGBO(76, 175, 80, 1)),
+                            foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5), // Set the border radius for the button
                               ),
-                            )
+                            ),
+                          ),
                         ),
-                        //const SizedBox(height: 20),
 
-                      ],
-                    ),
+                      ),
+                      //const SizedBox(height: 20),
+                      Container(
+                        height: size.height*0.68,
+                        child: _trucks.isEmpty
+                          ? Container(
+                            alignment: Alignment.center,
+                            child: CircularProgressIndicator()
+                            )
+                        : Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                //thy list creates the containers for all the trucks
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(), // you can try to delete this
+                                  itemCount: _trucks.length,
+                                  itemBuilder: (context, index) {
+                                    return buildTruckContainer(_trucks[index]);
+                                  },
+                                ),
+                              ],
+                            )
+                          ),
+                        )
+                      ),
+                      //const SizedBox(height: 20),
+
+                    ],
                   ),
                 ),
-                // Right panel for Truck
-                Expanded(
-                    flex: 4,
-                    child: selectaTruck == true
-                        ? Container(
-                        height: size.height*0.87,
-                        color: Colors.white,
-                        child: truckPanel(selectedTruck)
-                    )
-                        :Container(
-                        height: size.height*0.87,
-                        padding: EdgeInsets.symmetric(horizontal: 100, vertical:50),
-                        child: unselectedRightPanel()
-                    )
-                ),
-              ],
-            );
-          }
+              ),
+              // Right panel for Truck
+              Expanded(
+                flex: 4,
+                child: selectaTruck == true
+                ? Container(
+                  height: size.height*0.87,
+                  color: Colors.white,
+                  child: truckPanel(selectedTruck)
+                  )
+                :Container(
+                  height: size.height*0.87,
+                  padding: EdgeInsets.symmetric(horizontal: 100, vertical:50),
+                  child: unselectedRightPanel()
+                  )
+              ),
+            ],
+          );
+        }
       ),
     );
 
@@ -293,9 +295,9 @@ class _TruckListState extends State<TruckList> {
                     style:TextStyle(
                         fontWeight: FontWeight.bold,
                         color: aTruck['truckStatus'] == 'Available' ? Colors.green
-                            : Colors.grey,
+                        : Colors.grey,
                         fontSize:20
-                    ),
+                      ),
                   ),
                   const SizedBox(height: 10),
 
@@ -307,31 +309,31 @@ class _TruckListState extends State<TruckList> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                              title: const Text('Confirm Deletion'),
-                              content:  Text('Do you wish to remove this truck?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () async{
-                                    //confirmApproval();
-                                    setState(() {
-                                      selectaTruck = false;
-                                      selectedTruck = {};
-                                      _trucks.remove(aTruck);
-                                    });
-                                    UserService userService = UserService();
-                                    userService.removeTruck(aTruck['id']);
-                                    Navigator.of(context).pop(); // Close the dialog
-                                  },
-                                  child: Text('Yes'),
-                                ),
-                                const SizedBox(width: 8,),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(); // Close the dialog
-                                  },
-                                  child: Text('No'),
-                                ),
-                              ]
+                            title: const Text('Confirm Deletion'),
+                            content:  Text('Do you wish to remove this truck?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () async{
+                                  //confirmApproval();
+                                  setState(() {
+                                    selectaTruck = false;
+                                    selectedTruck = {};
+                                    _trucks.remove(aTruck);
+                                  });
+                                  UserService userService = UserService();
+                                  userService.removeTruck(aTruck['id']);
+                                  Navigator.of(context).pop(); // Close the dialog
+                                },
+                                child: Text('Yes'),
+                              ),
+                              const SizedBox(width: 8,),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Close the dialog
+                                },
+                                child: Text('No'),
+                              ),
+                            ]
                           );
                         },
                       );
@@ -425,14 +427,29 @@ class _TruckListState extends State<TruckList> {
                         color: Colors.black,
                         fontSize: 20),
                   ),
-                  const Text(
-                    'Edit Details',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Colors.red,
-                        fontSize: 16),
+                  InkWell(
+                    onTap: ()async {
+                      Map<String, dynamic>? updates = await showDialog<Map<String, dynamic>>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return EditTruck(
+                            truck: aTruck, 
+                            onUpdate: (value){
+                               Navigator.of(context).pop(value);
+                            }
+                          );
+                        },
+                      );
+                    },
+                    child: Text(
+                      'Edit Details',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.red,
+                          fontSize: 16),
+                    ),
                   ),
                 ],
               ),

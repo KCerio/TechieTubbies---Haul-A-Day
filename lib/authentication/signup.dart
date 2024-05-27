@@ -1,18 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:haul_a_day_web/homepage/homepage.dart';
 import 'package:haul_a_day_web/models/user_model.dart';
-import 'package:haul_a_day_web/repository/user_repository.dart';
 import 'package:haul_a_day_web/service/userService.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:image_picker_web/image_picker_web.dart';
-import 'package:provider/provider.dart';
+import 'package:haul_a_day_web/web_Pages/customerPage/homepage.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -53,7 +48,6 @@ class _SignUpState extends State<SignUp> {
   var _isObscured2 = true;
   //final myController = TextEditingController();
 
-  final userRepo = Get.put(UserRepository());
   final _db = FirebaseFirestore.instance;
   UserService userService = UserService();
 
@@ -126,9 +120,6 @@ class _SignUpState extends State<SignUp> {
     }
   }
   
-  void createUser(UserModel user) async{
-    await userRepo.createUser(user);
-  }
 
   String? imageUrl;
   html.File? imageFile;

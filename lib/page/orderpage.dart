@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/models/order_model.dart';
 import 'package:haul_a_day_web/service/database.dart';
-import 'package:haul_a_day_web/trial_pages/orderdetails.dart';
 
 class OrderPage extends StatefulWidget {
   const OrderPage({super.key});
@@ -146,11 +145,11 @@ class _OrderPageState extends State<OrderPage> {
         ],
         selected: false, // Remove the checkbox
         onSelectChanged: (_){
-          Navigator.push( 
-            context, 
-            MaterialPageRoute( 
-                builder: (context) => 
-                    OrderDetailsPage(orderId: orderID,)));
+          // Navigator.push( 
+          //   context, 
+          //   MaterialPageRoute( 
+          //       builder: (context) => 
+          //           OrderDetailsPage(orderId: orderID,)));
         }
         ));
 

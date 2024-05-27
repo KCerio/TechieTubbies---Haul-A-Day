@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/controllers/menuController.dart';
-import 'package:haul_a_day_web/homepage/homepage.dart';
 //import 'package:haul_a_day_web/page/menupage2.dart';
-import 'package:haul_a_day_web/newUI/homescreen.dart';
 import 'package:haul_a_day_web/service/database.dart';
+import 'package:haul_a_day_web/web_Pages/customerPage/homepage.dart';
+import 'package:haul_a_day_web/web_Pages/notifPage/homescreen.dart';
 import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
