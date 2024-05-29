@@ -6,6 +6,7 @@ import 'package:haul_a_day_web/web_Pages/truckList/addTruckDialog.dart';
 import 'package:haul_a_day_web/web_Pages/truckList/truckInfoPanel/deliveryHistory.dart';
 import 'package:haul_a_day_web/web_Pages/truckList/truckInfoPanel/editTruckDialog.dart';
 import 'package:haul_a_day_web/web_Pages/truckList/truckInfoPanel/incidentReport.dart';
+import 'package:haul_a_day_web/web_Pages/truckList/truckInfoPanel/truckTeam.dart';
 
 
 
@@ -485,7 +486,7 @@ class _TruckListState extends State<TruckList> {
 
   //truckPanel Side
   Widget truckPanel(Map<String, dynamic> aTruck) {
-    print('YUH :${aTruck['id']}');
+
 
     return SingleChildScrollView(
       child: Padding(
@@ -572,23 +573,11 @@ class _TruckListState extends State<TruckList> {
               height: 2,
               color: Colors.black,
             ),
-            Padding(
-              padding: EdgeInsets.zero,
-              child: Container(
-                child: const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Staff History',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: Colors.black),
-                  ),
-                ),
-              ),
+
+            Container(
+              height: MediaQuery.sizeOf(context).height*0.3,
+              child: TruckTeamList(driver: aTruck['driver']),
             ),
-            staffHistoryContainer(),
-            staffHistoryContainer(),
 
             Container(
               height: MediaQuery.sizeOf(context).height*0.3,
@@ -607,53 +596,5 @@ class _TruckListState extends State<TruckList> {
     );
   }
 
-  Widget staffHistoryContainer() {
-    return Container(
-      padding: const EdgeInsets.all(3.0),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.green),
-        borderRadius: const BorderRadius.horizontal(),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            backgroundImage: AssetImage('images/user_pic.png'),
-            radius: 30.0,
-          ),
-          const SizedBox(width: 10.0),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Employee Name',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 20),
-              ),
-              const Text(
-                'Staff ID',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const Text(
-                'Position',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const Text(
-                'Date',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                height: 2,
-                color: Colors.black,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
 }

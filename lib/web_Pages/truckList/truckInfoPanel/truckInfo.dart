@@ -145,5 +145,25 @@ String intoTime (Timestamp stampTime)  {
   return formattedTime; // Return the formatted time string
 }
 
+Future<Map<String, dynamic>> fetchStaffDetails(String staffId) async {
+  try {
+    // Query the Firestore collection for documents where the 'staffId' field matches the provided staffId
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Users')
+        .where('staffId', isEqualTo: staffId)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      // Assume there's only one document with the matching staffId
+      DocumentSnapshot userSnapshot = querySnapshot.docs.first;
+      return userSnapshot.data() as Map<String, dynamic>;
+    } else {
+      throw Exception('User with staffId $staffId not found');
+    }
+  } catch (e) {
+    throw Exception('Failed to fetch user details: $e');
+  }
+}
+
 
 
