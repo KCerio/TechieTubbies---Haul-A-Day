@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:haul_a_day_web/authentication/login_screen.dart';
-import 'package:haul_a_day_web/page/delivery.dart';
-import 'package:haul_a_day_web/page/order.dart';
-import 'package:haul_a_day_web/page/menupage2.dart';
+import 'package:haul_a_day_web/trialpage/delivery.dart';
+import 'package:haul_a_day_web/trialpage/order.dart';
+import 'package:haul_a_day_web/trialpage/menupage2.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:haul_a_day_web/page/payroll.dart';
-import 'package:haul_a_day_web/page/staffList.dart';
+import 'package:haul_a_day_web/trialpage/payroll.dart';
+import 'package:haul_a_day_web/trialpage/staffList.dart';
 import 'package:haul_a_day_web/service/database.dart';
 
 class TruckList extends StatefulWidget {

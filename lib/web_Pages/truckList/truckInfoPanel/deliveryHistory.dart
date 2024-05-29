@@ -47,7 +47,7 @@ class _DeliveryHistoryState extends State<DeliveryHistory> {
               child: Text(
                 'Delivery History',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey,
                 ),

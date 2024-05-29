@@ -170,6 +170,8 @@ class SideMenu extends StatelessWidget {
               title: 'Settings',
               svgSrc: Icons.settings,
               press: () {
+                Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Settings);
                 Navigator.pop(context);
               },
             ),

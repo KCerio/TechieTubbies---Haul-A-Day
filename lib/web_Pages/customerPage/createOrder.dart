@@ -171,7 +171,7 @@ class _DeliveryHomePageState extends State<DeliveryHomePage>  with TickerProvide
             fit: BoxFit.cover,
           ),
         ),
-        child: orderForm(),
+        child: SingleChildScrollView(child: orderForm()),
       ),
     );
   }

@@ -19,7 +19,8 @@ import 'package:universal_html/html.dart';
 
 class AddTruckDialog extends StatefulWidget {
   //Map<String,dynamic> newTruck
-  const AddTruckDialog({super.key});
+  final Function(Map<String, dynamic>?) newTruck;
+  const AddTruckDialog({super.key, required this.newTruck});
 
   @override
   State<AddTruckDialog> createState() => _AddTruckDialogState();
@@ -35,7 +36,7 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
   Map<String,dynamic> _newTruck = {};
   String _cargoType = '';
 
-  Map<String,dynamic> get newTruck => _newTruck;
+  //Map<String,dynamic> get newTruck => _newTruck;
   //List<String> cargoTypes = ['cgl - canned/dry', 'fgl - frozen'];
 
   final _formfield = GlobalKey<FormState>();
@@ -45,6 +46,7 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
 
   DatabaseService databaseService = DatabaseService();
   List<Map<String,dynamic>> _drivers = [];
+  //Map<String,dynamic> truck = {};
   List<String> drivers = [];
   String? driver;
 
@@ -678,11 +680,11 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
                                 //print('TruckPic: $truckPic');
                                 setState(() {
                                   _newTruck = {
-                                    'truckID': truckID,
+                                    'id': truckID,
                                     'cargoType': _cargoType,
                                     'driver': driver,
                                     'maxCapacity': maxCapacity,
-                                    'pictureUrl': imageUrl,
+                                    'truckPic': imageUrl,
                                     'truckType': truckType,
                                     'truckStatus' : 'Available'
                                   };
@@ -700,7 +702,7 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
                                         TextButton(
                                           onPressed: () async {        
                                             Navigator.of(context).pop();
-                                            Navigator.of(context).pop();
+                                            widget.newTruck(_newTruck);
                                           },
                                           child: const Text('OK'),
                                         ),

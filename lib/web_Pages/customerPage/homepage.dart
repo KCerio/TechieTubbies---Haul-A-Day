@@ -93,63 +93,69 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
           fit: BoxFit.cover,
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
+      child: Container(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Delivering excellence,',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 64
+                    ),
+                  ),
+                  Text(
+                    'one cargo at a time',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 56
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height:20),
               Text(
-                'Delivering excellence,',
+                'CUC Cargo Services offers a hassle free services that \n'
+                    'transports your goods, merchandise, or commodities from \n'
+                    'one place to another within the islands of Visayas \n'
+                    'and Mindanao',
                 style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 64
+                    fontWeight: FontWeight.w400,
+                    fontSize: 20
                 ),
               ),
-              Text(
-                'one cargo at a time',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 56
-                ),
-              ),
-            ],
-          ),
-          Text(
-            'CUC Cargo Services offers a hassle free services that \n'
-                'transports your goods, merchandise, or commodities from \n'
-                'one place to another within the islands of Visayas \n'
-                'and Mindanao',
-            style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w400,
-                fontSize: 20
-            ),
-          ),
-
-          TextButton(onPressed: (){
-            _tabController.animateTo(1);
-          },
-              style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.green[700]!),
-                  minimumSize: MaterialStateProperty.all<Size>(Size(100, 50)),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),)
-              ),
-              child: Text(
-                'SCHEDULE A DELIVERY',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize:16,
-                    fontWeight: FontWeight.bold
-                ),
-
-              )),
-        ],),
+              const SizedBox(height: 30,),
+          
+              TextButton(onPressed: (){
+                _tabController.animateTo(1);
+              },
+                  style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.green[700]!),
+                      minimumSize: MaterialStateProperty.all<Size>(Size(100, 50)),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),)
+                  ),
+                  child: Text(
+                    'SCHEDULE A DELIVERY',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize:16,
+                        fontWeight: FontWeight.bold
+                    ),
+          
+                  )),
+            ],),
+        ),
+      ),
       // Placeholder content
     );
   }
@@ -165,193 +171,200 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
           fit: BoxFit.cover,
         ),
       ),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+      child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Get in touch',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 64
-              ),
-            ),
-            Text(
-              'with CUC Cargo Services',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 52
-              ),
-            ),
-            SizedBox(height: 40,),
-
             Container(
-              width: 800,
-              alignment: Alignment.center,
-              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 30),
-              decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8)
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    Icon(Icons.phone,
-                      color: Colors.grey[700],
+                  Text(
+                    'Get in touch',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 64
                     ),
-                    const SizedBox(width: 10,),
-                    Text(
-                      'TELEPHONE',
-                      style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 24
-                      ),
+                  ),
+                  Text(
+                    'with CUC Cargo Services',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 52
                     ),
-                  ],),
+                  ),
+                  SizedBox(height: 40,),
+            
                   Container(
-                    padding: EdgeInsets.only(left: 50),
-                    child: InkWell(
-                      onTap: () {
-                        Clipboard.setData(ClipboardData(text: '032-888-6915'));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Copied to clipboard!',
-                              style: TextStyle(color: Colors.green, fontSize: 14),
-                            ),
-                            backgroundColor: Colors.white,
+                    width: 800,
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 30),
+                    decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8)
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Icon(Icons.phone,
+                            color: Colors.grey[700],
                           ),
-                        );
-                      },
-                      child: Text(
-                        '032-888-6915',
-                        style: TextStyle(
-                          color: Colors.green[700],
-                          fontSize: 24,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.green                         
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height:20),
-
-                  Row(children: [
-                    Icon(Icons.email,
-                      color: Colors.grey[700],
-                    ),
-                    const SizedBox(width: 10,),
-                    Text(
-                      'EMAIL',
-                      style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 24
-                      ),
-                    ),
-                  ],
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(left: 50),
-                    child: InkWell(
-                      onTap: () {
-                        Clipboard.setData(ClipboardData(text: 'cuccargoservices@yahoo.com'));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Copied to clipboard!',
-                              style: TextStyle(color: Colors.green, fontSize: 14),
+                          const SizedBox(width: 10,),
+                          Text(
+                            'TELEPHONE',
+                            style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 24
                             ),
-                            backgroundColor: Colors.white,
                           ),
-                        );
-                      },
-                      child: Text(
-                        'cuccargoservices@yahoo.com',
-                        style: TextStyle(
-                          color: Colors.green[700],
-                          fontSize: 24,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.green                         
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.only(left: 50),
-                    child: InkWell(
-                      onTap: () {
-                        Clipboard.setData(ClipboardData(text: 'cuccargoservices@gmail.com'));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Copied to clipboard!',
-                              style: TextStyle(color: Colors.green, fontSize: 14),
+                        ],),
+                        Container(
+                          padding: EdgeInsets.only(left: 50),
+                          child: InkWell(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: '032-888-6915'));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Copied to clipboard!',
+                                    style: TextStyle(color: Colors.green, fontSize: 14),
+                                  ),
+                                  backgroundColor: Colors.white,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              '032-888-6915',
+                              style: TextStyle(
+                                color: Colors.green[700],
+                                fontSize: 24,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.green                         
+                              ),
                             ),
-                            backgroundColor: Colors.white,
                           ),
-                        );
-                      },
-                      child: Text(
-                        'cuccargoservices@gmail.com',
-                        style: TextStyle(
-                          color: Colors.green[700],
-                          fontSize: 24,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.green                         
                         ),
-                      ),
-                    ),
-                  ),
-                  
-                  SizedBox(height:20),
-
-                  Row(children: [
-                    Icon(Icons.pin_drop,
-                      color: Colors.grey[700],
-                    ),
-                    const SizedBox(width: 10,),
-                    Text(
-                      'ADDRESS',
-                      style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 24
-                      ),
-                    ),
-                  ],),
-                  Container(
-                    padding: EdgeInsets.only(left: 50),
-                    child: InkWell(
-                      onTap: () {
-                        Clipboard.setData(ClipboardData(text: '450 Peace Valley Homes, Bulacao, Cebu City, Cebu, Philippines'));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Copied to clipboard!',
-                              style: TextStyle(color: Colors.green, fontSize: 14),
+                        SizedBox(height:20),
+            
+                        Row(children: [
+                          Icon(Icons.email,
+                            color: Colors.grey[700],
+                          ),
+                          const SizedBox(width: 10,),
+                          Text(
+                            'EMAIL',
+                            style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 24
                             ),
-                            backgroundColor: Colors.white,
                           ),
-                        );
-                      },
-                      child: Text(
-                        '450 Peace Valley Homes, Bulacao,\n'
-                        'Cebu City, Cebu, Philippines',
-                        style: TextStyle(
-                          color: Colors.green[700],
-                          fontSize: 24,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.green                         
+                        ],
                         ),
-                      ),
+                        Container(
+                          padding: EdgeInsets.only(left: 50),
+                          child: InkWell(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: 'cuccargoservices@yahoo.com'));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Copied to clipboard!',
+                                    style: TextStyle(color: Colors.green, fontSize: 14),
+                                  ),
+                                  backgroundColor: Colors.white,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'cuccargoservices@yahoo.com',
+                              style: TextStyle(
+                                color: Colors.green[700],
+                                fontSize: 24,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.green                         
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.only(left: 50),
+                          child: InkWell(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: 'cuccargoservices@gmail.com'));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Copied to clipboard!',
+                                    style: TextStyle(color: Colors.green, fontSize: 14),
+                                  ),
+                                  backgroundColor: Colors.white,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'cuccargoservices@gmail.com',
+                              style: TextStyle(
+                                color: Colors.green[700],
+                                fontSize: 24,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.green                         
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        SizedBox(height:20),
+            
+                        Row(children: [
+                          Icon(Icons.pin_drop,
+                            color: Colors.grey[700],
+                          ),
+                          const SizedBox(width: 10,),
+                          Text(
+                            'ADDRESS',
+                            style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 24
+                            ),
+                          ),
+                        ],),
+                        Container(
+                          padding: EdgeInsets.only(left: 50),
+                          child: InkWell(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: '450 Peace Valley Homes, Bulacao, Cebu City, Cebu, Philippines'));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Copied to clipboard!',
+                                    style: TextStyle(color: Colors.green, fontSize: 14),
+                                  ),
+                                  backgroundColor: Colors.white,
+                                ),
+                              );
+                            },
+                            child: Text(
+                              '450 Peace Valley Homes, Bulacao,\n'
+                              'Cebu City, Cebu, Philippines',
+                              style: TextStyle(
+                                color: Colors.green[700],
+                                fontSize: 24,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.green                         
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                      ],
                     ),
-                  ),
-                  
+                  )
                 ],
               ),
-            )
+            ),
           ],
         ),
       )
