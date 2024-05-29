@@ -368,7 +368,7 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
                                                 controller: truckIdcontroller,
                                                 decoration: InputDecoration(
                                                   contentPadding: EdgeInsets.symmetric(vertical: 2),
-                                                  hintText: "GDN 6543",
+                                                  hintText: "Ex. GDN 6543",
                                                   border: OutlineInputBorder(),
                                                 ),
                                                 style: TextStyle(fontSize: 14),
@@ -401,7 +401,7 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
                                                 controller: truckTypecontroller,
                                                 decoration: InputDecoration(
                                                   contentPadding: EdgeInsets.symmetric(vertical: 2),
-                                                  hintText: '10 Wheelers Reefer Van',
+                                                  hintText: 'Ex. 10 Wheelers Reefer Van',
                                                   border: OutlineInputBorder(),
                                                 ),
                                                 style: TextStyle(fontSize: 14),
@@ -436,7 +436,7 @@ class _AddTruckDialogState extends State<AddTruckDialog> {
                                                 controller: maxCapacitycontroller,
                                                 decoration: InputDecoration(
                                                   contentPadding: EdgeInsets.symmetric(vertical: 2),
-                                                  hintText: '5000',
+                                                  hintText: 'Ex. 5000',
                                                   border: OutlineInputBorder(),
                                                 ),
                                                 style: TextStyle(fontSize: 14),

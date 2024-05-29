@@ -333,8 +333,6 @@ class _TruckListState extends State<TruckList> {
 
           }
 
-
-
         });
       },
       child: Container(
@@ -486,8 +484,6 @@ class _TruckListState extends State<TruckList> {
 
   //truckPanel Side
   Widget truckPanel(Map<String, dynamic> aTruck) {
-
-
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

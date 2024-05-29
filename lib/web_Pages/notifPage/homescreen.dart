@@ -115,10 +115,10 @@ class _HomepageState extends State<Homepage> {
                         selectedWidget = Payroll(groupedOrders: _groupedOrders);
                         break;
                       case TabSelection.Profile:
-                        selectedWidget = Profile_Settings(profile: true, settings: false);
+                        selectedWidget = Profile_Settings(profile: true, settings: false, userInfo: widget.userInfo);
                         break;
                       case TabSelection.Settings:
-                        selectedWidget = Profile_Settings(profile: false, settings: true);
+                        selectedWidget = Profile_Settings(profile: false, settings: true, userInfo: widget.userInfo);
                         break;
                       default:
                         selectedWidget = Container();

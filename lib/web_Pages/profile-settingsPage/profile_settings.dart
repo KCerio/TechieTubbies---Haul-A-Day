@@ -9,7 +9,8 @@ import 'dart:io';
 class Profile_Settings extends StatefulWidget {
   final bool profile;
   final bool settings;
-  const Profile_Settings({Key? key, required this.profile, required this.settings}) : super(key: key);
+  final Map<String, dynamic> userInfo;
+  const Profile_Settings({Key? key, required this.profile, required this.settings, required this.userInfo}) : super(key: key);
 
   @override
   State<Profile_Settings> createState() => _Profile_SettingsState();
@@ -24,6 +25,7 @@ class _Profile_SettingsState extends State<Profile_Settings> {
   bool _showProfile = false;
   bool _showEditProfile = false;
   bool _showPasswordSecurity = false;
+  Map<String, dynamic> userInfo={};
 
    @override
   void initState() {
@@ -36,8 +38,9 @@ class _Profile_SettingsState extends State<Profile_Settings> {
       setState(() {
         _showEditProfile = true;
       });
+
     }
-    
+    userInfo = widget.userInfo;    
   }
 
   Future<void> _pickImage() async {
@@ -225,27 +228,20 @@ class _Profile_SettingsState extends State<Profile_Settings> {
                                       padding: const EdgeInsets.fromLTRB(65, 30, 0, 0),
                                       child: Material(
                                         color: Colors.white,
-                                        child: InkWell(
-                                          onTap: _pickImage,
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Container(
-                                              width: 200,
-                                              height: 200,
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                border:
-                                                    Border.all(color: Colors.grey),
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                              child: _image == null
-                                                  ? Container() // Empty container instead of text
-                                                  : Image.file(
-                                                      _image!,
-                                                      fit: BoxFit.cover,
-                                                    ),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Container(
+                                            width: 200,
+                                            height: 200,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              border:
+                                                  Border.all(color: Colors.grey),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
+                                            child: userInfo['pictureUrl'] != null ? Image.network(userInfo['pictureUrl'])
+                                            : Image.asset('images/user_pic.png')
                                           ),
                                         ),
                                       ),
@@ -261,7 +257,7 @@ class _Profile_SettingsState extends State<Profile_Settings> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'John Doe',
+                                    '${userInfo['firstname']} ${userInfo['lastname']}',
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
@@ -280,7 +276,7 @@ class _Profile_SettingsState extends State<Profile_Settings> {
                                       ),
                                       SizedBox(width: 5),
                                       Text(
-                                        'Driver',
+                                        userInfo['position'],
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -353,7 +349,8 @@ class _Profile_SettingsState extends State<Profile_Settings> {
                                       ),
                                       SizedBox(width: 5),
                                       Text(
-                                        'JohnDoe@gmail.com',
+                                        userInfo['email'] != null ? userInfo['email']
+                                        :'No Email Address',
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -374,7 +371,7 @@ class _Profile_SettingsState extends State<Profile_Settings> {
                                       ),
                                       SizedBox(width: 5),
                                       Text(
-                                        '09933231678',
+                                        userInfo['contactNumber'],
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -631,9 +628,9 @@ class _Profile_SettingsState extends State<Profile_Settings> {
                       ),
                     ),
                     if (_showEditProfile)
-                    EditProfileContainer(),
+                    EditProfileContainer(userInfo: userInfo,),
                     if (_showPasswordSecurity)
-                    PasswordSecurity(),
+                    PasswordSecurity(userInfo: userInfo),
                   ],
                 ),
               );
