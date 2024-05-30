@@ -41,7 +41,7 @@ class _TruckTeamListState extends State<TruckTeamList> {
     if(driver!='none'){
       Map<String, dynamic> _driver = await fetchStaffDetails(driver);
 
-      print('driver: ${_driver['staffId']}, ${_driver['firstName']}');
+      print('driver: ${_driver['staffId']}, ${_driver['firstname']}');
       crew.add(_driver);
 
       if (_driver['assignedSchedule'] != 'none') {

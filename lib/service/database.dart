@@ -199,6 +199,8 @@ class DatabaseService {
         drivers.add(driver);
       }
 
+      print('Drivers: $drivers');
+
       return drivers;
     } catch (e) {
       throw Exception('Failed to fetch helper staff IDs: $e');
@@ -445,17 +447,21 @@ class DatabaseService {
 
           if(oldDriver != driver){
             // Update the driver's status to 'Assigned' in the Users collection
-            await _firestore.collection('Users').doc(driver).update(
-              {
-                'truck': truckId,
-              },          
-            );
+            if(driver != 'none'){
+              await _firestore.collection('Users').doc(driver).update(
+                {
+                  'truck': truckId,
+                },          
+              );
+            }
 
-            await _firestore.collection('Users').doc(oldDriver).update(
-              {
-                'truck': '',
-              },          
-            );
+            if(oldDriver != 'none'){
+              await _firestore.collection('Users').doc(oldDriver).update(
+                {
+                  'truck': '',
+                },          
+              );
+            }
 
           }
           await truckSnapshot.reference.update({

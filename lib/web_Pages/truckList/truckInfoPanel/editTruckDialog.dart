@@ -36,6 +36,7 @@ class _EditTruckState extends State<EditTruck> {
 
   String driver='...';
   String cargoType = '';
+  String prevDriver = '';
 
 
   @override
@@ -62,6 +63,7 @@ class _EditTruckState extends State<EditTruck> {
     }
     setState(() {
       drivers.add(driver);
+      drivers.add('none');
       _drivers = _dbdrivers;
     });
 
@@ -80,15 +82,14 @@ class _EditTruckState extends State<EditTruck> {
           .then((querySnapshot) => querySnapshot.docs.first);
 
       if(driverDoc.exists){
-        driver = driverDoc['firstname']+ ' '+driverDoc['lastname'];
+        setState(() {
+          driver = driverDoc['firstname']+ ' '+driverDoc['lastname'];
+        });
+        
       }
 
     }
-    setState(() {
-
-    });
-
-
+    
   }
 
   @override
@@ -400,9 +401,43 @@ class _EditTruckState extends State<EditTruck> {
                           driverId = await databaseService.getStaffId(driver);
                         }
                         print('$image, $truckId, $type, $cargoType, $max, $driverId');
-                        bool updated = true; //await databaseService.updateTruckInfo('${widget.truck['id']}', cargoType, driverId, max, image, type ,truckId);
+                        bool updating = true;
+
+                        // Declare progressContext outside the showDialog function
+                        BuildContext? progressContext;
+
+                        // Show progress dialog
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (BuildContext context) {
+                            // Update progressContext inside the showDialog function
+                            progressContext = context;
+                            return Dialog(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 20),
+                                    Text('Updating Information...'),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+
+                        bool updated = await databaseService.updateTruckInfo('${widget.truck['id']}', cargoType, driverId, max, image, type ,truckId);
                         if(updated){
                           setState(() {
+                            updating = false;
+                          });
+                        }
+
+                        if(updating == false){
+                           setState(() {
                             widget.truck['id'] = truckId; 
                             widget.truck['truckPic'] = image;
                             widget.truck['truckType'] = type;
@@ -420,6 +455,7 @@ class _EditTruckState extends State<EditTruck> {
                                   TextButton(
                                     onPressed: () async {        
                                       Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
                                       widget.onUpdate(widget.truck);
                                     },
                                     child: const Text('OK'),
@@ -428,6 +464,7 @@ class _EditTruckState extends State<EditTruck> {
                               );
                             },
                           );
+                        
                         }
                         //Navigator.of(context).pop();
                       }

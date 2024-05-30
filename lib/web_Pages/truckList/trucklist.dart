@@ -66,130 +66,132 @@ class _TruckListState extends State<TruckList> {
                 flex: 6,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(50, 16, 16, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Padding(
-                            padding:
-                                EdgeInsets.only(
-                                    left: 10.0),
-                            child: Text(
-                              'Truck List',
-                              style: TextStyle(
-                                  fontSize: 35,
-                                  fontFamily: 'Itim',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Padding(
+                              padding:
+                                  EdgeInsets.only(
+                                      left: 10.0),
+                              child: Text(
+                                'Truck List',
+                                style: TextStyle(
+                                    fontSize: 35,
+                                    fontFamily: 'Itim',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black),
+                              ),
                             ),
-                          ),
-                          const Spacer(),
-
-                          //Search Bar
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                fillColor: const Color.fromRGBO(199, 196, 196, 0.463),
-                                filled: true,
-                                hintText: "Search Truck",
-                                border: const OutlineInputBorder(
-                                  borderSide: BorderSide.none,
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                            const Spacer(),
+                    
+                            //Search Bar
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  fillColor: const Color.fromRGBO(199, 196, 196, 0.463),
+                                  filled: true,
+                                  hintText: "Search Truck",
+                                  border: const OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  ),
+                                  suffixIcon: InkWell(
+                                    onTap:(){},
+                                    child:const Icon(Icons.search, color: Colors.black,)
+                                  )
                                 ),
-                                suffixIcon: InkWell(
-                                  onTap:(){},
-                                  child:const Icon(Icons.search, color: Colors.black,)
-                                )
+                              ),
+                            ),
+                            SizedBox(width: 20,)
+                          ],
+                        ),
+                        //const SizedBox(height: 10,),
+                        Container(
+                          width:200,
+                          alignment: Alignment.centerLeft,
+                          padding:
+                              const EdgeInsets.fromLTRB(
+                                  25, 2, 30, 0),
+                          child: ElevatedButton(
+                            onPressed: () async{
+                              Map<String, dynamic>? newTruck = await showDialog<Map<String, dynamic>>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    contentPadding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    ),
+                                    content: AddTruckDialog(
+                                      newTruck: (value) {
+                                        Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                                      },
+                                    ),
+                                  );
+                                },
+                              );
+                    
+                              if(newTruck != null){
+                                setState(() {
+                                  _trucks.add(newTruck);
+                                });
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.add_box, color: Colors.white,),
+                                SizedBox(width: 5,),
+                                Text('Add truck', style: TextStyle(color: Colors.white))
+                              ],
+                            ),
+                            style: ButtonStyle(
+                              padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                              backgroundColor: MaterialStateProperty.all<Color>(const Color.fromRGBO(76, 175, 80, 1)),
+                              foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5), // Set the border radius for the button
+                                ),
                               ),
                             ),
                           ),
-                          SizedBox(width: 20,)
-                        ],
-                      ),
-                      //const SizedBox(height: 10,),
-                      Container(
-                        width:200,
-                        alignment: Alignment.centerLeft,
-                        padding:
-                            const EdgeInsets.fromLTRB(
-                                25, 2, 30, 0),
-                        child: ElevatedButton(
-                          onPressed: () async{
-                            Map<String, dynamic>? newTruck = await showDialog<Map<String, dynamic>>(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  contentPadding: EdgeInsets.zero,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15.0),
-                                  ),
-                                  content: AddTruckDialog(
-                                    newTruck: (value) {
-                                      Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                    
+                        ),
+                        //const SizedBox(height: 20),
+                        Container(
+                          height: size.height*0.68,
+                          child: _trucks.isEmpty
+                            ? Container(
+                              alignment: Alignment.center,
+                              child: CircularProgressIndicator()
+                              )
+                          : Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  //thy list creates the containers for all the trucks
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(), // you can try to delete this
+                                    itemCount: _trucks.length,
+                                    itemBuilder: (context, index) {
+                                      return buildTruckContainer(_trucks[index]);
                                     },
                                   ),
-                                );
-                              },
-                            );
-                  
-                            if(newTruck != null){
-                              setState(() {
-                                _trucks.add(newTruck);
-                              });
-                            }
-                          },
-                          child: Row(
-                            children: [
-                              Icon(Icons.add_box, color: Colors.white,),
-                              SizedBox(width: 5,),
-                              Text('Add truck', style: TextStyle(color: Colors.white))
-                            ],
-                          ),
-                          style: ButtonStyle(
-                            padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
-                            backgroundColor: MaterialStateProperty.all<Color>(const Color.fromRGBO(76, 175, 80, 1)),
-                            foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5), // Set the border radius for the button
-                              ),
+                                ],
+                              )
                             ),
-                          ),
+                          )
                         ),
-
-                      ),
-                      //const SizedBox(height: 20),
-                      Container(
-                        height: size.height*0.68,
-                        child: _trucks.isEmpty
-                          ? Container(
-                            alignment: Alignment.center,
-                            child: CircularProgressIndicator()
-                            )
-                        : Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                //thy list creates the containers for all the trucks
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                  itemCount: _trucks.length,
-                                  itemBuilder: (context, index) {
-                                    return buildTruckContainer(_trucks[index]);
-                                  },
-                                ),
-                              ],
-                            )
-                          ),
-                        )
-                      ),
-                      //const SizedBox(height: 20),
-
-                    ],
+                        //const SizedBox(height: 20),
+                    
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -455,109 +457,116 @@ class _TruckListState extends State<TruckList> {
       ),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: aTruck['truckPic'] != null
-                ? Image.network(
-              aTruck['truckPic'],
-              width: 200.0,
-              height: 200.0,
-              fit: BoxFit.cover, // Adjust the fit as needed
-            )
-                : Image.asset(
-              'images/truck.png',
-              width: 200.0,
-              height: 200.0,
-              fit: BoxFit.cover, // Adjust the fit as needed
+          Expanded(
+            flex: 2,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: aTruck['truckPic'] != null
+                  ? Image.network(
+                aTruck['truckPic'],
+                width: 150,
+                height: 150,
+                fit: BoxFit.cover, // Adjust the fit as needed
+              )
+                  : Image.asset(
+                'images/truck.png',
+                width: 200.0,
+                height: 200.0,
+                fit: BoxFit.cover, // Adjust the fit as needed
+              ),
             ),
           ),
-          SizedBox(width:10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(aTruck['id'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: Colors.green[700]),
-                    overflow: TextOverflow.ellipsis,),
-                  SizedBox(width: 60,),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(40.0),
-                    ),
-                    child:Text
-                      ( aTruck['truckStatus'],
+          SizedBox(width:16),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(aTruck['id'],
                       style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 18,
-                          color: Colors.grey[900]),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.green[700]),
                       overflow: TextOverflow.ellipsis,),
-                    ),
-                ],
-              ),
-              Text( aTruck['cargoType'],
-                style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700]),
-                overflow: TextOverflow.ellipsis,),
-              Text( aTruck['truckType'],
-                style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700]),
-                overflow: TextOverflow.ellipsis,),
-              Text( '${aTruck['maxCapacity']} kgs',
-                style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700]),
-                overflow: TextOverflow.ellipsis,),
-              Text( aTruck['driver'],
-                style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700]),
-                overflow: TextOverflow.ellipsis,),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  SizedBox(width:180),
-                  IconButton(
-                    icon: Icon(Icons.settings,
-                      color: Colors.grey,),
-                    tooltip: 'Edit Truck Information',
-                    onPressed: ()async {
-                      Map<String, dynamic>? updates = await showDialog<Map<String, dynamic>>(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return EditTruck(
-                            truck: aTruck, 
-                            onUpdate: (value){
-                               Navigator.of(context).pop(value);
-                            }
-                          );
-                        },
-                      );
-
-                      if(updates != null){
-                        setState(() {
-                          aTruck = updates;
-                          selectaTruck = false;
-                          selectedTruck = {};
-                          //aTruck['driver'] = updates['driver'];
-                        });
-                      }
-                    },
-                  )
-                ],
-              )
-
-
-            ],
+                    //SizedBox(width: 60,),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(40.0),
+                      ),
+                      child:Text
+                        ( aTruck['truckStatus'],
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 18,
+                            color: Colors.grey[900]),
+                        overflow: TextOverflow.ellipsis,),
+                      ),
+                  ],
+                ),
+                Text( aTruck['cargoType'],
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700]),
+                  overflow: TextOverflow.ellipsis,),
+                Text( aTruck['truckType'],
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700]),
+                  overflow: TextOverflow.ellipsis,),
+                Text( '${aTruck['maxCapacity']} kgs',
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700]),
+                  overflow: TextOverflow.ellipsis,),
+                Text( aTruck['driver'],
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700]),
+                  overflow: TextOverflow.ellipsis,),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    SizedBox(width:180),
+                    IconButton(
+                      icon: Icon(Icons.settings,
+                        color: Colors.grey,),
+                      tooltip: 'Edit Truck Information',
+                      onPressed: ()async {
+                        Map<String, dynamic>? updates = await showDialog<Map<String, dynamic>>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return EditTruck(
+                              truck: aTruck, 
+                              onUpdate: (value){
+                                 Navigator.of(context).pop(value);
+                              }
+                            );
+                          },
+                        );
+            
+                        if(updates != null){
+                          setState(() {
+                            aTruck = updates;
+                            selectaTruck = false;
+                            selectedTruck = {};
+                            //aTruck['driver'] = updates['driver'];
+                          });
+                        }
+                      },
+                    )
+                  ],
+                )
+            
+            
+              ],
+            ),
           )
         ],
       ),
