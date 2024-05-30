@@ -113,7 +113,7 @@ class DatabaseService {
         QuerySnapshot snapshot = await _firestore
           .collection('Trucks')
           .where('truckStatus', isEqualTo: 'Available')
-          .where('cargoType', isEqualTo: 'frozen')
+          .where('cargoType', isEqualTo: 'fgl')
           .get();
 
         List<String> docIds = snapshot.docs.map((doc) => doc.id).toList();
@@ -122,7 +122,7 @@ class DatabaseService {
         QuerySnapshot snapshot = await _firestore
           .collection('Trucks')
           .where('truckStatus', isEqualTo: 'Available')
-          .where('cargoType', isEqualTo: 'dry')
+          .where('cargoType', isEqualTo: 'cgl')
           .get();
 
         List<String> docIds = snapshot.docs.map((doc) => doc.id).toList();

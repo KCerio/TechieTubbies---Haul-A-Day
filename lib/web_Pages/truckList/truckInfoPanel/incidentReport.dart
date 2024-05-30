@@ -44,7 +44,7 @@ class _IncidentReportState extends State<IncidentReport> {
               child: Text(
                 'Incident Report',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey,
                 ),

@@ -5,7 +5,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
-import 'package:haul_a_day_web/page/orderscreen.dart';
+import 'package:haul_a_day_web/trialpage/orderscreen.dart';
 import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/web_Pages/orderDashboard/assignDialog.dart';
 import 'package:haul_a_day_web/web_Pages/orderDetails/deliveryReports.dart';
@@ -29,6 +29,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   List<Map<String, dynamic>> _deliveryReport = [];
   List<Map<String, dynamic>> _truckteam = [];
   DatabaseService databaseService = DatabaseService();
+  bool isComplete = false;
 
 
   @override
@@ -50,6 +51,15 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       _deliveryReport = deliveryReport;
       _truckteam = truckteam;
     });
+
+    if(_unloadings.isNotEmpty){
+      print('unloading not empty');
+      Map<String, dynamic> lastUnload = _unloadings[_unloadings.length-1];
+      setState(() {
+          isComplete = lastUnload['deliveryStatus'] =='Delivered!';
+      });
+      print("$lastUnload, $isComplete");
+    }
   }
 
  
@@ -369,7 +379,28 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                 ),
                 SizedBox(width: 10,),
                 ElevatedButton(
-                  onPressed: confirm
+                  onPressed:isComplete 
+                  ? (){
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        dialogContext = context; // Store the context
+                        return AlertDialog(
+                        title: const Text("Alert"),
+                        content: const Text("Order already delivered!"),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Ok'),
+                          ),
+                        ],
+                      );
+                      }
+                    );
+                  }
+                  : confirm 
                     ? (){
                       // Button is disabled if order is already confirmed
                       showDialog(
@@ -417,7 +448,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         dialogContext = context; // Store the context
                         return AlertDialog(
                         title: const Text("Alert"),
-                        content: const Text("Do you wish to cancel confirmation or remove the order completely?"),
+                        content: const Text("Do you wish to remove the order completely?"),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () {
@@ -1377,8 +1408,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Widget completeDelivery(){
-    Map<String, dynamic> lastUnload = _unloadings[_unloadings.length-1];
-    bool isComplete = lastUnload['deliveryStatus'] =='Delivered!';
     return Container(
         child: Row(
           children: [

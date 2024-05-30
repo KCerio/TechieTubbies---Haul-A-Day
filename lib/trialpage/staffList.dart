@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/authentication/login_screen.dart';
-import 'package:haul_a_day_web/page/delivery.dart';
-import 'package:haul_a_day_web/page/order.dart';
-import 'package:haul_a_day_web/page/menupage2.dart';
-import 'package:haul_a_day_web/page/payroll.dart';
-import 'package:haul_a_day_web/page/truck_list.dart';
+import 'package:haul_a_day_web/trialpage/delivery.dart';
+import 'package:haul_a_day_web/trialpage/order.dart';
+import 'package:haul_a_day_web/trialpage/menupage2.dart';
+import 'package:haul_a_day_web/trialpage/payroll.dart';
+import 'package:haul_a_day_web/trialpage/truck_list.dart';
 import 'package:haul_a_day_web/service/database.dart';
 
 class StaffList extends StatefulWidget {

@@ -23,7 +23,7 @@ class _EditUnloadingDeliveryState extends State<EditUnloadingDelivery> {
   TextEditingController _recipient = TextEditingController();
   TextEditingController _unloadingDate = TextEditingController();
   TextEditingController _unloadingTime = TextEditingController();
-  TextEditingController _route = TextEditingController();
+  //TextEditingController _route = TextEditingController();
   TextEditingController _unloadingLocation = TextEditingController();
 
   @override
@@ -37,7 +37,7 @@ class _EditUnloadingDeliveryState extends State<EditUnloadingDelivery> {
     // You need to implement methods to convert timestamp to date and time strings
      _unloadingDate.text = intoDate(widget.unload.unloadingTimeDate);
      _unloadingTime.text = intoTime(widget.unload.unloadingTimeDate);
-    _route.text = widget.unload.route;
+    //_route.text = widget.unload.route;
     _unloadingLocation.text = widget.unload.unloadingLocation;
   }
   @override
@@ -418,60 +418,60 @@ class _EditUnloadingDeliveryState extends State<EditUnloadingDelivery> {
                         10.0), // Adjust padding inside the TextFormField
                   ),
                 ),
-                SizedBox(height: 20),
+                // SizedBox(height: 20),
 
-                Text(
-                  'Route',
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextFormField(
-                  validator: (value){
-                    if(value!.isEmpty){
-                      return "Enter Route";
-                    }
-                    return null;
-                  },
-                  controller: _route,
-                  decoration: InputDecoration(
-                    hintText:
-                    'route', // Change labelText to hintText
-                    hintStyle: TextStyle(
-                        fontSize: 12,
-                        color: Colors
-                            .grey), // Change the font size of the hint text to 10 and color to grey
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          10.0), // Make edges curvier
-                      borderSide: BorderSide(
-                          color: Colors.grey[
-                          500]!), // Make the border color grey
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          10.0), // Make edges curvier
-                      borderSide: BorderSide(
-                          color: Colors.grey[
-                          500]!), // Make the border color grey
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          10.0), // Make edges curvier
-                      borderSide: BorderSide(
-                          color: Colors
-                              .grey), // Change the border color when focused
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(
-                        vertical: 10.0,
-                        horizontal:
-                        10.0), // Adjust padding inside the TextFormField
-                  ),
-                ),
+                // Text(
+                //   'Route',
+                //   style: TextStyle(
+                //     color: Colors.grey[700],
+                //     fontSize: 15,
+                //     fontWeight: FontWeight.bold,
+                //   ),
+                // ),
+                // TextFormField(
+                //   validator: (value){
+                //     if(value!.isEmpty){
+                //       return "Enter Route";
+                //     }
+                //     return null;
+                //   },
+                //   controller: _route,
+                //   decoration: InputDecoration(
+                //     hintText:
+                //     'route', // Change labelText to hintText
+                //     hintStyle: TextStyle(
+                //         fontSize: 12,
+                //         color: Colors
+                //             .grey), // Change the font size of the hint text to 10 and color to grey
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(
+                //           10.0), // Make edges curvier
+                //       borderSide: BorderSide(
+                //           color: Colors.grey[
+                //           500]!), // Make the border color grey
+                //     ),
+                //     enabledBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(
+                //           10.0), // Make edges curvier
+                //       borderSide: BorderSide(
+                //           color: Colors.grey[
+                //           500]!), // Make the border color grey
+                //     ),
+                //     focusedBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(
+                //           10.0), // Make edges curvier
+                //       borderSide: BorderSide(
+                //           color: Colors
+                //               .grey), // Change the border color when focused
+                //     ),
+                //     filled: true,
+                //     fillColor: Colors.white,
+                //     contentPadding: EdgeInsets.symmetric(
+                //         vertical: 10.0,
+                //         horizontal:
+                //         10.0), // Adjust padding inside the TextFormField
+                //   ),
+                // ),
                 SizedBox(height: 20),
 
                 Text(
@@ -542,7 +542,7 @@ class _EditUnloadingDeliveryState extends State<EditUnloadingDelivery> {
 
                     widget.unload.reference_num=int.parse(_refNum.text.trim());
                     widget.unload.unloadingLocation=_unloadingLocation.text.trim();
-                    widget.unload.route=_route.text.trim();
+                    //widget.unload.route=_route.text.trim();
                      widget.unload.recipient=_recipient.text.trim();
                     widget.unload.quantity=int.parse(_quantity.text.trim());
                     widget.unload.unloadingTimeDate=convertIntoTimestamp(_unloadingDate.text.trim(), _unloadingTime.text.trim());

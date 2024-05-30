@@ -70,6 +70,54 @@ class UserService {
     }
   }
 
+  Future<bool> updateProfile(String staffId, String firstname, String lastname, String email, String contact, String image)async{
+    bool updated = false;
+    try{
+      QuerySnapshot staffQuery = await _firestore
+        .collection('Users')
+        .where('staffId', isEqualTo: staffId)
+        .get();
+      
+      if(staffQuery.docs.isNotEmpty){
+        DocumentReference docRef = staffQuery.docs.first.reference;
+        await docRef.update({
+          'firstname': firstname,
+          'lastname' : lastname,
+          'email' : email,
+          'contactNumber' : contact,
+          'pictureUrl' : image     
+        });
+        updated = true;
+      }
+
+    }catch(e){
+      print("Failed to update: $e");
+    }
+    return updated;
+  }
+
+  Future<bool> updatePassword(String newpass, String staffId)async{
+    bool updated = false;
+    try{
+      QuerySnapshot staffQuery = await _firestore
+        .collection('Users')
+        .where('staffId', isEqualTo: staffId)
+        .get();
+      if(staffQuery.docs.isNotEmpty){
+        DocumentReference docRef = staffQuery.docs.first.reference;
+        await docRef.update({
+          'password': newpass,
+          
+        });
+        updated = true;
+      }
+    } catch(e){
+      print('Failed to update password: $e');
+      
+    }
+    return updated;
+  }
+
 
   Future<bool> confirmation(String staffId, String password)async {
     bool confirmed = false;

@@ -91,6 +91,8 @@ class NavigationTopBar extends StatelessWidget {
             title: Text('Profile'),
             onTap: () {
               // Handle Profile option
+              Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Profile);
               Navigator.pop(context); // Close the menu
             },
           ),
@@ -101,6 +103,8 @@ class NavigationTopBar extends StatelessWidget {
             title: Text('Settings'),
             onTap: () {
               // Handle Settings option
+              Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedTab(TabSelection.Settings);
               Navigator.pop(context); // Close the menu
             },
           ),

@@ -59,7 +59,7 @@ class UpdateSchedule extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.all(3.0),
                             child: Text(
-                              'Date and Time Received',
+                              'Date and Time Issued',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -180,7 +180,7 @@ class UpdateSchedule extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.all(3.0),
                             child: Text(
-                              'Date and Time Issued',
+                              'Date and Time Received',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
