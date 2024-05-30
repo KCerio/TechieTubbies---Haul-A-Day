@@ -271,7 +271,7 @@ class _IncidentReportState extends State<IncidentReport> {
                 textInputAction: TextInputAction
                     .newline, // Enable Return key to insert a newline
                 decoration: InputDecoration(
-                  hintText: 'Enter detailed description as to what happened', // Placeholder text
+                  hintText: 'Enter current location', // Placeholder text
                   border: OutlineInputBorder(),
                   focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.green, width: 2.0),

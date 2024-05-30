@@ -153,7 +153,12 @@ class _TruckTeamState extends State<TruckTeam> {
 
             Positioned(
                 top: 0,
-                child: truckCard()),
+                left: 0,
+                right:0,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: truckCard(),
+                )),
 
             Positioned(
                 top: MediaQuery.of(context).size.height * 0.30,

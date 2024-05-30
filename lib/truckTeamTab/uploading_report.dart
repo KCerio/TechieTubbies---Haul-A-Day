@@ -316,14 +316,16 @@ class _UploadingReportState extends State <UploadingReport>{
         'documentation': documentationUrl,
         'isSuccessful' : false,
         'location':widget.location,
+        'isResolved': false
 
 
       }).then((_) async {
-await FirebaseFirestore.instance.collection('Order')
-          .doc('${widget.orderId}').update({
-'isHalted' : true,
 
-});
+          await FirebaseFirestore.instance.collection('Order')
+                    .doc('${widget.currentSchedule}').update({
+          'isHalted' : true,
+
+          });
         uploadTeam(deliveryId, team);
 
         await haltStatus(widget.currentSchedule);
