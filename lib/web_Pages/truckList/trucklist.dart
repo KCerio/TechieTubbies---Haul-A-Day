@@ -17,6 +17,7 @@ class TruckList extends StatefulWidget {
   State<TruckList> createState() => _TruckListState();
 }
 
+
 class _TruckListState extends State<TruckList> {
 
   bool selectaTruck = false;
