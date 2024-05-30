@@ -109,7 +109,7 @@ Future<List<AccomplishedReport>> fetchDeliveryReports(String truckId) async {
 
         if (orderSnapshot.exists) {
           company = orderSnapshot['company_name'];
-          assignedDate = Timestamp.now();
+          assignedDate = intoTimestamp(orderSnapshot['assignedTimestamp']);
           
         }
 
@@ -143,6 +143,12 @@ String intoTime (Timestamp stampTime)  {
   DateTime dateTime =  stampTime.toDate();  // Convert Firebase Timestamp to DateTime
   String formattedTime = DateFormat('h:mm a').format(dateTime); // Format DateTime into time string
   return formattedTime; // Return the formatted time string
+}
+
+Timestamp intoTimestamp (String timestamp)  {
+ DateTime dateTime = DateTime.parse(timestamp);
+ Timestamp theStamp = Timestamp.fromDate(dateTime);
+ return theStamp;
 }
 
 Future<Map<String, dynamic>> fetchStaffDetails(String staffId) async {

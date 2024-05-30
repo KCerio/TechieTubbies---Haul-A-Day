@@ -418,12 +418,7 @@ class _TruckListState extends State<TruckList> {
             truckCard(aTruck),
 
             const SizedBox(height: 10),
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              height: 2,
-              color: Colors.black,
-            ),
-
+            
             Container(
               height: MediaQuery.sizeOf(context).height*0.3,
               child: TruckTeamList(driver: aTruck['driver']),
