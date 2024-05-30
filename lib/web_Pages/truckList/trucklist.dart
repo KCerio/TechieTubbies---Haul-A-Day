@@ -421,7 +421,7 @@ class _TruckListState extends State<TruckList> {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: const Text('Confirm Deletion'),
-                            content:  Text('Do you wish to remove this truck?'),
+                            content:  Text('Do you wish to remove ${aTruck['id']}?'),
                             actions: [
                               TextButton(
                                 onPressed: () async{
@@ -549,6 +549,15 @@ class _TruckListState extends State<TruckList> {
                           );
                         },
                       );
+
+                      if(updates != null){
+                        setState(() {
+                          aTruck = updates;
+                          selectaTruck = false;
+                          selectedTruck = {};
+                          //aTruck['driver'] = updates['driver'];
+                        });
+                      }
                     },
                     child: Text(
                       'Edit Details',

@@ -5,6 +5,7 @@ import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/service/payrollService.dart';
 import 'package:haul_a_day_web/web_Pages/payrollPage/claimDialog.dart';
 import 'package:haul_a_day_web/web_Pages/payrollPage/computeDialog.dart';
+import 'package:haul_a_day_web/web_Pages/payrollPage/generatePdf.dart';
 import 'package:haul_a_day_web/web_Pages/payrollPage/setpayrate.dart';
 import 'package:intl/intl.dart';
 // import 'package:path_provider/path_provider.dart';
@@ -1695,7 +1696,7 @@ class _PayrollState extends State<Payroll> {
           ),
           Container(
             padding: const EdgeInsets.symmetric(vertical:30),
-            height: size.height *0.8,
+            height: size.height *0.795, //changed from 0.80
             child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -2140,8 +2141,10 @@ class _PayrollState extends State<Payroll> {
                         ElevatedButton(
                           onPressed: () async {
                             // Generate and save the PDF
-                            final String? pdfPath = await generateAndSavePDF();
-                            print('toPdf');
+                            // final String? pdfPath = await generateAndSavePDF();
+                            // print('toPdf');
+
+                            generateAndPrintPdf(aStaff, helperRate, driverRate);
                   
                             // // Open the generated PDF using the default PDF viewer
                             // OpenFile.open(pdfPath);

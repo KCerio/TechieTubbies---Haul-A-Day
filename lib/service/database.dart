@@ -396,6 +396,118 @@ class DatabaseService {
     }
   }
 
+  Future<String> getStaffId(String name) async {
+    String staffId = '';
+    try {
+      print(name);
+      List<String> nameParts = name.split(' ');
+      String nameFirstName = nameParts[0];
+      String nameLastName = nameParts.length > 1 ? nameParts[1] : '';
+
+      // Get name's document ID from the Users collection
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('Users')
+          .where('firstname', isEqualTo: nameFirstName)
+          .where('lastname', isEqualTo: nameLastName)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot nameDoc = querySnapshot.docs.first;
+        if (nameDoc.exists) {
+          print('user exists');
+          staffId = nameDoc['staffId'];
+        }
+      } else {
+        print('No user found');
+      }
+    } catch (e) {
+      print('Failed fetch: $e');
+    }
+    return staffId;
+  }
+
+
+  Future<bool> updateTruckInfo(String truckId,
+  String cargoType, String driver, int maxCapacity, 
+  String truckPic, String truckType, String newID
+  )async{
+    bool updated = false;
+    String newDriver ='';
+    String oldDriver = '';
+    try{
+      DocumentSnapshot truckSnapshot = await _firestore.collection('Trucks').doc(truckId).get();
+      if(truckSnapshot.exists){
+        if (driver != 'none') {  
+          // Get the previous assigned driver        
+          Map<String,dynamic> truckDoc = truckSnapshot.data() as Map<String, dynamic>;
+          oldDriver = truckDoc['driver'];
+
+          if(oldDriver != driver){
+            // Update the driver's status to 'Assigned' in the Users collection
+            await _firestore.collection('Users').doc(driver).update(
+              {
+                'truck': truckId,
+              },          
+            );
+
+            await _firestore.collection('Users').doc(oldDriver).update(
+              {
+                'truck': '',
+              },          
+            );
+
+          }
+          await truckSnapshot.reference.update({
+            'cargoType': cargoType,
+            'driver' : driver,
+            'maxCapacity' : maxCapacity,
+            'truckPic' : truckPic,
+            'truckType' : truckType,
+          });
+
+        } else{
+          await truckSnapshot.reference.update({
+            'cargoType': cargoType,
+            'maxCapacity' : maxCapacity,
+            'truckPic' : truckPic,
+            'truckType' : truckType,
+          });
+        }
+
+        // if(truckId != newID){
+        //   changeTruckID(truckId, newID);
+        // }
+    
+        updated = true;      
+      }
+    }catch(e){
+      print("Failed to update: $e");
+    }
+    return updated;
+  }
+
+  void changeTruckID(String oldID, String newID)async{
+    try{
+      // Get reference to the document in the 'Users' collection
+      DocumentReference truckDocRef = FirebaseFirestore.instance.collection('Trucks').doc(oldID);
+      
+      // Get the document data
+      DocumentSnapshot truckSnapshot = await truckDocRef.get();
+
+      if(truckSnapshot.exists){
+        Map<String,dynamic> truckDoc = truckSnapshot.data() as Map<String, dynamic>;
+
+        await _firestore.collection('Trucks').doc(newID).set(truckDoc);
+
+        // Delete the document from the 'trucks' collection
+        await truckDocRef.delete();
+      }
+    }catch(e){
+      print('$e');
+    }
+  }
+
   void addTruck(
     String truckId, 
     String cargotype,

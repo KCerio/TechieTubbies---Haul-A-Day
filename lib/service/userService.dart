@@ -96,6 +96,7 @@ class UserService {
     return updated;
   }
 
+
   Future<bool> updatePassword(String newpass, String staffId)async{
     bool updated = false;
     try{

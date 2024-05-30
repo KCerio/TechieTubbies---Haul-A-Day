@@ -368,6 +368,7 @@ class _EditTruckState extends State<EditTruck> {
                             }).toList(),
                             onChanged: (String? newValue) {
                               // Handle the value change
+                              driver = newValue!;
                             },
                           ),
                         ],
@@ -385,9 +386,50 @@ class _EditTruckState extends State<EditTruck> {
                 child: Align(
                   alignment: Alignment.center,
                   child: ElevatedButton(
-                    onPressed: (){
+                    onPressed: ()async{
                       if(_formField.currentState!.validate()){
-                        Navigator.of(context).pop();
+                        if(_byte != null){
+                          await _uploadImage();
+                        }
+                        String truckId = truckPlateNumber.text ?? widget.truck['id'];
+                        String image = imageUrl ?? widget.truck['truckPic'];
+                        String type = truckDescription.text ?? widget.truck['truckType'];
+                        int max = int.parse(maxCapacity.text) ?? widget.truck['maxCapacity'];
+                        String driverId = driver;
+                        if(driver != 'none'){
+                          driverId = await databaseService.getStaffId(driver);
+                        }
+                        print('$image, $truckId, $type, $cargoType, $max, $driverId');
+                        bool updated = true; //await databaseService.updateTruckInfo('${widget.truck['id']}', cargoType, driverId, max, image, type ,truckId);
+                        if(updated){
+                          setState(() {
+                            widget.truck['id'] = truckId; 
+                            widget.truck['truckPic'] = image;
+                            widget.truck['truckType'] = type;
+                            widget.truck['maxCapacity'] = max;
+                            widget.truck['driver'] = driverId;
+                            widget.truck['cargoType'] = cargoType;
+                          });
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Updated'),
+                                content: const Text("Truck's information is updated."),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () async {        
+                                      Navigator.of(context).pop();
+                                      widget.onUpdate(widget.truck);
+                                    },
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                        //Navigator.of(context).pop();
                       }
                     },
                     child: Text(
