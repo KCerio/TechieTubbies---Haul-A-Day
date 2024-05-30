@@ -254,6 +254,13 @@ class _UploadUnsuccessfulReportState extends State<UploadUnsuccessfulReport> {
 
 
       }).then((_) async {
+
+await FirebaseFirestore.instance.collection('Order')
+          .doc('${widget.orderId}').update({
+'isHalted' : true,
+
+});
+
         uploadTeam();
 
         await haltStatus(widget.orderId);
