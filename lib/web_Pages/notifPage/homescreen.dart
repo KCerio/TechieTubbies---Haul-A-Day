@@ -15,6 +15,7 @@ import 'package:haul_a_day_web/web_Pages/payrollPage/payroll.dart';
 import 'package:haul_a_day_web/web_Pages/profile-settingsPage/profile_settings.dart';
 import 'package:haul_a_day_web/web_Pages/staffDirectory/stafflist.dart';
 import 'package:haul_a_day_web/web_Pages/truckList/trucklist.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:provider/provider.dart';
@@ -103,6 +104,7 @@ class _HomepageState extends State<Homepage> {
                         selectedWidget = OrderDetailsPage(
                           order: orderSelected,
                           previousTab: _previousTab,
+                          orders: _orderDetails,
                         );
                         break;
                       case TabSelection.Delivery:
@@ -146,7 +148,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  
+  DatabaseService databaseService = DatabaseService();
   List<Map<String, dynamic>> _trucks = [];
   List<Map<String, dynamic>> _accomplishedDeliveries = [];
 
@@ -154,6 +156,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _initializeTruckData();
+    _accomplishedDeliveriesList();
   }
 
   Future<void> _initializeTruckData() async {
@@ -189,6 +192,38 @@ class _HomeState extends State<Home> {
       //print(_trucks);
     } catch (e) {
       print("Error fetching data: $e");
+    }
+  }
+
+  Future<void> _accomplishedDeliveriesList()async{
+    try {
+      QuerySnapshot orderSnapshots = await FirebaseFirestore.instance.collection('Order').get();
+
+      if(orderSnapshots.docs.isNotEmpty){
+        List<Map<String, dynamic>> accomplishedOrders = [];
+        for(QueryDocumentSnapshot order in orderSnapshots.docs){
+          Map<String,dynamic> orderData = order.data() as Map<String, dynamic>;
+          orderData['id'] = order.id;
+          List<Map<String, dynamic>> unloadings = await databaseService.fetchUnloadingSchedules(order.id);
+          print(unloadings.length);
+
+          if(unloadings.length > 0){
+            Map<String, dynamic> lastUnload = unloadings[unloadings.length-1];
+            if(lastUnload['deliveryStatus'] =='Delivered!'){
+              orderData['accomplishedDate'] = DateFormat('MMM dd, yyyy').format(lastUnload['unloadingTimestamp'].toDate());
+              accomplishedOrders.add(orderData);
+            }
+          }
+        }
+
+        setState(() {
+          _accomplishedDeliveries = accomplishedOrders;
+        });
+      }
+      print(_accomplishedDeliveries);   
+
+    } catch(e){
+      print('Error: $e');
     }
   }
 
@@ -399,7 +434,7 @@ class _HomeState extends State<Home> {
                               ),
                             ),
                             
-                            _trucks.isEmpty ? SizedBox(height: 200,) 
+                            _trucks.isEmpty ? SizedBox(height: 200, child: Center(child: CircularProgressIndicator(),),) 
                             : ListView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(), // you can try to delete this
@@ -481,15 +516,16 @@ class _HomeState extends State<Home> {
 
                                   Container(
                                     height: 250,
-                                    child: SingleChildScrollView(
+                                    child: _accomplishedDeliveries.isEmpty ? Center(child: CircularProgressIndicator(),)
+                                    :SingleChildScrollView(
                                       child: Column(
                                         children: [
                                           ListView.builder(
                                             shrinkWrap: true,
                                             physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                            itemCount: 14,
+                                            itemCount: _accomplishedDeliveries.length,
                                             itemBuilder: (context, index) {
-                                              return accomplishedTable(width, index);
+                                              return accomplishedTable(width, _accomplishedDeliveries[index]);
                                             },
                                           ),
                                         ],
@@ -654,7 +690,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget accomplishedTable(double width, int index){
+  Widget accomplishedTable(double width, Map<String, dynamic> delivery){
     return Container(
       width:  width*0.5,
       height: 35,
@@ -666,8 +702,8 @@ class _HomeState extends State<Home> {
               Container(
                 alignment: Alignment.center,
                 width: width*1/3,
-                child: const Text('Delivery',
-                  style: TextStyle(
+                child: Text(delivery['id'],
+                  style: const TextStyle(
                       fontWeight:
                           FontWeight
                               .normal)),
@@ -675,8 +711,8 @@ class _HomeState extends State<Home> {
               Container(
                 alignment: Alignment.center,
                 width: width*1/3,
-                child: const Text('Truck Team',
-                  style: TextStyle(
+                child: Text(delivery['assignedTruck'],
+                  style: const TextStyle(
                       fontWeight:
                           FontWeight
                               .normal)),
@@ -684,8 +720,8 @@ class _HomeState extends State<Home> {
               Container(
                 alignment: Alignment.center,
                 width: width*1/3,
-                child: const Text('Date',
-                  style: TextStyle(
+                child: Text(delivery['accomplishedDate'],
+                  style: const TextStyle(
                       fontWeight:
                           FontWeight
                               .normal)),

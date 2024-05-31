@@ -204,5 +204,40 @@ class UserService {
     }
   }
 
+  Future<void> removeOrder(String orderId) async {
+    try {
+      // Get reference to the document in the 'Users' collection
+      DocumentReference orderDocRef = FirebaseFirestore.instance.collection('Order').doc(orderId);
+      
+      // Get the document data
+      DocumentSnapshot orderDocSnapshot = await orderDocRef.get();
+      
+      // Check if the document exists
+      if (orderDocSnapshot.exists) {
+        // Add the document to the 'Archive' collection
+        DateTime timestamp = DateTime.now();
+        String dateDeleted = DateFormat('MMM dd, yyyy').format(timestamp);
+        String docName = '$orderId - $dateDeleted (Order)';
+        Map<String, dynamic> orderData = orderDocSnapshot.data() as Map<String, dynamic>;
+
+        // Add the timestamp field
+        orderData['timestamp'] = timestamp;
+
+        // Create a new document in the 'Archive' collection with the same data
+        await FirebaseFirestore.instance.collection('Archive').doc(docName).set(orderData);
+        
+        // Delete the document from the 'orders' collection
+        await orderDocRef.delete();
+        
+        print('Document moved to Archive and deleted from orders successfully');
+      } else {
+        print('Document does not exist in orders collection');
+      }
+    } catch (e) {
+      // Handle errors
+      print('Error moving document to Archive: $e');
+    }
+  }
+
 
 }

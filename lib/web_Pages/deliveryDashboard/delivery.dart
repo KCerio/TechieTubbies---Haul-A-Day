@@ -1,7 +1,9 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/service/database.dart';
+import 'package:haul_a_day_web/web_Pages/deliveryDashboard/reassignDialog.dart';
 import 'package:haul_a_day_web/web_Pages/deliveryDashboard/reschedWidget.dart';
 import 'package:haul_a_day_web/web_Pages/orderDashboard/orderdashboard.dart';
 import 'package:haul_a_day_web/web_Pages/otherComponents/sidepanel.dart';
@@ -25,6 +27,9 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
   List<Map<String, dynamic>> _deliverySchedules =[];
   DatabaseService databaseService = DatabaseService();
 
+  List<Map<String, dynamic>> _haltedDeliveries = [];
+  bool isfetching = true;
+
 
   @override
   void initState() {
@@ -32,6 +37,7 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
     super.initState();
     Provider.of<SideMenuSelection>(context, listen: false)
       .setPreviousTab(TabSelection.Delivery);
+    fetchHalted();
     _waitForFetchOrderDetails();
     for(Map<String, dynamic> order in widget.orderDetails){
       if(order['assignedStatus'] == 'true' && order['confirmed_status'] == true){
@@ -42,23 +48,15 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
     
   }
 
-  // void fetchOrder() async{
-  //   List<Map<String, dynamic>> orders = await databaseService.fetchAllOrderList();
-  //   setState(() {
-  //     //_filteredOrderDetails = orders;
-  //     _orders = orders;
-  //   });
-  //   for(Map<String, dynamic> order in _orders){
-  //     if(order['assignedStatus'] == 'true' && order['confirmed_status'] == true){
-  //       _deliverySchedules.add(order);
-  //     }
-  //   }
-  //   print(_deliverySchedules.length);
-  //   setState(() {
-  //     _filteredOrderDetails = _deliverySchedules;
-  //     //print('${widget.fetchOrderDetails}, $_filteredOrderDetails');
-  //   });
-  // }
+  void fetchHalted() async{
+    List<Map<String, dynamic>> halted = await databaseService.fetchHaltedDeliveries();
+    print(halted);
+    setState(() {
+      _haltedDeliveries = halted;
+      isfetching = false;
+    });
+    
+  }
 
   void _waitForFetchOrderDetails() {
     Future.delayed(Duration(milliseconds: 100), () {
@@ -141,15 +139,83 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
                   flex: 9,
                   child: LayoutBuilder(
                      builder: (context,constraints) {
-                       return _deliverySchedules.isEmpty ? const Center(child: CircularProgressIndicator(),)
-                      :SingleChildScrollView(
+                       return SingleChildScrollView(
                         child: Column(
                           children: [
-        
-                            Padding(
-                               padding: const EdgeInsets.only(bottom: 24),
-                               child: ReschedDelivery(deliveries: _deliverySchedules,)
-                             ),
+
+                            Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                    padding: const EdgeInsets.only(bottom: 10, top:10),
+                                      alignment: Alignment.centerLeft,
+                                      child: const Text(
+                                        'Halted Deliveries',
+                                        style: TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.bold
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 20,),
+                                    Container(
+                                      width: 30,
+                                      height: 30,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.green,
+
+                                      ),
+                                      child: Text(
+                                        _haltedDeliveries.length.toString(),
+                                        style: const TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                
+                                const Divider(color: Colors.blue,),
+                                const SizedBox(height: 10),
+
+                                _haltedDeliveries.isEmpty && isfetching == true
+                                ? Container(
+                                    height: 200,
+                                    child: Center(child: CircularProgressIndicator()),
+                                  )
+                                : Padding(
+                                  padding: const EdgeInsets.only(bottom: 24),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    height: 250, // Set a fixed height for the container
+                                    width: double.infinity, // Make the container expand horizontally
+                                    decoration: const BoxDecoration(color: Color.fromARGB(109, 223, 222, 222)),
+                                    child: _haltedDeliveries.isEmpty && isfetching == false
+                                    ? Container(
+                                      height: 300,
+                                      child: const Center(
+                                        child: Text(
+                                          'No deliveries need to be reassigned',
+                                          style: TextStyle(
+                                              fontFamily: 'Inter',
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold
+                                            ),  
+                                          )
+                                        ),
+                                      )          
+                                    : assignCarousel()
+                                  )
+                                ),
+                              ],
+                            ),                            
         
                             Padding(
                                padding: const EdgeInsets.all(8.0),
@@ -236,7 +302,8 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
                                        Container(
                                          width: double.infinity,
                                          height: 500,
-                                         child:  notExist == true 
+                                         child: _deliverySchedules.isEmpty ? const Center(child: CircularProgressIndicator(),)
+                                        : _deliverySchedules.isNotEmpty && notExist == true 
                                         ? Container(
                                             alignment: Alignment.topCenter,
                                             padding: EdgeInsets.only(top: 50),
@@ -248,7 +315,7 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
                                                   fontWeight: FontWeight.bold
                                                 ), 
                                               ),
-                                          )
+                                          )                                  
                                         : Column(
                                           children: [
                                             Expanded(
@@ -386,8 +453,6 @@ Future<bool> getUnloadingStatus(String orderId)async{
     } return false;
   }
 
-
-
   Future<Widget> deliveryContainer(Map<String,dynamic> delivery)async{
     bool deliveryStatus = await getUnloadingStatus(delivery['id']);
     print('${delivery['id']}: $deliveryStatus');
@@ -518,6 +583,112 @@ Future<bool> getUnloadingStatus(String orderId)async{
             ),
           )
         ),
+      ),
+    );
+  }
+
+  Widget assignCarousel(){
+    return CarouselSlider.builder(
+      itemCount: _haltedDeliveries.length,
+      options: CarouselOptions(
+        scrollDirection: Axis.horizontal,
+        enableInfiniteScroll: false, // Set this to false
+        //height: 230,
+        //aspectRatio: 16/9,
+        viewportFraction: 0.3 ,// Adjust this value to change the number of items seen in every page
+        initialPage: 0,
+        reverse: false,
+        autoPlay: false,
+        autoPlayInterval: Duration(seconds: 3),
+        autoPlayAnimationDuration: Duration(milliseconds: 800),
+        autoPlayCurve: Curves.fastOutSlowIn,
+        enlargeCenterPage: true,
+        onPageChanged: (index, reason) {
+          // Your callback
+        },
+        scrollPhysics: BouncingScrollPhysics(),
+       // itemMargin: 10.0, // Adjust this value to change the distance between widgets
+      ),
+      itemBuilder: (BuildContext context, int index, int realIndex) {
+        return haltContainer(_haltedDeliveries[index]);
+      },
+    );
+  }
+
+  Widget haltContainer(Map<String, dynamic> delivery){
+   
+    return InkWell(
+      onTap: () async {
+        bool? resolved = await showDialog<bool?>(
+          context: context,
+          builder: (BuildContext context) {
+            return UpdateSchedule(delivery: delivery, resolved: (value){
+              Navigator.of(context).pop(value);
+            },);
+          },
+        );
+        
+        print(resolved);
+
+        if(resolved!=null && resolved == true){
+          setState(() {
+            _haltedDeliveries.remove(delivery);
+          });
+        }
+
+      },
+      child: Container(
+        padding: EdgeInsets.all(12),
+        width: 200,
+        height: 220,
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 87, 189, 90),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.black)
+        ),
+        child: Column(
+          children: [
+            // Text(
+            //   delivery['id'],
+            //   style: TextStyle(
+            //     fontFamily: 'Inter',
+            //     fontSize: 16,
+            //     fontWeight: FontWeight.bold
+            //   ),
+            // ),
+            Container(
+              width:200,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.white, 
+                border: Border(
+                  top: BorderSide(color: Colors.black, width: 1.0,),
+                  bottom: BorderSide(color: Colors.black, width: 1.0,),
+                ),
+              ),
+              child: Image.asset('images/cargoTruckIcon.png',fit: BoxFit.scaleDown,)
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '${delivery['id']} - ${delivery['route']}',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 18,
+                fontWeight: FontWeight.bold
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            // Text(
+            //   registeredDate,
+            //   style: TextStyle(
+            //     fontFamily: 'Inter',
+            //     fontSize: 14,
+                
+            //   ),
+            // ),
+          ],
+        )
       ),
     );
   }

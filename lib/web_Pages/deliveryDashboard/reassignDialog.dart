@@ -1,13 +1,30 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:haul_a_day_web/service/database.dart';
+import 'package:haul_a_day_web/web_Pages/orderDashboard/assignDialog.dart';
+import 'package:intl/intl.dart';
 
-class UpdateSchedule extends StatelessWidget {
+class UpdateSchedule extends StatefulWidget {
   final Map<String, dynamic> delivery;
-  const UpdateSchedule({super.key, required this.delivery});
+  final Function(bool?) resolved;
+  const UpdateSchedule({super.key, required this.delivery, required this.resolved});
 
   @override
+  State<UpdateSchedule> createState() => _UpdateScheduleState();
+}
+
+class _UpdateScheduleState extends State<UpdateSchedule> {
+  bool? reassign;
+  DatabaseService databaseService = DatabaseService();
+  
+  @override
   Widget build(BuildContext context) {
+    String issuedDate = DateFormat('MMM dd, yyyy').format(widget.delivery['TimeDate'].toDate());
+    String issuedTime = DateFormat('HH:mm a').format(widget.delivery['TimeDate'].toDate());
+    String todayDate = DateFormat('MMM dd, yyyy').format(DateTime.now());
+    String todayTime = DateFormat('HH:mm a').format(DateTime.now());
+
     return Center(
       child: Container(
         height: 800,
@@ -82,7 +99,7 @@ class UpdateSchedule extends StatelessWidget {
                                       border: Border.all(
                                           color: Colors.blue),
                                     ),
-                                    child: Text('Enter the Date'),
+                                    child: Text(issuedDate),
                                   ),
                                   Container(
                                     height: 30,
@@ -91,7 +108,7 @@ class UpdateSchedule extends StatelessWidget {
                                       border: Border.all(
                                           color: Colors.blue),
                                     ),
-                                    child: Text('Enter the Time'),
+                                    child: Text(issuedTime),
                                   ),
                                 ],
                               ),
@@ -125,7 +142,7 @@ class UpdateSchedule extends StatelessWidget {
                                           border: Border.all(
                                               color: Colors.blue),
                                         ),
-                                        child: Text('Enter the Date'),
+                                        child: Text(widget.delivery['location']),
                                       ),
                                     ],
                                   ),
@@ -154,13 +171,16 @@ class UpdateSchedule extends StatelessWidget {
                                   Column(
                                     children: [
                                       Container(
-                                        height: 30,
+                                        height: 100,
                                         width: 200,
                                         decoration: BoxDecoration(
                                           border: Border.all(
                                               color: Colors.blue),
                                         ),
-                                        child: Text('None'),
+                                        child: Text(
+                                          '${widget.delivery['reason']}: ${widget.delivery['reasonSpecified']}',
+                                          softWrap: true,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -207,7 +227,7 @@ class UpdateSchedule extends StatelessWidget {
                                           border: Border.all(
                                               color: Colors.blue),
                                         ),
-                                        child: Text('Enter the Date'),
+                                        child: Text(todayDate),
                                       ),
                                       Container(
                                         height: 30,
@@ -216,7 +236,7 @@ class UpdateSchedule extends StatelessWidget {
                                           border: Border.all(
                                               color: Colors.blue),
                                         ),
-                                        child: Text('Enter the Time'),
+                                        child: Text(todayTime),
                                       ),
                                     ],
                                   ),
@@ -224,7 +244,7 @@ class UpdateSchedule extends StatelessWidget {
                               )
                             ],
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: 20),
                           Row(
                             children: [
                               Column(
@@ -242,145 +262,160 @@ class UpdateSchedule extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  Column(
-                                    children: [
-                                      Container(
-                                        height: 30,
-                                        width: 200,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                              color: Colors.blue),
-                                        ),
-                                        child: DropdownButton<String>(
-                                          value: '',
-                                          onChanged:
-                                              (String? newValue) {
-                                            // Handle dropdown value change
-                                          },
-                                          items: <String>[''].map<
-                                              DropdownMenuItem<String>>(
-                                            (String value) {
-                                              return DropdownMenuItem<
-                                                  String>(
-                                                value: value,
-                                                child: Text(
-                                                  value,
-                                                  style: const TextStyle(
-                                                      color: Colors
-                                                          .black), // Set text color
+                                  Container(
+                                    height: 30,
+                                    width: 200,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.blue),
+                                    ),
+                                    child: Text(widget.delivery['assignedTruck']),
+                                  ),
+                                  const SizedBox(height: 10,),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    height: 30,
+                                    width: 200,
+                                    child: ElevatedButton(
+                                      onPressed: ()async{
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text('Confirmation'),
+                                              content:  Text('Do wish to resolve the problem and continue the delivery?'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  onPressed: () {                                                    
+                                                    setState(() {   
+                                                      widget.delivery['isHalted'] = false;                                       
+                                                      widget.delivery['isResolved'] = true;                                          
+                                                    });
+                                                    Navigator.pop(context);                                            
+                                                  },
+                                                  child: const Text('Yes'),
                                                 ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);                                            
+                                                  },
+                                                  child: const Text('No'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );                                          
+                                        
+                                      }, 
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.check, color: Colors.white,),
+                                          SizedBox(width: 5,),
+                                          Text('Resolved', style: TextStyle(color: Colors.white))
+                                        ],
+                                      ),
+                                      style: ButtonStyle(
+                                        padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                                        backgroundColor: MaterialStateProperty.all(Color.fromRGBO(98, 123, 247, 1)),
+                                        //foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10,),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    height: 30,
+                                    width: 200,
+                                    child: ElevatedButton(
+                                      onPressed: ()async{
+                                        bool deleteprevTeam = await databaseService.changeTruckTeam(widget.delivery['id']);
+                                        String? assigned = await showDialog<String>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                contentPadding: EdgeInsets.zero,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(15.0),
+                                                ),
+                                                content: AssignDialog(order: widget.delivery, onAssigned: (value) {
+                                                  Navigator.of(context).pop(value); // Close the dialog and return the assigned value
+                                                },),
                                               );
                                             },
-                                          ).toList(),
-                                        ),
+                                          );
+                                          print('AssignS: $assigned');
+                                          // Now that the dialog has finished, get the assigned truck ID
+                                          if (assigned != null && assigned.isNotEmpty) {
+                                            DateTime timestamp = DateTime.now();
+                                            String timestampString = timestamp.toIso8601String(); // Convert DateTime to string
+                                            
+                                            databaseService.resolve(widget.delivery['id']);
+
+                                            setState(() {
+                                              reassign = true;
+                                              widget.delivery['isResolved'] = true;
+                                              widget.delivery['isHalted'] = false;
+                                              widget.delivery['assignedTruck'] = assigned;
+                                              widget.delivery['assignedStatus'] = 'true';
+                                              widget.delivery['assignedTimestamp'] = timestampString; // Add timestamp as a string to the map
+                                            });
+                                            print(widget.delivery['assignedStatus']);
+                                          }
+                                        
+                                      }, 
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.local_shipping_rounded, color: Colors.white,),
+                                          SizedBox(width: 5,),
+                                          Text('Reassign', style: TextStyle(color: Colors.white))
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 2),
-                                  Column(
-                                    children: [
-                                      Container(
-                                        height: 30,
-                                        width: 200,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                              color: Colors.blue),
-                                        ),
-                                        child: DropdownButton<String>(
-                                          value: '',
-                                          onChanged:
-                                              (String? newValue) {
-                                            // Handle dropdown value change
-                                          },
-                                          items: <String>[''].map<
-                                              DropdownMenuItem<String>>(
-                                            (String value) {
-                                              return DropdownMenuItem<
-                                                  String>(
-                                                value: value,
-                                                child: Text(
-                                                  value,
-                                                  style: const TextStyle(
-                                                      color: Colors
-                                                          .black), // Set text color
-                                                ),
-                                              );
-                                            },
-                                          ).toList(),
-                                        ),
+                                      style: ButtonStyle(
+                                        padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                                        backgroundColor: MaterialStateProperty.all(Color.fromRGBO(98, 123, 247, 1)),
+                                        //foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 0, 0)),
                                       ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 2),
-                                  Column(
-                                    children: [
-                                      Container(
-                                        height: 30,
-                                        width: 200,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                              color: Colors.blue),
-                                        ),
-                                        child: DropdownButton<String>(
-                                          value: '',
-                                          onChanged:
-                                              (String? newValue) {
-                                            // Handle dropdown value change
-                                          },
-                                          items: <String>[''].map<
-                                              DropdownMenuItem<String>>(
-                                            (String value) {
-                                              return DropdownMenuItem<
-                                                  String>(
-                                                value: value,
-                                                child: Text(
-                                                  value,
-                                                  style: const TextStyle(
-                                                      color: Colors
-                                                          .black), // Set text color
-                                                ),
-                                              );
-                                            },
-                                          ).toList(),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  )
                                 ],
                               ),
                             ],
                           ),
                           Expanded(child: Container()),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                  children: [
-                                    Checkbox(
-                                      value: false,
-                                      onChanged: (bool? value) {
-                                        // Handle checkbox change
-                                      },
-                                    ),
-                                    const SizedBox(width: 10),
-                                    const Text(
-                                      'Confirm Schedule',
-                                      style: TextStyle(
-                                          fontWeight:
-                                              FontWeight.normal),
-                                    ),
-                                  ]),
-                            ],
-                          ),
+                          // Row(
+                          //   mainAxisAlignment: MainAxisAlignment.start,
+                          //   children: [
+                          //     Row(
+                          //         mainAxisAlignment:
+                          //             MainAxisAlignment.center,
+                          //         children: [
+                          //           Checkbox(
+                          //             value: false,
+                          //             onChanged: (bool? value) {
+                          //               // Handle checkbox change
+                          //             },
+                          //           ),
+                          //           const SizedBox(width: 10),
+                          //           const Text(
+                          //             'Confirm Schedule',
+                          //             style: TextStyle(
+                          //                 fontWeight:
+                          //                     FontWeight.normal),
+                          //           ),
+                          //         ]),
+                          //   ],
+                          // ),
                           Padding(
                             padding: EdgeInsets.fromLTRB(60, 0, 0, 0),
                             child: Align(
                               alignment: Alignment.bottomCenter,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  Navigator.of(context).pop();
+                                  print(widget.delivery['isResolved']);
+                                  //Navigator.of(context).pop();
+                                  if(widget.delivery['isResolved'] == true){
+                                    widget.resolved(true);
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue
@@ -438,13 +473,24 @@ class UpdateSchedule extends StatelessWidget {
                                               borderRadius: BorderRadius
                                                   .horizontal(
                                                       left: Radius
-                                                          .circular(3),
+                                                          .circular(10),
                                                       right: Radius
-                                                          .circular(3)),
+                                                          .circular(10)),
                                               color:
                                                   Colors.blue.shade100,
                                               border: Border.all(
                                                   color: Colors.blue),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(10.0),
+                                              child: widget.delivery['documentation'] != null
+                                                  ? Image.network(
+                                                widget.delivery['documentation'],
+                                                width: 195,
+                                                height: 195,
+                                                fit: BoxFit.cover, // Adjust the fit as needed
+                                              )
+                                                  : Icon(Icons.picture_in_picture)
                                             ),
                                             //forda upload files or picture
                                           ),

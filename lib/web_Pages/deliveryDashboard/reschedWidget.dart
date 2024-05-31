@@ -22,70 +22,26 @@ class _ReschedDeliveryState extends State<ReschedDelivery> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Container(
-            padding: const EdgeInsets.only(bottom: 10, top:10),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Halted Deliveries',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold
-                ),
-              ),
-            ),
-            const SizedBox(width: 20,),
-            Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.green,
-
-              ),
-              child: Text(
-                haltedDeliveries.length.toString(),
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white
-                ),
-              ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      height: 250, // Set a fixed height for the container
+      width: double.infinity, // Make the container expand horizontally
+      decoration: const BoxDecoration(color: Color.fromARGB(109, 223, 222, 222)),
+      child: haltedDeliveries.length == 0 
+      ? Container(
+        height: 300,
+        child: const Center(
+          child: Text(
+            'No deliveries need to be reassigned',
+            style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 20,
+                fontWeight: FontWeight.bold
+              ),  
             )
-          ],
-        ),
-        
-        const Divider(color: Colors.blue,),
-        const SizedBox(height: 10),
-
-        Container(
-          padding: const EdgeInsets.all(16),
-          height: 250, // Set a fixed height for the container
-          width: double.infinity, // Make the container expand horizontally
-          decoration: const BoxDecoration(color: Color.fromARGB(109, 223, 222, 222)),
-          child: haltedDeliveries.length == 0 
-          ? Container(
-            height: 300,
-            child: const Center(
-              child: Text(
-                'No deliveries need to be reassigned',
-                style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold
-                  ),  
-                )
-              ),
-            )          
-          : assignCarousel()
-        ),
-      ],
+          ),
+        )          
+      : assignCarousel()
     );
   }
 
@@ -120,13 +76,23 @@ class _ReschedDeliveryState extends State<ReschedDelivery> {
   Widget deliveryContainer(Map<String, dynamic> delivery){
    
     return InkWell(
-      onTap: () {
-        showDialog<String>(
+      onTap: () async {
+        bool? resolved = await showDialog<bool?>(
           context: context,
           builder: (BuildContext context) {
-            return UpdateSchedule(delivery: delivery);
+            return UpdateSchedule(delivery: delivery, resolved: (value){
+              Navigator.of(context).pop(value);
+            },);
           },
         );
+        
+        print(resolved);
+
+        if(resolved!=null && resolved == true){
+          setState(() {
+            haltedDeliveries.remove(delivery);
+          });
+        }
 
       },
       child: Container(

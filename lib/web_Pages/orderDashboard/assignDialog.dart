@@ -698,7 +698,8 @@ class _AssignDialogState extends State<AssignDialog> {
                                   Navigator.pop(progressContext!);
                                 }
                               }
-                              assignedValue = 'Assigned';
+                              assignedValue = truck;
+                              print(assignedValue);
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {

@@ -71,35 +71,22 @@ class PayrollService{
     }
   }
 
-  Future<Map<String, dynamic>> getDeduction(String staffId) async {
+  Future<Map<String, dynamic>> getDeduction(String staffId, String path) async {
     Map<String, dynamic> staffDeduction = {};
     try {
-      DocumentSnapshot staffquery = await _firestore.collection('Payroll').doc(staffId).get();
-      // Handle the document snapshot
-      if (staffquery.exists) {
-        Map<String, dynamic> document = staffquery.data() as Map<String, dynamic>;
-        staffDeduction['staffId'] = staffquery.id;
-        staffDeduction.addAll(document);
-      } else {
-        print('no document');
-        // Set default values and create new document
-        await _firestore
-            .collection('Payroll')
-            .doc(staffId)
-            .set({
-              'SSS': 0,
-              'PhilHealth': 0, 
-              'Pagibig': 0,
-              'ClaimedStatus' : false,
-              'NetSalary': 0, 
-            });
-
+      _firestore..collection(path).doc(staffId)
+        .update({
+          'SSS': 0,
+          'PhilHealth': 0, 
+          'Pagibig': 0,
+          'ClaimedStatus' : 'Not Claimed',
+          'NetSalary': 0, 
+      });
         // Fetch newly created document
-        DocumentSnapshot newStaffquery = await _firestore.collection('Payroll').doc(staffId).get();
-        Map<String, dynamic> newDocument = newStaffquery.data() as Map<String, dynamic>;
-        staffDeduction['staffId'] = newStaffquery.id;
+        DocumentSnapshot staffdoc = await _firestore.collection(path).doc(staffId).get();
+        Map<String, dynamic> newDocument = staffdoc.data() as Map<String, dynamic>;
         staffDeduction.addAll(newDocument);
-      }
+      
     } catch (e) {
       // Handle errors
       print('Error fetching document: $e');
@@ -208,6 +195,11 @@ class PayrollService{
         if (payrollSnapshot.exists) {
           Map<String, dynamic> payrollData = payrollSnapshot.data() as Map<String, dynamic>;
           payrollData['staffId'] = payrollSnapshot.id;
+          
+          if(payrollData.containsKey('ClaimedStatus') == false){
+            Map<String, dynamic> deductions = await getDeduction(payrollData['staffId'], path);
+            payrollData.addAll(deductions);
+          }
 
           QuerySnapshot staffInfo = await _firestore.collection('Users').where('staffId', isEqualTo: payrollSnapshot.id)
           .get();

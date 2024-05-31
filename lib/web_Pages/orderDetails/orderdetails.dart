@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
+import 'package:haul_a_day_web/service/userService.dart';
 import 'package:haul_a_day_web/trialpage/orderscreen.dart';
 import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/web_Pages/orderDashboard/assignDialog.dart';
@@ -16,8 +17,9 @@ import 'package:timeline_tile/timeline_tile.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final Map<String,dynamic> order;
+  final List<Map<String,dynamic>> orders;
   final TabSelection previousTab;
-  OrderDetailsPage({super.key, required this.order, required this.previousTab});
+  OrderDetailsPage({super.key, required this.order, required this.previousTab, required this.orders});
 
   @override
   State<OrderDetailsPage> createState() => _OrderDetailsPageState();
@@ -65,6 +67,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
  
   @override
   Widget build(BuildContext context) {
+    print('Order Assigned: ${widget.order['assignedStatus']}');
     Size size = MediaQuery.of(context).size;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 50),
@@ -431,8 +434,47 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                                 child: const Text('Cancel Confirmation'),
                               ),
                               TextButton(
-                                onPressed: () {
+                                onPressed: () async{
+                                  bool deleting = true;
+                                  BuildContext? progressContext;
+                            
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (BuildContext context) {
+                                      // Update progressContext inside the showDialog function
+                                      progressContext = context;
+                                      return Dialog(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(20.0),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              CircularProgressIndicator(color: Colors.green,),
+                                              SizedBox(height: 20),
+                                              Text('Deleting...'),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                  UserService userService = UserService();
+                                  await userService.removeOrder(order['id']);
+                                  setState(() {
+                                    widget.orders.remove(order);
+                                  });
                                   Navigator.of(context).pop();
+                                  if (progressContext != null) {
+                                    Navigator.pop(progressContext!);
+                                  }
+                                  if(widget.previousTab == TabSelection.Order){
+                                    Provider.of<SideMenuSelection>(context, listen: false)
+                                      .setSelectedTab(TabSelection.Order); // Assuming the order tab index is 3
+                                  }else if(widget.previousTab == TabSelection.Delivery){
+                                      Provider.of<SideMenuSelection>(context, listen: false)
+                                      .setSelectedTab(TabSelection.Delivery);
+                                  }
                                 },
                                 child: const Text('Remove Order'),
                               ),
@@ -451,8 +493,47 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                         content: const Text("Do you wish to remove the order completely?"),
                         actions: <Widget>[
                           TextButton(
-                            onPressed: () {
+                            onPressed: () async{
+                              bool deleting = true;
+                              BuildContext? progressContext;
+                        
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (BuildContext context) {
+                                  // Update progressContext inside the showDialog function
+                                  progressContext = context;
+                                  return Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          CircularProgressIndicator(color: Colors.green,),
+                                          SizedBox(height: 20),
+                                          Text('Deleting...'),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                              UserService userService = UserService();
+                              await userService.removeOrder(order['id']);
+                              setState(() {
+                                widget.orders.remove(order);
+                              });
                               Navigator.of(context).pop();
+                              if (progressContext != null) {
+                                Navigator.pop(progressContext!);
+                              }
+                              if(widget.previousTab == TabSelection.Order){
+                                Provider.of<SideMenuSelection>(context, listen: false)
+                                  .setSelectedTab(TabSelection.Order); // Assuming the order tab index is 3
+                              }else if(widget.previousTab == TabSelection.Delivery){
+                                  Provider.of<SideMenuSelection>(context, listen: false)
+                                  .setSelectedTab(TabSelection.Delivery);
+                              }
                             },
                             child: const Text('Remove Order'),
                           ),

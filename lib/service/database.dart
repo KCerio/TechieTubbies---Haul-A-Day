@@ -32,6 +32,7 @@ class DatabaseService {
 
       if (orderSnapshot.exists) {
         Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
+        order['id'] = orderSnapshot.id;
         order.addAll(orderData); // Use addAll to merge maps
       } else {
         throw Exception('Order with ID $orderId not found');
@@ -63,9 +64,16 @@ class DatabaseService {
         var loadDate = DateFormat('MMM dd, yyyy').format(date);
         var loadTime = DateFormat('HH:mm a').format(date);
         var loadID = scheduleSnapshot.docs.first.id;
-        loadingSchedule['id'] = loadID;
-        loadingSchedule['time'] = loadTime;
-        loadingSchedule['date'] = loadDate;
+        loadingSchedule['loadId'] = loadID;
+        loadingSchedule['loadingTime'] = loadTime;
+        loadingSchedule['loadingDate'] = loadDate;
+
+        double weight = 0;
+          List<Map<String, dynamic>> unloadingList = await fetchUnloadingSchedules(orderId);
+          for (Map<String, dynamic> unloadData in unloadingList){
+            weight += unloadData['weight'];
+          }
+        loadingSchedule['totalWeight'] = weight;
         return loadingSchedule;
       } else {
         throw Exception('Loading schedule not found for order with ID $orderId');
@@ -912,43 +920,141 @@ class DatabaseService {
   }
 
   Future<List<Map<String, dynamic>>> fetchAttendance(String reportId, String orderId, String truck) async {
-  try {
-    QuerySnapshot attendanceSnapshots = await _firestore
-        .collection('Order')
-        .doc(orderId)
-        .collection('Delivery Reports')
-        .doc(reportId)
-        .collection('Attendance')
-        .get();
+    try {
+      QuerySnapshot attendanceSnapshots = await _firestore
+          .collection('Order')
+          .doc(orderId)
+          .collection('Delivery Reports')
+          .doc(reportId)
+          .collection('Attendance')
+          .get();
 
-    List<Map<String, dynamic>> attendance = [];
+      List<Map<String, dynamic>> attendance = [];
 
-    for (DocumentSnapshot attendanceSnapshot in attendanceSnapshots.docs) {
-      if (attendanceSnapshot.exists) {
-        var staffId = attendanceSnapshot.id; // Include the document ID
+      for (DocumentSnapshot attendanceSnapshot in attendanceSnapshots.docs) {
+        if (attendanceSnapshot.exists) {
+          var staffId = attendanceSnapshot.id; // Include the document ID
 
-        Map<String, dynamic> crewInfo = {};
-        QuerySnapshot querySnapshot = await _firestore.collection('Users').where('staffId', isEqualTo: staffId).get();
-        querySnapshot.docs.forEach((DocumentSnapshot documentSnapshot) {
-          if (documentSnapshot.exists) {
-            var crewData = documentSnapshot.data() as Map<String, dynamic>; // Cast to the appropriate type
-            crewInfo['name'] = (crewData['firstname'] ?? '') + ' ' + (crewData['lastname'] ?? '');
-            crewInfo['position'] = crewData['position'];
-            crewInfo['pictureUrl'] = crewData['pictureUrl'];
-          }
-        });
-        attendance.add(crewInfo);
+          Map<String, dynamic> crewInfo = {};
+          QuerySnapshot querySnapshot = await _firestore.collection('Users').where('staffId', isEqualTo: staffId).get();
+          querySnapshot.docs.forEach((DocumentSnapshot documentSnapshot) {
+            if (documentSnapshot.exists) {
+              var crewData = documentSnapshot.data() as Map<String, dynamic>; // Cast to the appropriate type
+              crewInfo['name'] = (crewData['firstname'] ?? '') + ' ' + (crewData['lastname'] ?? '');
+              crewInfo['position'] = crewData['position'];
+              crewInfo['pictureUrl'] = crewData['pictureUrl'];
+            }
+          });
+          attendance.add(crewInfo);
+        }
       }
+
+      
+
+      return attendance;
+    } catch (e) {
+      throw Exception('Failed to fetch attendance: $e');
     }
-
-    
-
-    return attendance;
-  } catch (e) {
-    throw Exception('Failed to fetch attendance: $e');
   }
-}
+
+  Future<List<Map<String, dynamic>>> fetchHaltedDeliveries() async 
+  {
+    List<Map<String, dynamic>> haltedDeliveries = [];
+
+    try { 
+      // Fetch all orders
+      QuerySnapshot ordersSnapshot = await _firestore.collection('Order').get();
+
+      for (QueryDocumentSnapshot orderDoc in ordersSnapshot.docs) {
+        //Map<String, dynamic> orderData = orderDoc.data() as Map<String, dynamic>;
+        Map<String, dynamic> orderData = await fetchOrderDetails(orderDoc.id);
+        if(orderData.containsKey('isHalted')&&orderData['isHalted']==true){
+          //orderData['id'] = orderDoc.id;
+          print(orderData['id']);
+          Map<String, dynamic> report = await fetchReport(orderData['id']);
+          print('report: $report');
+          orderData.addAll(report);
+         haltedDeliveries.add(orderData);
+        }
+
+      }
+
+      return haltedDeliveries;
+    } catch (e) {
+      print("Error fetching unsuccessful reports: $e");
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchReport(String order) async {
+    try {
+      // Fetch all orders
+      QuerySnapshot ordersSnapshot = await _firestore.collection('Order/$order/Delivery Reports').get();
+
+      for (QueryDocumentSnapshot orderDoc in ordersSnapshot.docs) {
+        Map<String, dynamic> orderData = orderDoc.data() as Map<String, dynamic>;
+
+        if(orderData['isSuccessful']==false && orderData.containsKey('isResolved')&&orderData['isResolved']==false){
+          orderData['reportId'] = orderDoc.id;
+          return orderData;
+        }
+      }
+
+      return {};
+
+    } catch (e) {
+      print("Error fetching unsuccessful reports: $e");
+      return {};
+
+    }
+  }
+
+  Future<bool> changeTruckTeam(String orderId)async{
+    bool changed = false;
+    try{
+      QuerySnapshot ordersSnapshot = await _firestore.collection('Order/$orderId/truckTeam').get();
+      if(ordersSnapshot.docs.isEmpty){
+        changed = true;
+      }else{
+        for(QueryDocumentSnapshot order in ordersSnapshot.docs){
+          DocumentReference orderDocRef = FirebaseFirestore.instance.collection('Order/$orderId/truckTeam').doc(order.id);
+          await orderDocRef.delete();
+
+        }
+        changed = true;
+      }
+    } catch(e){
+      print('Error: $e');
+    }
+    return changed;
+  }
+
+  
+  void resolve(String orderId)async{
+    try{
+      DocumentSnapshot orderdocSnapshot = await _firestore.collection('Order').doc(orderId).get();
+      if(orderdocSnapshot.exists){
+        await _firestore.collection('Order').doc(orderId).update({
+          'isHalted' : false,
+        });
+      }
+
+      QuerySnapshot ordersSnapshot = await _firestore.collection('Order/$orderId/Delivery Reports').get();
+      for (QueryDocumentSnapshot orderDoc in ordersSnapshot.docs) {
+        Map<String, dynamic> orderData = orderDoc.data() as Map<String, dynamic>;
+
+        if(orderData['isSuccessful']==false && orderData.containsKey('isResolved')&&orderData['isResolved']==false){
+          await _firestore.collection('Order/$orderId/Delivery Reports').doc(orderDoc.id).update({
+            'isResolved' : true,
+          });
+        }
+      }
+    }catch(e){
+      print('Failed: $e');
+    }
+  }
 
 }
+
 
 
