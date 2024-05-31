@@ -323,7 +323,8 @@ class _TruckListState extends State<TruckList> {
                   IconButton(
                     icon: Icon(Icons.delete),
                     onPressed: (){
-                      showDialog(
+                      if(aTruck['truckStatus'] != 'Busy'){
+                        showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
@@ -355,6 +356,27 @@ class _TruckListState extends State<TruckList> {
                           );
                         },
                       );
+                      }else{
+                        showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Error'),
+                            content:  Text('Cannot delete ${aTruck['id']}.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () async{
+                                
+                                  Navigator.of(context).pop(); // Close the dialog
+                                },
+                                child: Text('Ok'),
+                              ),
+                              
+                            ]
+                          );
+                        },
+                      );
+                      }
                     },
                   ),
                 ]),

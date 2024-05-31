@@ -83,7 +83,7 @@ class _HomepageState extends State<Homepage> {
                     Widget selectedWidget;
                     switch (_tabSelection) {
                       case TabSelection.Home:
-                        selectedWidget = Home(userFirstName: widget.userInfo['firstname']);
+                        selectedWidget = Home(userFirstName: widget.userInfo['firstname'], orders: _orderDetails);
                         break;
                       case TabSelection.StaffList:
                         selectedWidget = StaffList(
@@ -141,7 +141,8 @@ class _HomepageState extends State<Homepage> {
 
 class Home extends StatefulWidget {
   final String userFirstName;
-  const Home({super.key, required this.userFirstName});
+  final List<Map<String,dynamic>> orders;
+  const Home({super.key, required this.userFirstName, required this.orders});
 
   @override
   State<Home> createState() => _HomeState();
@@ -151,13 +152,29 @@ class _HomeState extends State<Home> {
   DatabaseService databaseService = DatabaseService();
   List<Map<String, dynamic>> _trucks = [];
   List<Map<String, dynamic>> _accomplishedDeliveries = [];
+  List<Map<String, dynamic>> _orders = [];
 
   @override
   void initState() {
     super.initState();
+    //_waitForFetchOrderDetails();
     _initializeTruckData();
     _accomplishedDeliveriesList();
   }
+
+  // void _waitForFetchOrderDetails() {
+  //   Future.delayed(Duration(milliseconds: 100), () {
+  //     if (widget.orders.isNotEmpty) {
+  //       setState(() {
+  //         _orders = widget.orders;
+  //         //print('${widget.fetchOrderDetails}, $_filteredOrderDetails');
+  //       });
+  //       sortNotif(_orders);
+  //     } else {
+  //       _waitForFetchOrderDetails(); // Call the function again if fetchOrderDetails is not true
+  //     }
+  //   });
+  // }
 
   Future<void> _initializeTruckData() async {
     try {
@@ -290,6 +307,58 @@ class _HomeState extends State<Home> {
     }
   }
   
+  // void sortNotif(List<Map<String, dynamic>> list)async{
+  //   for(Map<String, dynamic> order in list){
+  //     if(_accomplishedDeliveries.contains(order['id'])){
+  //       List<Map<String, dynamic>> unloadings = await databaseService.fetchUnloadingSchedules(order['id']);
+  //         //print(unloadings.length);
+
+  //         if(unloadings.length > 0){
+  //           Map<String, dynamic> lastUnload = unloadings[unloadings.length-1];
+  //           if(lastUnload['deliveryStatus'] =='Delivered!'){
+  //             setState(() {
+  //               order['compareDate'] = DateFormat('MMM dd, yyyy').format(lastUnload['unloadingTimestamp'].toDate());
+  //             });
+  //           }
+  //         }
+  //     } else{
+  //       setState(() {
+  //         order['compareDate'] =DateFormat('MMM dd, yyyy').format(order['date_filed']);
+  //       });
+  //     }
+  //   }
+
+  //   String sortBy = 'compareDate';
+
+  //   int compare(Map<String, dynamic> a, Map<String, dynamic> b) {
+  //     // Access the values of the specified key from each map
+  //     var aValue = a[sortBy].length;
+  //     var bValue = b[sortBy].length;
+
+  //     // Compare the values and return the result
+  //     if (aValue is String && bValue is String) {
+  //       // For string comparison
+  //       return bValue.compareTo(aValue); // Reverse comparison for descending order
+  //     } else if (aValue is int && bValue is int) {
+  //       // For integer comparison
+  //       return bValue.compareTo(aValue); // Reverse comparison for descending order
+  //     } else {
+  //       // Handle other types if needed
+  //       return 0;
+  //     }
+  //   }
+    
+  //   // Sort the list using the comparator function
+  //   list.sort(compare);
+    
+  //   setState(() {
+  //     _orders = list;
+  //   });
+
+  //   print("filtered: $_orders");
+
+  // }
+  
   @override
   Widget build(BuildContext context) {
     // Get the current date
@@ -381,22 +450,44 @@ class _HomeState extends State<Home> {
                           ),
                           const SizedBox(height: 5),
                           Container(
-                            height: 410,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  ListView.builder(
-                                      shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                      itemCount: 8,
-                                      itemBuilder: (context, index) {
-                                        return notifContainer(index);
-                                      },
-                                    ),
-                                ],
-                              ),
+                          height: 410, 
+                          child: _accomplishedDeliveries.isEmpty ? Center(child: CircularProgressIndicator(),)
+                          : SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                StreamBuilder<QuerySnapshot>(
+                                  stream: getOrderStream(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return Center(child: CircularProgressIndicator());
+                                    } else if (snapshot.hasError) {
+                                      return Center(child: Text('Error: ${snapshot.error}'));
+                                    } else if (!snapshot.hasData || snapshot.data?.docs.isEmpty == true) {
+                                      return Center(child: Text('No orders available'));
+                                    } else {
+                                      // Convert snapshot data to List<Map<String, dynamic>>
+                                      List<Map<String, dynamic>> notifications = snapshot.data!.docs.map((doc) {
+                                        var data = doc.data() as Map<String, dynamic>;
+                                        data['id'] = doc.id;
+                                        return data;
+                                      }).toList();
+
+
+                                      return ListView.builder(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        itemCount: notifications.length,
+                                        itemBuilder: (context, index) {
+                                          return notifContainer(notifications[index]);
+                                        },
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
-                          ),      
+                          ),
+                        )
                       ]
                     ),
                   ),
@@ -545,7 +636,14 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget notifContainer(int index){
+  Widget notifContainer(Map<String, dynamic> notif){
+    if(_accomplishedDeliveries.contains(notif['id'])){
+      return accomplishedNotif(notif);
+    }
+    return orderNotif(notif);
+  }
+
+  Widget accomplishedNotif(Map<String, dynamic> notif){
     return Column(
       children: [
         Container(
@@ -562,7 +660,7 @@ class _HomeState extends State<Home> {
           child: Row(
             children: [
               // Icon and Text "Customer X" and "16 December 2023" in a Column
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.local_shipping,
                       size: 50,
@@ -577,18 +675,18 @@ class _HomeState extends State<Home> {
                             .start,
                     children: [
                       Text(
-                        'Team A',
+                        'Accomplished Delivery: ${notif['id']} - ${notif['assignedTruck']}',
                         style: TextStyle(
                           color: Colors
                               .white, // White text color for better visibility
-                          fontSize: 35,
+                          fontSize: 18,
                           fontWeight:
                               FontWeight
                                   .bold,
                         ),
                       ),
                       Text(
-                        '15 December 2023',
+                        notif['accomplishedDate'],
                         style: TextStyle(
                           color: Colors
                               .white, // White text color for better visibility
@@ -618,7 +716,108 @@ class _HomeState extends State<Home> {
                   ),
                   GestureDetector(
                       onTap: () {
-                        // Assuming the order tab index is 3
+                        Provider.of<SideMenuSelection>(context, listen: false)
+                                  .setSelectedOrder(notif);
+                        Provider.of<SideMenuSelection>(context, listen: false)
+                                  .setSelectedTab(TabSelection.Delivery);
+                      },
+                      child: const Icon(
+                        Icons
+                            .keyboard_double_arrow_right_outlined,
+                        size:
+                            50, // Set the size of the icon
+                        color: Colors
+                            .white, // Set the color of the icon
+                      )),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height:5)
+      ],
+    );
+  }
+
+  Widget orderNotif(Map<String, dynamic> notif){
+    print(_accomplishedDeliveries.length);
+    //print(notif['id']);
+    return Column(
+      children: [
+        Container(
+          width: 700,
+          margin: const EdgeInsets.fromLTRB(
+              100, 0, 100, 0),
+          padding: const EdgeInsets.fromLTRB(
+              10, 0, 0, 0),
+          decoration: BoxDecoration(
+            color: Colors.green,
+            borderRadius:
+                BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              // Icon and Text "Customer X" and "16 December 2023" in a Column
+              Row(
+                children: [
+                  Icon(Icons.assignment,
+                      size: 50,
+                      color: Colors
+                          .white), // Icon before "Customer X"
+                  SizedBox(
+                      width:
+                          5), // Spacer between icon and text
+                  Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
+                    children: [
+                      Text(
+                        'New Order: ${notif['id']}',
+                        style: TextStyle(
+                          color: Colors
+                              .white, // White text color for better visibility
+                          fontSize: 18,
+                          fontWeight:
+                              FontWeight
+                                  .bold,
+                        ),
+                      ),
+                      Text(
+                        '${DateFormat('MMM dd, yyyy').format(notif['date_filed'].toDate()).toString()}',
+                        style: TextStyle(
+                          color: Colors
+                              .white, // White text color for better visibility
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+        
+              // Spacer to push the "Order" text and arrows to the right
+              const Spacer(),
+        
+              //Text Order
+              Row(
+                children: [
+                  const Text(
+                    'Order',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight:
+                            FontWeight
+                                .normal,
+                        color:
+                            Colors.white),
+                  ),
+                  GestureDetector(
+                      onTap: () {
+                        Provider.of<SideMenuSelection>(context, listen: false)
+                                  .setSelectedOrder(notif);
+                        Provider.of<SideMenuSelection>(context, listen: false)
+                                  .setSelectedTab(TabSelection.OrderDetails);
                       },
                       child: const Icon(
                         Icons
@@ -731,5 +930,9 @@ class _HomeState extends State<Home> {
         },
       )
     );
+  }
+
+  Stream<QuerySnapshot> getOrderStream() {
+    return FirebaseFirestore.instance.collection('Order').snapshots();
   }
 }

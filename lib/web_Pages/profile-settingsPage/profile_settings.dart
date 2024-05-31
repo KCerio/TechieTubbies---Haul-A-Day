@@ -308,26 +308,26 @@ class _Profile_SettingsState extends State<Profile_Settings> {
                                     ],
                                   ),
                                   SizedBox(height: 10),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.view_week_outlined, 
-                                        size: 24, 
-                                        color: Colors.grey, 
-                                      ),
-                                      SizedBox(width: 5),
-                                      Text(
-                                        '10+ Cargo Weekly',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey,
-                                          fontFamily: 'Itim',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  // Row(
+                                  //   mainAxisSize: MainAxisSize.min,
+                                  //   children: [
+                                  //     Icon(
+                                  //       Icons.view_week_outlined, 
+                                  //       size: 24, 
+                                  //       color: Colors.grey, 
+                                  //     ),
+                                  //     SizedBox(width: 5),
+                                      // Text(
+                                      //   '10+ Cargo Weekly',
+                                      //   style: TextStyle(
+                                      //     fontSize: 18,
+                                      //     fontWeight: FontWeight.bold,
+                                      //     color: Colors.grey,
+                                      //     fontFamily: 'Itim',
+                                      //   ),
+                                      // ),
+                                  //   ],
+                                  // ),
                                   SizedBox(height: 20),
                                   Text(
                                     'Contact Info',

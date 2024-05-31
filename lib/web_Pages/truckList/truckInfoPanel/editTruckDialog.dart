@@ -63,7 +63,7 @@ class _EditTruckState extends State<EditTruck> {
     }
     setState(() {
       drivers.add(driver);
-      drivers.add('none');
+      //drivers.add('none');
       _drivers = _dbdrivers;
     });
 
@@ -236,27 +236,27 @@ class _EditTruckState extends State<EditTruck> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          TextFormField(
-                            controller: truckPlateNumber,
-                            validator: (value){
-                              if(value!.isEmpty){
-                                return "Enter Truck Plate Number";
-                              }
-                              return null;
-                            },
-                            decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.format_list_numbered),
-                              labelText: "Truck's Plate Number",
-                              labelStyle: TextStyle(
-                                color: Color(0xff5A5A5A),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                              ),
-                            ),
-                          ),
+                          // TextFormField(
+                          //   controller: truckPlateNumber,
+                          //   validator: (value){
+                          //     if(value!.isEmpty){
+                          //       return "Enter Truck Plate Number";
+                          //     }
+                          //     return null;
+                          //   },
+                          //   decoration: InputDecoration(
+                          //     prefixIcon: Icon(Icons.format_list_numbered),
+                          //     labelText: "Truck's Plate Number",
+                          //     labelStyle: TextStyle(
+                          //       color: Color(0xff5A5A5A),
+                          //     ),
+                          //     filled: true,
+                          //     fillColor: Colors.white,
+                          //     border: OutlineInputBorder(
+                          //       borderRadius: BorderRadius.circular(20.0),
+                          //     ),
+                          //   ),
+                          // ),
                           SizedBox(height: 15),
                           TextFormField(
                             controller: truckDescription,

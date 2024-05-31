@@ -63,7 +63,7 @@ class _LoginState extends State<Login> {
               children: [
                 CircularProgressIndicator(color: Colors.green,),
                 SizedBox(height: 20),
-                Text('Loging in...'),
+                Text('Logging in...'),
               ],
             ),
           ),

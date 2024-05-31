@@ -70,7 +70,7 @@ class _NotifWidgetState extends State<NotifWidget> {
                             .start,
                     children: [
                       Text(
-                        'Team A',
+                        'Accomplished Delivery: Order ID - Truck Team',
                         style: TextStyle(
                           color: Colors
                               .white, // White text color for better visibility
@@ -141,7 +141,7 @@ class _NotifWidgetState extends State<NotifWidget> {
           padding: const EdgeInsets.fromLTRB(
               10, 0, 0, 0),
           decoration: BoxDecoration(
-            color: Colors.amber,
+            color: Colors.green,
             borderRadius:
                 BorderRadius.circular(10),
           ),
@@ -150,7 +150,7 @@ class _NotifWidgetState extends State<NotifWidget> {
               // Icon and Text "Customer X" and "16 December 2023" in a Column
               const Row(
                 children: [
-                  Icon(Icons.local_shipping,
+                  Icon(Icons.assignment,
                       size: 50,
                       color: Colors
                           .white), // Icon before "Customer X"
@@ -163,7 +163,7 @@ class _NotifWidgetState extends State<NotifWidget> {
                             .start,
                     children: [
                       Text(
-                        'Team A',
+                        'New Order: Order ID - Route',
                         style: TextStyle(
                           color: Colors
                               .white, // White text color for better visibility
@@ -193,7 +193,7 @@ class _NotifWidgetState extends State<NotifWidget> {
               Row(
                 children: [
                   const Text(
-                    'Report',
+                    'Order',
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight:

@@ -283,10 +283,11 @@ class _UpdateScheduleState extends State<UpdateSchedule> {
                                           builder: (BuildContext context) {
                                             return AlertDialog(
                                               title: const Text('Confirmation'),
-                                              content:  Text('Do wish to resolve the problem and continue the delivery?'),
+                                              content:  Text('Do you wish to resolve the problem and continue the delivery?'),
                                               actions: <Widget>[
                                                 TextButton(
-                                                  onPressed: () {                                                    
+                                                  onPressed: () {         
+                                                    databaseService.resolve(widget.delivery['id']);                                           
                                                     setState(() {   
                                                       widget.delivery['isHalted'] = false;                                       
                                                       widget.delivery['isResolved'] = true;                                          
