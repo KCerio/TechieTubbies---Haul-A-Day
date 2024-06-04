@@ -790,7 +790,9 @@ class DatabaseService {
           //bool assignStatus = await getDeliveryStatus(orderSnapshot.id);
           if (orderData['assignedTruck'] != ''&& orderData['assignedTruck'] != 'None' && orderData['assignedTruck'] != 'none') {
             orderData['assignedStatus'] = 'true';
-          } else {
+          } else if(orderData['assignedTruck'] == null){
+            orderData['assignedStatus'] = 'false';
+          }else{
             orderData['assignedStatus'] = 'false';
           }
 

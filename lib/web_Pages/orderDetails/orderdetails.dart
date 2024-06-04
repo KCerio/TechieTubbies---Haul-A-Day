@@ -81,18 +81,18 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  IconButton(
-                  onPressed: (){
-                    if(widget.previousTab == TabSelection.Order){
-                    Provider.of<SideMenuSelection>(context, listen: false)
-                      .setSelectedTab(TabSelection.Order); // Assuming the order tab index is 3
-                    }else if(widget.previousTab == TabSelection.Delivery){
-                      Provider.of<SideMenuSelection>(context, listen: false)
-                      .setSelectedTab(TabSelection.Delivery);
-                    }
-                  },
-                  icon: Icon(Icons.arrow_back, size: 30)
-                ),
+                //   IconButton(
+                //   onPressed: (){
+                //     if(widget.previousTab == TabSelection.Order){
+                //     Provider.of<SideMenuSelection>(context, listen: false)
+                //       .setSelectedTab(TabSelection.Order); // Assuming the order tab index is 3
+                //     }else if(widget.previousTab == TabSelection.Delivery){
+                //       Provider.of<SideMenuSelection>(context, listen: false)
+                //       .setSelectedTab(TabSelection.Delivery);
+                //     }
+                //   },
+                //   icon: Icon(Icons.arrow_back, size: 30)
+                // ),
                 SizedBox(width: 10,),
                 const Text(
                   'Order Details',
@@ -1577,13 +1577,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Widget assignTile(constraints){
     double tileheight =constraints.maxHeight *0.125;
-    bool isAssigned = _order['assignedStatus']=='true';
+    bool isAssigned = _order['assignedStatus'] == 'true';
     String? assignedDate;
     if(_order['assignedTimestamp'] != null){
       DateTime timestamp = DateTime.parse(_order['assignedTimestamp']);
       assignedDate = DateFormat('MMM dd, yyyy').format(timestamp);
     }
-    //print('Assigned: $assignedDate $isAssigned');
+    print('Assigned: $assignedDate $isAssigned');
     return SizedBox(
       height:tileheight,
       child: TimelineTile(

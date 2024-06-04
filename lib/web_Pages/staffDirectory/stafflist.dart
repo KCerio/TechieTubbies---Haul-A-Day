@@ -1171,6 +1171,26 @@ class _StaffListState extends State<StaffList> {
                               padding: EdgeInsets.only(right: 50),
                               child: ElevatedButton(
                                 onPressed: () {
+                                  if(staff['assignedSchedule'] != 'none'){
+                                    showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Error'),
+                                        content: Text('This staff is on a ongoing delivery. \nYou cannot delete this account',),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(); // Close the dialog
+                                            },
+                                            child: Text('Ok'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                  
+                                  } else{
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext context) {
@@ -1239,7 +1259,7 @@ class _StaffListState extends State<StaffList> {
                                       );
                                     },
                                   );
-                                  
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,

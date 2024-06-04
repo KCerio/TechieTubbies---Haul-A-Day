@@ -35,8 +35,8 @@ class _DeliveryDashboardState extends State<DeliveryDashboard> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Provider.of<SideMenuSelection>(context, listen: false)
-      .setPreviousTab(TabSelection.Delivery);
+    // Provider.of<SideMenuSelection>(context, listen: false)
+    //   .setPreviousTab(TabSelection.Delivery);
     fetchHalted();
     _waitForFetchOrderDetails();
     for(Map<String, dynamic> order in widget.orderDetails){

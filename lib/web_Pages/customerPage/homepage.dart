@@ -48,11 +48,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                 ],
                 labelPadding: EdgeInsets.symmetric(horizontal: 20.0),
                 labelStyle: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
                 unselectedLabelStyle: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
                 labelColor: Colors.white,
