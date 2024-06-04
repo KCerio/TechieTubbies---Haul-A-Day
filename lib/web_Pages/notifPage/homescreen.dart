@@ -40,6 +40,8 @@ class _HomepageState extends State<Homepage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    Provider.of<SideMenuSelection>(context, listen: false)
+        .setPreviousTab(TabSelection.Home);
     _fetchData();
   }
 
@@ -83,7 +85,7 @@ class _HomepageState extends State<Homepage> {
                     Widget selectedWidget;
                     switch (_tabSelection) {
                       case TabSelection.Home:
-                        selectedWidget = Home(userFirstName: widget.userInfo['firstname'], orders: _orderDetails);
+                        selectedWidget = Home(userFirstName: widget.userInfo['firstname'], orders: _orderDetails, fetchOrderDetails: fetchingStatus,);
                         break;
                       case TabSelection.StaffList:
                         selectedWidget = StaffList(
@@ -101,11 +103,17 @@ class _HomepageState extends State<Homepage> {
                         );
                         break;
                       case TabSelection.OrderDetails:
-                        selectedWidget = OrderDetailsPage(
-                          order: orderSelected,
-                          previousTab: _previousTab,
-                          orders: _orderDetails,
+                        if(orderSelected.isNotEmpty){
+                            selectedWidget = OrderDetailsPage(
+                            order: orderSelected,
+                            previousTab: _previousTab,
+                            orders: _orderDetails,
+                          );
+                        } else{
+                          selectedWidget = Container(
+                          child: Text(orderSelected.isNotEmpty.toString()),
                         );
+                        }
                         break;
                       case TabSelection.Delivery:
                         selectedWidget = DeliveryDashboard(
@@ -114,7 +122,7 @@ class _HomepageState extends State<Homepage> {
                         );
                         break;
                       case TabSelection.Payroll:
-                        selectedWidget = Payroll(groupedOrders: _groupedOrders);
+                        selectedWidget = Payroll();
                         break;
                       case TabSelection.Profile:
                         selectedWidget = Profile_Settings(profile: true, settings: false, userInfo: widget.userInfo);
@@ -142,7 +150,8 @@ class _HomepageState extends State<Homepage> {
 class Home extends StatefulWidget {
   final String userFirstName;
   final List<Map<String,dynamic>> orders;
-  const Home({super.key, required this.userFirstName, required this.orders});
+  final bool fetchOrderDetails;
+  const Home({super.key, required this.userFirstName, required this.orders, required this.fetchOrderDetails});
 
   @override
   State<Home> createState() => _HomeState();
@@ -160,21 +169,37 @@ class _HomeState extends State<Home> {
     //_waitForFetchOrderDetails();
     _initializeTruckData();
     _accomplishedDeliveriesList();
+    _waitForFetchOrderDetails();
   }
 
-  // void _waitForFetchOrderDetails() {
-  //   Future.delayed(Duration(milliseconds: 100), () {
-  //     if (widget.orders.isNotEmpty) {
-  //       setState(() {
-  //         _orders = widget.orders;
-  //         //print('${widget.fetchOrderDetails}, $_filteredOrderDetails');
-  //       });
-  //       sortNotif(_orders);
-  //     } else {
-  //       _waitForFetchOrderDetails(); // Call the function again if fetchOrderDetails is not true
-  //     }
-  //   });
-  // }
+  void _waitForFetchOrderDetails() {
+    try{
+    //   Future.delayed(Duration(milliseconds: 100), () {
+    //   if (widget.fetchOrderDetails == true) {
+    //     setState(() {
+    //       _orders = _orders + widget.orders;
+    //       //print('${widget.fetchOrderDetails}, $_filteredOrderDetails');
+    //     });
+    //     sortNotif(_orders);
+    //   } else {
+    //     _waitForFetchOrderDetails(); // Call the function again if fetchOrderDetails is not true
+    //   }
+    // });
+      if (widget.fetchOrderDetails == true) {
+        setState(() {
+          print('added');
+          _orders = _orders + widget.orders;
+          sortNotif(_orders);
+          //print('${widget.fetchOrderDetails}, $_filteredOrderDetails');
+        });
+        
+      } else{
+        _waitForFetchOrderDetails(); // Call the function again if fetchOrderDetails is not true
+      }
+    }catch(e){
+      print(e);
+    }
+  }
 
   Future<void> _initializeTruckData() async {
     try {
@@ -228,7 +253,13 @@ class _HomeState extends State<Home> {
             Map<String, dynamic> lastUnload = unloadings[unloadings.length-1];
             if(lastUnload['deliveryStatus'] =='Delivered!'){
               orderData['accomplishedDate'] = DateFormat('MMM dd, yyyy').format(lastUnload['unloadingTimestamp'].toDate());
+              orderData['isAccomplished'] = true;
+              orderData['dateTocompare'] = orderData['accomplishedDate'];
               accomplishedOrders.add(orderData);
+              setState(() {
+                 _orders.add(orderData);
+                 sortNotif(_orders);
+              });
             }
           }
         }
@@ -307,56 +338,43 @@ class _HomeState extends State<Home> {
     }
   }
   
-  // void sortNotif(List<Map<String, dynamic>> list)async{
-  //   for(Map<String, dynamic> order in list){
-  //     if(_accomplishedDeliveries.contains(order['id'])){
-  //       List<Map<String, dynamic>> unloadings = await databaseService.fetchUnloadingSchedules(order['id']);
-  //         //print(unloadings.length);
+  void sortNotif(List<Map<String, dynamic>> list) {
+    String sortBy = 'dateTocompare';
+    final dateFormat = DateFormat('MMM dd, yyyy');
+    for(Map<String, dynamic> order in list){
+      if(order.containsKey('dateTocompare') == false && order.containsKey('isAccomplished') == false){
+        order['dateTocompare'] =  DateFormat('MMM dd, yyyy').format(order['date_filed'].toDate());
+      }
+    }
 
-  //         if(unloadings.length > 0){
-  //           Map<String, dynamic> lastUnload = unloadings[unloadings.length-1];
-  //           if(lastUnload['deliveryStatus'] =='Delivered!'){
-  //             setState(() {
-  //               order['compareDate'] = DateFormat('MMM dd, yyyy').format(lastUnload['unloadingTimestamp'].toDate());
-  //             });
-  //           }
-  //         }
-  //     } else{
-  //       setState(() {
-  //         order['compareDate'] =DateFormat('MMM dd, yyyy').format(order['date_filed']);
-  //       });
-  //     }
-  //   }
+    int compare(Map<String, dynamic> a, Map<String, dynamic> b) {
+      // Parse the date strings into DateTime objects
+      DateTime aValue = dateFormat.parse(a[sortBy]);
+      DateTime bValue = dateFormat.parse(b[sortBy]);
 
-  //   String sortBy = 'compareDate';
+      // Compare the DateTime objects for descending order
+      return bValue.compareTo(aValue);
+    }
 
-  //   int compare(Map<String, dynamic> a, Map<String, dynamic> b) {
-  //     // Access the values of the specified key from each map
-  //     var aValue = a[sortBy].length;
-  //     var bValue = b[sortBy].length;
+    // Sort the list using the comparator function
+    list.sort(compare);
 
-  //     // Compare the values and return the result
-  //     if (aValue is String && bValue is String) {
-  //       // For string comparison
-  //       return bValue.compareTo(aValue); // Reverse comparison for descending order
-  //     } else if (aValue is int && bValue is int) {
-  //       // For integer comparison
-  //       return bValue.compareTo(aValue); // Reverse comparison for descending order
+    // Update the state with the sorted list (if in a StatefulWidget)
+    setState(() {
+      _orders = list;
+    });
+
+    print("filtered: $_orders");
+  }
+
+  //  void _wait() {
+  //   Future.delayed(Duration(milliseconds: 100), () {
+  //     if (_orders.isNotEmpty) {
+  //       sortNotif(_orders);
   //     } else {
-  //       // Handle other types if needed
-  //       return 0;
+  //       _wait(); // Call the function again if fetchOrderDetails is not true
   //     }
-  //   }
-    
-  //   // Sort the list using the comparator function
-  //   list.sort(compare);
-    
-  //   setState(() {
-  //     _orders = list;
   //   });
-
-  //   print("filtered: $_orders");
-
   // }
   
   @override
@@ -451,39 +469,50 @@ class _HomeState extends State<Home> {
                           const SizedBox(height: 5),
                           Container(
                           height: 410, 
-                          child: _accomplishedDeliveries.isEmpty ? Center(child: CircularProgressIndicator(),)
+                          child: widget.fetchOrderDetails == false ? Center(child: CircularProgressIndicator(),)
                           : SingleChildScrollView(
                             child: Column(
                               children: [
-                                StreamBuilder<QuerySnapshot>(
-                                  stream: getOrderStream(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return Center(child: CircularProgressIndicator());
-                                    } else if (snapshot.hasError) {
-                                      return Center(child: Text('Error: ${snapshot.error}'));
-                                    } else if (!snapshot.hasData || snapshot.data?.docs.isEmpty == true) {
-                                      return Center(child: Text('No orders available'));
-                                    } else {
-                                      // Convert snapshot data to List<Map<String, dynamic>>
-                                      List<Map<String, dynamic>> notifications = snapshot.data!.docs.map((doc) {
-                                        var data = doc.data() as Map<String, dynamic>;
-                                        data['id'] = doc.id;
-                                        return data;
-                                      }).toList();
-
-
-                                      return ListView.builder(
-                                        shrinkWrap: true,
-                                        physics: const NeverScrollableScrollPhysics(),
-                                        itemCount: notifications.length,
-                                        itemBuilder: (context, index) {
-                                          return notifContainer(notifications[index]);
-                                        },
-                                      );
-                                    }
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _orders.length,
+                                  itemBuilder: (context, index) {
+                                    return notifContainer(_orders[index]);
                                   },
-                                ),
+                                )
+                                // StreamBuilder<QuerySnapshot>(
+                                //   stream: getOrderStream(),
+                                //   builder: (context, snapshot) {
+                                //     if (snapshot.connectionState == ConnectionState.waiting) {
+                                //       return Center(child: CircularProgressIndicator());
+                                //     } else if (snapshot.hasError) {
+                                //       return Center(child: Text('Error: ${snapshot.error}'));
+                                //     } else if (!snapshot.hasData || snapshot.data?.docs.isEmpty == true) {
+                                //       return Center(child: Text('No orders available'));
+                                //     } else {
+                                //       // Convert snapshot data to List<Map<String, dynamic>>
+                                //       List<Map<String, dynamic>> notifications = snapshot.data!.docs.map((doc) {
+                                //         var data = doc.data() as Map<String, dynamic>;
+                                //         data['id'] = doc.id;
+                                //         data['dateTocompare'] =  DateFormat('MMM dd, yyyy').format(data['date_filed'].toDate());
+                                //         _orders.add(data);
+                                //         return data;
+                                //       }).toList();
+
+                                //       //_wait();
+
+                                //       return ListView.builder(
+                                //         shrinkWrap: true,
+                                //         physics: const NeverScrollableScrollPhysics(),
+                                //         itemCount: notifications.length,
+                                //         itemBuilder: (context, index) {
+                                //           return notifContainer(_orders[index]);
+                                //         },
+                                //       );
+                                //     }
+                                //   },
+                                // ),
                               ],
                             ),
                           ),
@@ -637,7 +666,7 @@ class _HomeState extends State<Home> {
   }
 
   Widget notifContainer(Map<String, dynamic> notif){
-    if(_accomplishedDeliveries.contains(notif['id'])){
+    if(notif.containsKey('isAccomplished')){
       return accomplishedNotif(notif);
     }
     return orderNotif(notif);
@@ -715,11 +744,13 @@ class _HomeState extends State<Home> {
                             Colors.white),
                   ),
                   GestureDetector(
-                      onTap: () {
+                      onTap: () async{
+                        DatabaseService databaseService = DatabaseService();
+                        Map<String, dynamic> orderDetail = await databaseService.fetchOrderDetails(notif['id']);
                         Provider.of<SideMenuSelection>(context, listen: false)
-                                  .setSelectedOrder(notif);
+                                  .setSelectedOrder(orderDetail);
                         Provider.of<SideMenuSelection>(context, listen: false)
-                                  .setSelectedTab(TabSelection.Delivery);
+                                  .setSelectedTab(TabSelection.OrderDetails);
                       },
                       child: const Icon(
                         Icons
@@ -813,9 +844,11 @@ class _HomeState extends State<Home> {
                             Colors.white),
                   ),
                   GestureDetector(
-                      onTap: () {
+                      onTap: () async{
+                        DatabaseService databaseService = DatabaseService();
+                        Map<String, dynamic> orderDetail = await databaseService.fetchOrderDetails(notif['id']);
                         Provider.of<SideMenuSelection>(context, listen: false)
-                                  .setSelectedOrder(notif);
+                                  .setSelectedOrder(orderDetail);
                         Provider.of<SideMenuSelection>(context, listen: false)
                                   .setSelectedTab(TabSelection.OrderDetails);
                       },
@@ -838,53 +871,53 @@ class _HomeState extends State<Home> {
   }
   
   Widget topTeam(Map<String, dynamic> truckteam){
-    return InkWell(
-      onTap:(){},
-      child: Container(
-        padding: const EdgeInsets.only(right: 16,left:10),
-        decoration: const BoxDecoration(
-            //color: Color.fromARGB(255, 211, 208, 208), 
-            border: Border( // Adding a border
-              bottom: BorderSide(color: Colors.green, // Border color
-              width: 1.0,),// Border width
+    return Container(
+      height: 70,
+      padding: const EdgeInsets.only(right: 16,left:10),
+      decoration: const BoxDecoration(
+          //color: Color.fromARGB(255, 211, 208, 208), 
+          border: Border( // Adding a border
+            bottom: BorderSide(color: Colors.green, // Border color
+            width: 1.0,),// Border width
+        ),
+      ),
+      child: Row(
+        //crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 25,
+            backgroundImage: truckteam['truckPic'] != null
+                ? Image.network(truckteam['truckPic'],).image
+                : Image.asset('images/truck.png',).image,
           ),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 25,
-              backgroundImage: truckteam['truckPic'] != null
-                  ? Image.network(truckteam['truckPic'],).image
-                  : Image.asset('images/truck.png',).image,
-            ),
-            const SizedBox(width: 8.0),
-            Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                Text(truckteam['id'],
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight:
-                            FontWeight.bold,
-                        color: Colors.black)),
-                Text('${truckteam['accomplishedDeliveries'].length} Deliveries',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight:
-                            FontWeight.normal,
-                        color: Colors.black)),
-              ],
-            ),
-            const Spacer(),
-            const Text(
-              '>',
-              style: TextStyle(
-                  fontSize: 50,
-                  color: Colors.green),
-            ),
-          ],
-        ),
+          const SizedBox(width: 8.0),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              Text(truckteam['id'],
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight:
+                          FontWeight.bold,
+                      color: Colors.black)),
+              Text('${truckteam['accomplishedDeliveries'].length} Deliveries',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight:
+                          FontWeight.normal,
+                      color: Colors.black)),
+            ],
+          ),
+          const Spacer(),
+          // const Text(
+          //   '>',
+          //   style: TextStyle(
+          //       fontSize: 50,
+          //       color: Colors.green),
+          // ),
+        ],
       ),
     );
   }

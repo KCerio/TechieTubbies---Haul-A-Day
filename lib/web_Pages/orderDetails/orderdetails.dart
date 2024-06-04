@@ -3,10 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:haul_a_day_web/authentication/constant.dart';
 import 'package:haul_a_day_web/service/userService.dart';
-import 'package:haul_a_day_web/trialpage/orderscreen.dart';
 import 'package:haul_a_day_web/service/database.dart';
 import 'package:haul_a_day_web/web_Pages/orderDashboard/assignDialog.dart';
 import 'package:haul_a_day_web/web_Pages/orderDetails/deliveryReports.dart';
@@ -46,28 +46,30 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     List<Map<String, dynamic>> unloadings = await databaseService.fetchUnloadingSchedules(_order['id']);
     List<Map<String, dynamic>> deliveryReport = await databaseService.fetchDeliveryReports(_order['id']);
     List<Map<String, dynamic>> truckteam = await databaseService.fetchTruckTeam(_order['id']);
+    String truck = await databaseService.fetchAssignedTruck(_order['id']);
     //print("Delivery Reports: $deliveryReport");
     //print("Unloadings: $unloadings");
     setState(() {
       _unloadings=unloadings;
       _deliveryReport = deliveryReport;
       _truckteam = truckteam;
+      _order['assignedTruck'] = truck;
     });
 
     if(_unloadings.isNotEmpty){
-      print('unloading not empty');
+      //print('unloading not empty');
       Map<String, dynamic> lastUnload = _unloadings[_unloadings.length-1];
       setState(() {
           isComplete = lastUnload['deliveryStatus'] =='Delivered!';
       });
-      print("$lastUnload, $isComplete");
+      //print("$lastUnload, $isComplete");
     }
   }
 
  
   @override
   Widget build(BuildContext context) {
-    print('Order Assigned: ${widget.order['assignedStatus']}');
+    //print('Order Assigned: ${widget.order['assignedStatus']}');
     Size size = MediaQuery.of(context).size;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 50),
@@ -277,7 +279,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     DatabaseService databaseService = DatabaseService();
     bool confirm = order['confirmed_status'];
     BuildContext dialogContext;
-    print('${order['id']}: $confirm ${order['assignedStatus']}');
+    //print('${order['id']}: $confirm ${order['assignedStatus']}');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -587,13 +589,13 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
                             ),
-                            content: AssignDialog(order: order, onAssigned: (value) {
+                            content: AssignDialog(order: order, forHalt: false, onAssigned: (value) {
                               Navigator.of(context).pop(value); // Close the dialog and return the assigned value
                             },),
                           );
                         },
                       );
-                      print('AssignS: $assigned');
+                      //print('AssignS: $assigned');
                       // Now that the dialog has finished, get the assigned truck ID
                       if (assigned != null && assigned.isNotEmpty) {
                         DateTime timestamp = DateTime.now();
@@ -673,7 +675,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             child: LayoutBuilder(
               builder: (context,constraints) {
                 double width = constraints.maxWidth;
-                print("width: $width" );
+                //print("width: $width" );
                 return Container(
                   //color: Colors.yellow,
                   height: 125,
@@ -1115,7 +1117,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             child: LayoutBuilder(
               builder: (context,constraints) {
                 double width = constraints.maxWidth;
-                print("width: $width" );
+                //print("width: $width" );
                 return Container(
                   //color: Colors.yellow,
                   height: 125,
@@ -1238,7 +1240,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         LayoutBuilder(
           builder: (context,constraints) {
             double width = constraints.maxWidth -140;
-            print("width1: $width");
+            //print("width1: $width");
             return Container(
               margin: EdgeInsets.fromLTRB(50, 8, 50, 0),
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -1327,7 +1329,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     return LayoutBuilder(
       builder: (context,constraints) {
         double width = constraints.maxWidth -140;
-        print("width1: $width");
+        //print("width1: $width");
         return Container(
           margin: EdgeInsets.fromLTRB(50, 8, 50, 0),
           padding: EdgeInsets.symmetric(horizontal: 20),
@@ -1427,15 +1429,43 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${order['phone']}',
+            InkWell(
+              onTap: (){
+                Clipboard.setData(ClipboardData(text: '${order['phone']}'));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Copied to clipboard!',
+                      style: TextStyle(color: Colors.green, fontSize: 14),
+                    ),
+                    backgroundColor: Color.fromRGBO(230, 227, 227, 0.886),
+                  ),
+                );
+              },
+              child: Text(
+                '${order['phone']}',
+              ),
             ),
-            Text(
-              '${order['customer_email']}',
-              style: TextStyle(
-                decoration: TextDecoration.underline,
-                decorationColor: Colors.green,
-                color: Colors.green,
+            InkWell(
+              onTap: (){
+                Clipboard.setData(ClipboardData(text: '${order['customer_email']}'));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Copied to clipboard!',
+                      style: TextStyle(color: Colors.green, fontSize: 14),
+                    ),
+                    backgroundColor: Color.fromRGBO(230, 227, 227, 0.886),
+                  ),
+                );
+              },
+              child: Text(
+                '${order['customer_email']}',
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  decorationColor: Colors.green,
+                  color: Colors.green,
+                ),
               ),
             ),
             Text(
@@ -1510,7 +1540,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
 
   Widget orderConfirmTile(constraints){
-    print('here');
+    //print('here');
     double tileheight =constraints.maxHeight *0.125;
     bool isConfirmed =_order['confirmed_status']==true;
     String? confirmedDate;
@@ -1518,7 +1548,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       DateTime timestamp = DateTime.parse(_order['confirmedTimestamp']);
       confirmedDate = DateFormat('MMM dd, yyyy').format(timestamp);
     }
-    print('Confirmed: $confirmedDate');
+    //print('Confirmed: $confirmedDate');
     return SizedBox(
       height: tileheight-6,
       child: TimelineTile(
@@ -1553,7 +1583,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       DateTime timestamp = DateTime.parse(_order['assignedTimestamp']);
       assignedDate = DateFormat('MMM dd, yyyy').format(timestamp);
     }
-    print('Assigned: $assignedDate $isAssigned');
+    //print('Assigned: $assignedDate $isAssigned');
     return SizedBox(
       height:tileheight,
       child: TimelineTile(
@@ -1584,6 +1614,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 
   Widget loadingTile(constraints, Map<String, dynamic> load){
     //print('Loading: $load');
+    //print(load);
     double tileheight =constraints.maxHeight *0.125;
     bool isLoaded = _order['loadingStatus']=='Loaded!';
     bool isAssigned = _order['assignedStatus']=='true';
@@ -1593,7 +1624,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       var departTimestamp = load['departureTimeDate'].toDate();
       departDate = DateFormat('MMM dd, yyyy').format(departTimestamp);
     }
-    //print('Load: $departDate');
+    //print('Load: $departDate, $isLoaded');
 
     return SizedBox(
       height:tileheight,
@@ -1635,7 +1666,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       var departTimestamp = report['departureTimeDate'].toDate();
       departDate = DateFormat('MMM dd, yyyy').format(departTimestamp);
     }
-    print('Unload: $departDate');
+    //print('Unload: $departDate');
     return SizedBox(
       height:tileheight,
       child: TimelineTile(
@@ -1676,7 +1707,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       var departTimestamp = report['departureTimeDate'].toDate();
       departDate = DateFormat('MMM dd, yyyy').format(departTimestamp);
     }
-    print('Last Unload: $departDate');
+    //print('Last Unload: $departDate');
     return SizedBox(
       height:tileheight,
       child: TimelineTile(

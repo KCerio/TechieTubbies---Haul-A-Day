@@ -169,23 +169,27 @@ class _TruckListState extends State<TruckList> {
                               alignment: Alignment.center,
                               child: CircularProgressIndicator()
                               )
-                          : Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  //thy list creates the containers for all the trucks
-                                  ListView.builder(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(), // you can try to delete this
-                                    itemCount: _trucks.length,
-                                    itemBuilder: (context, index) {
-                                      return buildTruckContainer(_trucks[index]);
-                                    },
-                                  ),
-                                ],
-                              )
-                            ),
+                          : Column(
+                            children: [
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      //thy list creates the containers for all the trucks
+                                      ListView.builder(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(), // you can try to delete this
+                                        itemCount: _trucks.length,
+                                        itemBuilder: (context, index) {
+                                          return buildTruckContainer(_trucks[index]);
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                ),
+                              ),
+                            ],
                           )
                         ),
                         //const SizedBox(height: 20),

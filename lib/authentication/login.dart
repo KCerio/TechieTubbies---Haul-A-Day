@@ -147,7 +147,7 @@ class _LoginState extends State<Login> {
  
  Widget homepage(BuildContext context, Map<String, dynamic> userInfo) {
     return MaterialApp(
-      title: 'Haul-A-Day Website',
+      title: 'CUC Haul-A-Day',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,

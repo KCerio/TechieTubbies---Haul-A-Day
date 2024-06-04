@@ -20,8 +20,7 @@ import 'package:path/path.dart' as path;
 import 'dart:io';
 
 class Payroll extends StatefulWidget {
-  final Map<int, List<Map<String, dynamic>>> groupedOrders;
-  const Payroll({super.key, required this.groupedOrders});
+  const Payroll({super.key,});
 
   @override
   State<Payroll> createState() => _PayrollState();

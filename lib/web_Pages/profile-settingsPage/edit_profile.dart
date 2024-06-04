@@ -322,47 +322,45 @@ class _EditProfileContainerState extends State<EditProfileContainer> {
                                 child: Row(
                                   children: [
                                     Material(
-                                      child: Expanded(
-                                        child: Container(
-                                          width: 385,
-                                          height: 60,
-                                          decoration: BoxDecoration(
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.1), // Shadow color
-                                                spreadRadius: 2,
-                                                blurRadius: 5,
-                                                offset:
-                                                    Offset(0, 3), // changes position of shadow
-                                              ),
-                                            ],
-                                            borderRadius: BorderRadius.circular(
-                                                20.0), // Match the border radius
-                                          ),
-                                          child: TextFormField(
-                                            controller: firstNameController,
-                                            validator: (value){                                
-                                              if(value!.isNotEmpty){
-                                                bool  isValidName = RegExp(r'^[a-zA-Z\s]+$').hasMatch(value!);
-                                                if(!isValidName){
-                                                  return "Invalid first name. It should not include numbers and symbols";
-                                                }   
-                                              }                                
-                                              return null;
-                                            },
-                                            decoration: InputDecoration(
-                                              prefixIcon: Icon(Icons.person),
-                                              labelText: "First Name",
-                                              hintText: userInfo['firstname'],
-                                              labelStyle: TextStyle(
-                                                color: Color(0xff5A5A5A),
-                                              ),
-                                              filled: true,
-                                              fillColor: Colors.white,
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(20.0),
-                                              ),
+                                      child: Container(
+                                        width: 385,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.1), // Shadow color
+                                              spreadRadius: 2,
+                                              blurRadius: 5,
+                                              offset:
+                                                  Offset(0, 3), // changes position of shadow
+                                            ),
+                                          ],
+                                          borderRadius: BorderRadius.circular(
+                                              20.0), // Match the border radius
+                                        ),
+                                        child: TextFormField(
+                                          controller: firstNameController,
+                                          validator: (value){                                
+                                            if(value!.isNotEmpty){
+                                              bool  isValidName = RegExp(r'^[a-zA-Z\s]+$').hasMatch(value!);
+                                              if(!isValidName){
+                                                return "Invalid first name. It should not include numbers and symbols";
+                                              }   
+                                            }                                
+                                            return null;
+                                          },
+                                          decoration: InputDecoration(
+                                            prefixIcon: Icon(Icons.person),
+                                            labelText: "First Name",
+                                            hintText: userInfo['firstname'],
+                                            labelStyle: TextStyle(
+                                              color: Color(0xff5A5A5A),
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(20.0),
                                             ),
                                           ),
                                         ),
@@ -387,30 +385,28 @@ class _EditProfileContainerState extends State<EditProfileContainer> {
                                           borderRadius: BorderRadius.circular(
                                               20.0), // Match the border radius
                                         ),
-                                        child: Expanded(
-                                          child: TextFormField(
-                                            controller: lastNameController,
-                                            validator: (value){                                
-                                              if(value!.isNotEmpty){
-                                                bool  isValidName = RegExp(r'^[a-zA-Z\s]+$').hasMatch(value!);
-                                                if(!isValidName){
-                                                  return "Invalid last name. It should not include numbers and symbols";
-                                                } 
-                                              }                                  
-                                              return null;
-                                            },
-                                            decoration: InputDecoration(
-                                              prefixIcon: Icon(Icons.person),
-                                              labelText: "Last Name",
-                                              hintText: userInfo['lastname'],
-                                              labelStyle: TextStyle(
-                                                color: Color(0xff5A5A5A),
-                                              ),
-                                              filled: true,
-                                              fillColor: Colors.white,
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(20.0),
-                                              ),
+                                        child: TextFormField(
+                                          controller: lastNameController,
+                                          validator: (value){                                
+                                            if(value!.isNotEmpty){
+                                              bool  isValidName = RegExp(r'^[a-zA-Z\s]+$').hasMatch(value!);
+                                              if(!isValidName){
+                                                return "Invalid last name. It should not include numbers and symbols";
+                                              } 
+                                            }                                  
+                                            return null;
+                                          },
+                                          decoration: InputDecoration(
+                                            prefixIcon: Icon(Icons.person),
+                                            labelText: "Last Name",
+                                            hintText: userInfo['lastname'],
+                                            labelStyle: TextStyle(
+                                              color: Color(0xff5A5A5A),
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(20.0),
                                             ),
                                           ),
                                         ),
@@ -439,30 +435,28 @@ class _EditProfileContainerState extends State<EditProfileContainer> {
                                       borderRadius: BorderRadius.circular(
                                           20.0), // Match the border radius
                                     ),
-                                    child: Expanded(
-                                      child: TextFormField(
-                                        controller: emailController,
-                                        validator: (value){                                
-                                          if(value!.isNotEmpty){
-                                            bool  isValidStaffId = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value!);
-                                            if(!isValidStaffId){
-                                              return "Invalid Email Address.";
-                                            }  
-                                          }                     
-                                          return null;
-                                        },
-                                        decoration: InputDecoration(
-                                          prefixIcon: Icon(Icons.email),
-                                          labelText: "Email",
-                                          hintText: userInfo['email'] ?? '',
-                                          labelStyle: TextStyle(
-                                            color: Color(0xff5A5A5A),
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(20.0),
-                                          ),
+                                    child: TextFormField(
+                                      controller: emailController,
+                                      validator: (value){                                
+                                        if(value!.isNotEmpty){
+                                          bool  isValidStaffId = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value!);
+                                          if(!isValidStaffId){
+                                            return "Invalid Email Address.";
+                                          }  
+                                        }                     
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        prefixIcon: Icon(Icons.email),
+                                        labelText: "Email",
+                                        hintText: userInfo['email'] ?? '',
+                                        labelStyle: TextStyle(
+                                          color: Color(0xff5A5A5A),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(20.0),
                                         ),
                                       ),
                                     ),
@@ -489,30 +483,28 @@ class _EditProfileContainerState extends State<EditProfileContainer> {
                                       borderRadius: BorderRadius.circular(
                                           20.0), // Match the border radius
                                     ),
-                                    child: Expanded(
-                                      child: TextFormField(
-                                        controller: contactNumController,
-                                        validator: (value){                                
-                                          if(value!.isNotEmpty){
-                                            bool  isValidStaffId = RegExp(r'^09\d{9}$').hasMatch(value!);
-                                            if(!isValidStaffId){
-                                              return "Invalid Contact Number.";
-                                            }    
-                                          }                   
-                                          return null;
-                                        },
-                                        decoration: InputDecoration(
-                                          prefixIcon: Icon(Icons.phone),
-                                          labelText: "Contact Number",
-                                          hintText: userInfo['contactNumber'],
-                                          labelStyle: TextStyle(
-                                            color: Color(0xff5A5A5A),
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(20.0),
-                                          ),
+                                    child: TextFormField(
+                                      controller: contactNumController,
+                                      validator: (value){                                
+                                        if(value!.isNotEmpty){
+                                          bool  isValidStaffId = RegExp(r'^09\d{9}$').hasMatch(value!);
+                                          if(!isValidStaffId){
+                                            return "Invalid Contact Number.";
+                                          }    
+                                        }                   
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        prefixIcon: Icon(Icons.phone),
+                                        labelText: "Contact Number",
+                                        hintText: userInfo['contactNumber'],
+                                        labelStyle: TextStyle(
+                                          color: Color(0xff5A5A5A),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(20.0),
                                         ),
                                       ),
                                     ),

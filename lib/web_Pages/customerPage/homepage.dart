@@ -48,11 +48,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                 ],
                 labelPadding: EdgeInsets.symmetric(horizontal: 20.0),
                 labelStyle: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),
                 unselectedLabelStyle: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),
                 labelColor: Colors.white,
@@ -76,7 +76,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
         children: [
           homePage(),
           DeliveryHomePage(tabController: _tabController),
-          contactPage()
+          contactPage(),
+          Container(),
         ],
       ),
     );
@@ -232,7 +233,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                                     'Copied to clipboard!',
                                     style: TextStyle(color: Colors.green, fontSize: 14),
                                   ),
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: Color.fromRGBO(230, 227, 227, 0.886),
                                 ),
                               );
                             },
@@ -274,7 +275,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                                     'Copied to clipboard!',
                                     style: TextStyle(color: Colors.green, fontSize: 14),
                                   ),
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: Color.fromRGBO(230, 227, 227, 0.886),
                                 ),
                               );
                             },
@@ -300,7 +301,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                                     'Copied to clipboard!',
                                     style: TextStyle(color: Colors.green, fontSize: 14),
                                   ),
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: Color.fromRGBO(230, 227, 227, 0.886),
                                 ),
                               );
                             },
@@ -342,7 +343,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> with TickerProvider
                                     'Copied to clipboard!',
                                     style: TextStyle(color: Colors.green, fontSize: 14),
                                   ),
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: Color.fromRGBO(230, 227, 227, 0.886),
                                 ),
                               );
                             },

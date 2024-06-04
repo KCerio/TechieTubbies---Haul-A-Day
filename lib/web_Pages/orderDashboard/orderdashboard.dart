@@ -293,9 +293,9 @@ class _OrderDashboardState extends State<OrderDashboard> {
       child: InkWell(
         onTap: () {
           Provider.of<SideMenuSelection>(context, listen: false)
-                    .setSelectedOrder(order);
-          Provider.of<SideMenuSelection>(context, listen: false)
                     .setSelectedTab(TabSelection.OrderDetails);
+          Provider.of<SideMenuSelection>(context, listen: false)
+                    .setSelectedOrder(order);
         },
         child: Container(
           height: 60,

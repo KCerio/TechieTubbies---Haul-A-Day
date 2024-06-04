@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 
 class AssignDialog extends StatefulWidget {
   final Map<String,dynamic> order;
+  final bool forHalt;
   //final TabSelection currentTab;
   final Function(String?) onAssigned;
-  const AssignDialog({super.key, required this.order, required this.onAssigned});
+  const AssignDialog({super.key, required this.order, required this.onAssigned, required this.forHalt});
 
   @override
   State<AssignDialog> createState() => _AssignDialogState();
@@ -686,7 +687,7 @@ class _AssignDialogState extends State<AssignDialog> {
                                 order['assignedTimestamp'] = timestampString; // Add timestamp as a string to the map
                               });
                               print('Assign Schedule to: $orderId, $truck, $crew1, $crew2');
-                              bool status = await databaseService.assignSchedule(order['id'], truck,crew1,crew2);
+                              bool status = await databaseService.assignSchedule(widget.forHalt,order['id'], truck,crew1,crew2);
                               
                               /*//updates orders                        
                               List<Map<String, dynamic>> orderDetails = await databaseService.fetchAllOrderList();

@@ -155,7 +155,7 @@ class _AssignedWidgetState extends State<AssignedWidget> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
-                content: AssignDialog(order: order, onAssigned: (value) {
+                content: AssignDialog(order: order, forHalt: false,onAssigned: (value) {
                   Navigator.of(context).pop(value); // Close the dialog and return the assigned value
                 },),
               );

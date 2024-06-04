@@ -290,7 +290,8 @@ class _UpdateScheduleState extends State<UpdateSchedule> {
                                                     databaseService.resolve(widget.delivery['id']);                                           
                                                     setState(() {   
                                                       widget.delivery['isHalted'] = false;                                       
-                                                      widget.delivery['isResolved'] = true;                                          
+                                                      widget.delivery['isResolved'] = true;
+                                                      // widget.delivery['']                                          
                                                     });
                                                     Navigator.pop(context);                                            
                                                   },
@@ -329,7 +330,7 @@ class _UpdateScheduleState extends State<UpdateSchedule> {
                                     width: 200,
                                     child: ElevatedButton(
                                       onPressed: ()async{
-                                        bool deleteprevTeam = await databaseService.changeTruckTeam(widget.delivery['id']);
+                                        
                                         String? assigned = await showDialog<String>(
                                             context: context,
                                             builder: (BuildContext context) {
@@ -338,7 +339,7 @@ class _UpdateScheduleState extends State<UpdateSchedule> {
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius: BorderRadius.circular(15.0),
                                                 ),
-                                                content: AssignDialog(order: widget.delivery, onAssigned: (value) {
+                                                content: AssignDialog(order: widget.delivery, forHalt: true,onAssigned: (value) {
                                                   Navigator.of(context).pop(value); // Close the dialog and return the assigned value
                                                 },),
                                               );

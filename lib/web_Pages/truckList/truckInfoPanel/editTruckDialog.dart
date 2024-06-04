@@ -38,6 +38,8 @@ class _EditTruckState extends State<EditTruck> {
   String cargoType = '';
   String prevDriver = '';
 
+  bool busyTruck = false;
+
 
   @override
   void initState() {
@@ -46,6 +48,12 @@ class _EditTruckState extends State<EditTruck> {
     truckDescription.text=widget.truck['truckType'];
     maxCapacity.text=widget.truck['maxCapacity'].toString();
     cargoType = widget.truck['cargoType'];
+    if(widget.truck['truckStatus'] == 'Busy'){
+      print(widget.truck['truckStatus']);
+      setState(() {
+        busyTruck = true;
+      });
+    }
     fetchDriver(widget.truck['driver']);
     getDrivers();
 
@@ -63,14 +71,16 @@ class _EditTruckState extends State<EditTruck> {
     }
     setState(() {
       drivers.add(driver);
-      //drivers.add('none');
+      if(widget.truck['driver'] != 'none'){
+        drivers.add('none');
+      }
       _drivers = _dbdrivers;
     });
 
   }
 
   Future<void> fetchDriver(String driverId)async{
-    print('driver: ${driver}');
+    //print('driver: ${driver}');
     if(driverId=='none'){
       driver = 'none';
     }else{
@@ -331,7 +341,7 @@ class _EditTruckState extends State<EditTruck> {
                                 child: Text('Frozen Goods'),
                               ),
                             ],
-                            onChanged: (newValue) {
+                            onChanged: busyTruck ? null :(newValue) {
                               setState(() {
                                 cargoType = newValue as String;
                               });
@@ -367,7 +377,7 @@ class _EditTruckState extends State<EditTruck> {
                                 child: Text(value)
                               );
                             }).toList(),
-                            onChanged: (String? newValue) {
+                            onChanged: busyTruck ? null : (String? newValue) {
                               // Handle the value change
                               driver = newValue!;
                             },
@@ -400,7 +410,7 @@ class _EditTruckState extends State<EditTruck> {
                         if(driver != 'none'){
                           driverId = await databaseService.getStaffId(driver);
                         }
-                        print('$image, $truckId, $type, $cargoType, $max, $driverId');
+                        //print('$image, $truckId, $type, $cargoType, $max, $driverId');
                         bool updating = true;
 
                         // Declare progressContext outside the showDialog function
@@ -616,7 +626,7 @@ class _EditTruckState extends State<EditTruck> {
         Navigator.pop(progressContext!);
       }
 
-      print("Url: $imageUrl");
+      //print("Url: $imageUrl");
     } catch (e) {
       print('Error uploading image: $e');
       setState(() {
